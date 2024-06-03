@@ -1,5 +1,5 @@
 {
-  "name": "RSSA Preference Visualization",
+  "name": "rssa-preference-visualization",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -12,6 +12,8 @@
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.1",
     "d3": "^7.8.5",
+    "dompurify": "^3.1.5",
+    "html-react-parser": "^5.1.10",
     "paper": "^0.12.17",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",

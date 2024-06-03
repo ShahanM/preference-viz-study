@@ -14,3 +14,10 @@ export const VizLabels = {
 
 export const LIKE_CUTOFF = 3;
 export const DISLIKE_CUTOFF = 3;
+
+export const STRINGS = {
+	WINDOW_TOO_SMALL: `<p>This study requires your browser to be at least 
+					<strong><underline>1000 pixels wide</underline></strong>. 
+					Please resize your browser window or use a device with a 
+					larger screen.</p>`
+}

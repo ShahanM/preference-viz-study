@@ -30,6 +30,10 @@ export function get(path: string, userdata) {
 	});
 }
 
+export function put(path: string, data: any, userdata) {
+	return bodyRequest('PUT', path, data, getHeaders(userdata));
+}
+
 function bodyRequest(method: string, path: string, data: any, headers) {
 	return fetch(API + path, {
 		method: method,
