@@ -7,8 +7,8 @@ import './App.css';
 // import FeedbackPage from './pages/feedbackPage';
 // import { FinalPage } from './pages/finalPage';
 // import RateMovies from './pages/rateMovies';
-// import StudyMap from './pages/studymap';
 // import Survey from './pages/survey';
+import StudyMap from './pages/studymap';
 import Welcome from './pages/welcome';
 import { STRINGS } from './utils/constants';
 import { WarningDialog } from './widgets/dialogs/warningDialog';
@@ -32,7 +32,7 @@ function App() {
 				<Suspense fallback={<h1>Loading</h1>}>
 					<Routes>
 						<Route path="/" element={<Welcome next="/studyoverview" />} />
-						{/* <Route path="/studyoverview" element={<StudyMap next="/presurvey" />} /> */}
+						<Route path="/studyoverview" element={<StudyMap next="/presurvey" />} />
 						{/* <Route path="/presurvey" element={<Survey next="/ratemovies" />} /> */}
 						{/* <Route path="/ratemovies" element={<RateMovies next="/recommendations" />} /> */}
 						{/* <Route path="/recommendations" element={<EmotionPreferences next="/feedback" />} /> */}
