@@ -7,9 +7,9 @@ export default function Header(props) {
 	const parsed = parse(clean);
 
 	return (
-		<div className="jumbotron">
-			<h1 className="header">{props.title}</h1>
-			<div style={{ width: "fit-content", margin: "auto", textAlign: "left" }}>
+		<div className="layout-header">
+			<h1>{props.title}</h1>
+			<div className="layout-header-text">
 				{parsed}
 			</div>
 		</div>
