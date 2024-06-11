@@ -3,7 +3,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-	getNextStudyStep, sendLog, submitResponse, getSurveyPage
+	getFirstStudyStep, getNextStudyStep, sendLog, submitResponse, getSurveyPage
 } from "../middleware/api";
 import Header from "../layouts/components/Header";
 import SurveyTemplate from "../layouts/templates/SurveyTemplate";
@@ -73,7 +73,7 @@ export default function Survey(props) {
 	// }
 
 	useEffect(() => {
-		getNextStudyStep(userdata.study_id, stepid)
+		getFirstStudyStep(userdata.study_id, stepid)
 			.then((value) => { setStudyStep(value) });
 		setStarttime(new Date());
 	}, []);
