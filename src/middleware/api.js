@@ -72,3 +72,11 @@ export function getSurveyPage(studyid, stepid, pageid) {
 			return page;
 		})
 }
+
+export function getFirstSurveyPage(studyid, stepid) {
+	return get('study/' + studyid + '/step/' + stepid + '/page/first/')
+		.then((response): Promise<page> => response.json())
+		.then((page: page) => {
+			return page;
+		})
+}

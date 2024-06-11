@@ -3,7 +3,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-	getFirstStudyStep, getNextStudyStep, sendLog, submitResponse, getSurveyPage
+	getNextStudyStep, sendLog, submitResponse, getFirstSurveyPage, getSurveyPage
 } from "../middleware/api";
 import Header from "../layouts/components/Header";
 import SurveyTemplate from "../layouts/templates/SurveyTemplate";
@@ -32,7 +32,22 @@ export default function Survey(props) {
 	const [pageStarttime, setPageStarttime] = useState(new Date());
 
 	const loadSurveyPage = (studyid, stepid, pageid) => {
+		if (pageid === null) {
+			getFirstSurveyPage(studyid, stepid)
+			.then((response): Promise<page> => response.json())
+			.then((page: page) => {
+				setPageData(page);
+				setPageStarttime(new Date());
+				setShowUnanswered(false);
 
+				const pagevalidation = {};
+				pagevalidation[page.id] = false;
+
+				setServerValidation({ ...serverValidation, ...pagevalidation });
+				setNxtBtnDisabled(true);
+			})
+			.catch((error) => console.log(error));
+		} else {
 		getSurveyPage(studyid, stepid, pageid)
 			.then((response): Promise<page> => response.json())
 			.then((page: page) => {
@@ -47,6 +62,7 @@ export default function Survey(props) {
 				setNxtBtnDisabled(true);
 			})
 			.catch((error) => console.log(error));
+		}
 	}
 
 
@@ -73,7 +89,7 @@ export default function Survey(props) {
 	// }
 
 	useEffect(() => {
-		getFirstStudyStep(userdata.study_id, stepid)
+		getNextStudyStep(userdata.study_id, stepid)
 			.then((value) => { setStudyStep(value) });
 		setStarttime(new Date());
 	}, []);
