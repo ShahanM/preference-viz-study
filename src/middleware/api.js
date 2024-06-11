@@ -66,15 +66,11 @@ export function submitResponse(responseType: string, userdata, pageid,
 }
 
 export function getSurveyPage(studyid, stepid, pageid) {
-	return get('study/' + studyid + '/step/' + stepid + '/page/' + pageid)
-		.then((response): Promise<page> => response.json())
-		.then((page: page) => {
-			return page;
-		})
-}
-
-export function getFirstSurveyPage(studyid, stepid) {
-	return get('study/' + studyid + '/step/' + stepid + '/page/first/')
+	let path = 'study/' + studyid + '/step/' + stepid + '/page/' + pageid;
+	if (pageid === null) {
+		path = 'study/' + studyid + '/step/' + stepid + '/page/first/';
+	}
+	return get(path)
 		.then((response): Promise<page> => response.json())
 		.then((page: page) => {
 			return page;
