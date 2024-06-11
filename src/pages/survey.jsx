@@ -33,7 +33,7 @@ export default function Survey(props) {
 
 	const loadSurveyPage = (studyid, stepid, pageid) => {
 		getSurveyPage(studyid, stepid, pageid)
-			.then((response): Promise<page> => response.json())
+			// .then((response): Promise<page> => response.json())
 			.then((page: page) => {
 				setPageData(page);
 				setPageStarttime(new Date());
