@@ -2,12 +2,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Suspense, useEffect, useState } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import './App.css';
+import './css/components.css';
 // import DemographyPage from './pages/demographyPage';
 // import EmotionPreferences from './pages/emotionPrefs';
 // import FeedbackPage from './pages/feedbackPage';
 // import { FinalPage } from './pages/finalPage';
 // import RateMovies from './pages/rateMovies';
-// import Survey from './pages/survey';
+import Survey from './pages/survey';
 import StudyMap from './pages/studymap';
 import Welcome from './pages/welcome';
 import { STRINGS } from './utils/constants';
@@ -33,7 +34,7 @@ function App() {
 					<Routes>
 						<Route path="/" element={<Welcome next="/studyoverview" />} />
 						<Route path="/studyoverview" element={<StudyMap next="/presurvey" />} />
-						{/* <Route path="/presurvey" element={<Survey next="/ratemovies" />} /> */}
+						<Route path="/presurvey" element={<Survey next="/ratemovies" />} />
 						{/* <Route path="/ratemovies" element={<RateMovies next="/recommendations" />} /> */}
 						{/* <Route path="/recommendations" element={<EmotionPreferences next="/feedback" />} /> */}
 						{/* <Route path="/feedback" element={<FeedbackPage next="/postsurvey" />} /> */}

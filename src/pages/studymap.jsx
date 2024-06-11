@@ -15,8 +15,10 @@ export default function StudyMap(props) {
 	const userdata = useLocation().state.user;
 	const stepid = useLocation().state.studyStep;
 
-	const navigate = useNavigate();
+	// TODO: Perhaps we can store stepID as a progress flag in the user data?
 	const [studyStep, setStudyStep] = useState({});
+
+	const navigate = useNavigate();
 
 	const [starttime, setStarttime] = useState(new Date());
 
@@ -36,10 +38,7 @@ export default function StudyMap(props) {
 		sendLog(userdata, studyStep.id, null, starttime - Date.now(), 'passive',
 			'study overview', null, null).then(() => {
 				navigate(props.next, {
-					state: {
-						user: userdata,
-						studyStep: studyStep.id
-					}
+					state: { user: userdata, studyStep: studyStep.id }
 				})
 			})
 	}

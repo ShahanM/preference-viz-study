@@ -10,10 +10,12 @@ import {
 } from '../middleware/api';
 import InformedConsentModal from '../widgets/dialogs/InformedConsent';
 import Header from '../layouts/components/Header';
+import Footer from '../layouts/components/Footer';
 
 export default function Welcome(props) {
 
-	const studyID = 2; // Only for dev database, change in production
+	const studyID = 5;
+	// const studyID = 2; // Only for dev database, change in production
 	// TODO: move study details to an environment variable
 
 	const [show, setShowInformedConsent] = useState(false);
@@ -102,12 +104,7 @@ export default function Welcome(props) {
 			<InformedConsentModal show={show}
 				consentCallback={consentCallbackHandler} />
 			<Row>
-				<div className="jumbotron jumbotron-footer">
-					<Button variant="ers" size="lg" className="footer-btn"
-						onClick={showInformedConsent}>
-						Get started
-					</Button>
-				</div>
+				<Footer callback={showInformedConsent} text={"Get Started"} />
 			</Row>
 		</Container>
 	)

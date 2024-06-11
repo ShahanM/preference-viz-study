@@ -31,6 +31,14 @@ export function getFirstStudyStep(studyid) {
 		})
 }
 
+export function getNextStudyStep(studyid, stepid) {
+	return get('study/' + studyid + '/step/' + stepid + '/next')
+		.then((response): Promise<step> => response.json())
+		.then((step: step) => {
+			return step;
+		})
+}
+
 export function sendLog(userdata, stepid, pageid: int, timespent: int,
 	inttype: string, target: string, itemid: int, rating: int) {
 	const data = {
@@ -44,5 +52,23 @@ export function sendLog(userdata, stepid, pageid: int, timespent: int,
 		.then((response): Promise<log> => response.json())
 		.then((log: log) => {
 			return log;
+		})
+}
+
+export function submitResponse(responseType: string, userdata, pageid,
+	responses) {
+	const data = {
+		...requestBodyMeta(userdata, pageid),
+		responses: responses
+	}
+	const url = 'user/' + userdata.id + '/response/' + responseType + '/';
+	return put(url, data, userdata);
+}
+
+export function getSurveyPage(studyid, stepid, pageid) {
+	return get('study/' + studyid + '/step/' + stepid + '/page/' + pageid)
+		.then((response): Promise<page> => response.json())
+		.then((page: page) => {
+			return page;
 		})
 }
