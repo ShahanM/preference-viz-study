@@ -12,21 +12,21 @@ export default function Continuouscoupled({ itemdata }) {
 
 	return (
 		<Container>
-			{Object.keys(itemdata['movies']).length ?
+			{itemdata ?
 				<Row>
 					<Col xl={9} lg={9} md={8} sm={12}>
 						<Row style={{ margin: "0 0 2em 0" }}>
 							<CartesianGraph key={"user"}
 								graphID={"user_comm_graph"}
 								width={800} height={800}
-								data={itemdata['movies']}
-								xCol={"user_score"} yCol={"community_score"}
+								data={itemdata}
+								xCol={"community_score"} yCol={"user_score"} 
 								onItemHover={setActiveItem} />
 						</Row>
 					</Col>
 					<Col xl={3} lg={3} md={4} sm={12}>
 						<Row style={{ margin: "2em 0 2em 0" }}>
-							<RightPanel movie={itemdata['movies'][activeItem]}
+							<RightPanel movie={itemdata.get(activeItem)}
 								likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
 						</Row>
 					</Col>

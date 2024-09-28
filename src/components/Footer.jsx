@@ -1,6 +1,7 @@
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { useState, useEffect } from 'react';
+import LoadingText from './LoadingText';
 
 export default function Footer({ callback, disabled = false, text = "Next",
 	loading = false }) {
@@ -11,24 +12,24 @@ export default function Footer({ callback, disabled = false, text = "Next",
 	return (
 		<div className="layout-footer">
 			<Button variant={variant} size="lg" className="layout-footer-btn"
-				onClick={callback}>
-				{!loading ? text : <LoadingText />}
+				onClick={callback} disabled={disabled}>
+				{!loading ? text : <LoadingText text={"Loading..."} />}
 			</Button>
 		</div>
 	)
 }
 
-const LoadingText = () => {
-	return (
-		<>
-			<Spinner
-				as="span"
-				animation="grow"
-				size="sm"
-				role="status"
-				aria-hidden="true"
-			/>
-			Loading...
-		</>
-	)
-}
+// const LoadingText = () => {
+// 	return (
+// 		<>
+// 			<Spinner
+// 				as="span"
+// 				animation="grow"
+// 				size="sm"
+// 				role="status"
+// 				aria-hidden="true"
+// 			/>
+// 			Loading...
+// 		</>
+// 	)
+// }

@@ -1,0 +1,75 @@
+.gallery {
+	width: -moz-fit-content;
+	width: fit-content;
+	margin: 0 auto;
+}
+
+.gallery .btnDiv {
+	margin-top: 0.75em;
+	padding: 0;
+}
+
+.gallery .btnDiv Button {
+	width: 360px;
+	height: 54px;
+	margin: 0;
+}
+
+#gallery-left-btn {
+	float: inline-start;
+}
+
+#gallery-right-btn {
+	float: inline-end;
+}
+
+.grid-container ul {
+	display: grid;
+	grid-template-columns: auto auto auto auto auto auto auto auto;
+	grid-template-rows: auto auto auto;
+	justify-items: stretch; 
+	overflow-x: hidden;
+	grid-column-gap: 0.25em;
+	grid-row-gap: 0.25em;
+	list-style: none;
+	border-radius: 0.5em;
+}
+
+.grid-container li {
+	height: 200px;
+	margin: 0.25em;
+	border-radius: 0.25em;
+}
+
+.grid-container li:nth-child(5n) {
+	margin-left: 0;
+}
+
+
+.rankHolder {
+	width: -moz-fit-content;
+	width: fit-content;
+	margin: 1.6em auto 0 auto;
+}
+
+.rankHolder span {
+	font-family: "Calibri", Georgia, Serif, serif;
+	font-size: 1.6em;
+	text-align: center;
+}
+
+.rankHolder span:nth-child(2) {
+	color: #357df2;
+	font-weight: bold;
+	padding-left: 5px;
+	padding-right: 5px;
+
+}
+
+.rankHolder span:last-child {
+	font-family: "Calibri", Georgia, Serif, serif;
+	font-size: 1.6em;
+	text-align: center;
+
+	color: #62656b;
+}

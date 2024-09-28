@@ -1,5 +1,11 @@
 import { get, put, post } from './requests';
 
+const RSSA_API = process.env.REACT_APP_RSSA_API || 'missing';
+const RSSA_API_DEV = process.env.REACT_APP_RSSA_API_DEV || 'missing';
+
+const API = process.env.NODE_ENV === "production" ? RSSA_API : RSSA_API_DEV;
+
+
 const requestBodyMeta = (userdata, pageid) => {
 	return {
 		user_id: userdata.id,

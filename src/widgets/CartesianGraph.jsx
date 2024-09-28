@@ -48,7 +48,8 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 		let target = evt.target;
 		const item_id = target.getAttribute("item_id");
 		imgHoverEffect(target, effect);
-		if (props.onItemHover) { props.onItemHover(item_id); }
+		console.log("Hovering over item", item_id);
+		if (props.onItemHover) { props.onItemHover(parseInt(item_id)); }
 	}
 
 	const imgHoverEffect = (target, effect) => {
@@ -104,24 +105,24 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 					xCol={xCol} yCol={yCol} hoverCallback={hoverHandler} />
 			}
 		</>
-
 	)
 }
 
 
 function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, ySubdivHeight, hoverCallback }) {
+	const dataArray = Array.from(data.values());
 	return (
 		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height}>
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
-			{Object.entries(data).map((d, i) =>
-				<image key={`img-${graphID}-cc-${d[1].movie_id}`}
-					id={`img-${graphID}-cc-${d[1].movie_id}`}
+			{dataArray.map((item) => 
+				<image key={`img-${graphID}-cc-${item.movie_id}`}
+					id={`img-${graphID}-cc-${item.movie_id}`}
 					width={posterWidth} height={posterHeight}
-					x={(d[1][xCol] - 1) * xSubdivWidth + xAxisOffset}
-					y={height - (d[1][yCol] - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight}
-					xlinkHref={imgurl(d[1].poster_identifier)}
+					x={(item[xCol] - 1) * xSubdivWidth + xAxisOffset}
+					y={height - (item[yCol] - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight}
+					xlinkHref={imgurl(item.poster_identifier)}
 					cursor={"pointer"}
-					item_id={d[1].movie_id} x_val={d[1][xCol]} y_val={d[1][yCol]}
+					item_id={item.movie_id} x_val={item[xCol]} y_val={item[yCol]}
 					item_type={"img"}
 					onMouseEnter={evt => hoverCallback(evt, "in")}
 					onMouseLeave={evt => hoverCallback(evt, "out")}
@@ -135,17 +136,18 @@ function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, yS
 }
 
 function DotGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, ySubdivHeight, hoverCallback }) {
+	const dataArray = Array.from(data.values());
 	return (
 		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height}>
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
-			{Object.entries(data).map((d, i) =>
-				<circle key={`circle-${graphID}-cc-${d[1].movie_id}`}
-					id={`circle-${graphID}-cc-${d[1].movie_id}`}
-					cx={(d[1][xCol] - 1) * xSubdivWidth + xAxisOffset + posterWidth / 2}
-					cy={height - (d[1][yCol] - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight + posterHeight / 2}
-					r={navDotRadius} fill={navDotColorArray[parseInt(d[1].cluster) % 8]}
+			{dataArray.map((item) =>
+				<circle key={`circle-${graphID}-cc-${item.movie_id}`}
+					id={`circle-${graphID}-cc-${item.movie_id}`}
+					cx={(item[xCol] - 1) * xSubdivWidth + xAxisOffset + posterWidth / 2}
+					cy={height - (item[yCol] - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight + posterHeight / 2}
+					r={navDotRadius} fill={navDotColorArray[parseInt(item.cluster) % 8]}
 					cursor={"pointer"}
-					item_id={d[1].movie_id} item_score={d[1].score}
+					item_id={item.movie_id} item_score={item.score}
 					item_type={"nav"}
 					onMouseEnter={evt => hoverCallback(evt, "in")}
 					onMouseLeave={evt => hoverCallback(evt, "out")} />

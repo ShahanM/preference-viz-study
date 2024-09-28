@@ -39,6 +39,8 @@ export default function ContinuousDecoupled({ itemdata }) {
 		}
 	}, [userList, communityList])
 
+	console.log(activeItem);
+
 	return (
 		<Container>
 			{dataLoaded ?
@@ -66,7 +68,7 @@ export default function ContinuousDecoupled({ itemdata }) {
 					</Col>
 					<Col lg={3} md={4} sm={12}>
 						<Row style={{ margin: "2em 0 2em 0" }}>
-							<RightPanel movie={itemdata[activeItem]}
+							<RightPanel movie={itemdata.get(activeItem)}
 								likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
 						</Row>
 					</Col>

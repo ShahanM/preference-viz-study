@@ -5,7 +5,8 @@ export const CORSHeaders = {
 	'Content-Type': 'application/json',
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': '*',
-	'Access-Control-Allow-Methods': 'OPTIONS,PUT,POST,GET'
+	'Access-Control-Allow-Methods': 'OPTIONS,PUT,POST,GET',
+	'Authorization': ''
 };
 
 function getHeaders(userdata) {
