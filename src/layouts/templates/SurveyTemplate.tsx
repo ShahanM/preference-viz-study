@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
 import { SurveyPage } from "../../rssa-api/RssaApi.types";
+import "./SurveyTemplate.css";
 
 
 interface SurveyTemplateProps {
@@ -58,13 +59,13 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 	// useEffect(() => { showUnanswered && scroll(); }, [showUnanswered]);
 
 	useEffect(() => {
-		if (surveyContent.items !== undefined) {
-			if ((Object.keys(response).length === surveyContent.items.length)
+		if (surveyContent.construct_items !== undefined) {
+			if ((Object.keys(response).length === surveyContent.construct_items.length)
 				&& (Object.values(response).every((x) => x !== undefined))) {
 				// props.submitCallback(surveyAnswers);
 			}
 		}
-	}, [response, surveyContent.items,]);
+	}, [response, surveyContent.construct_items,]);
 
 	const valueSelectHandler = (itemId: string, value: number) => {
 		let newResBoolSet = new Set(resBoolSet);
@@ -90,8 +91,8 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 
 	return (
 		<Row>
-			{surveyContent.items !== undefined &&
-				surveyContent.items.map((item, i) => {
+			{surveyContent.construct_items !== undefined &&
+				surveyContent.construct_items.map((item, i) => {
 					return (
 						<FormGroup key={item.id + '_' + i}
 							className={resBoolSet.has(i) ?

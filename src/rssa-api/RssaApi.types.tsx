@@ -114,6 +114,6 @@ export type SurveyPage = {
 	page_id: string,
 	order_position: number,
 	construct_id: string,
-	items: ConstructItem[],
+	construct_items: ConstructItem[],
 	scale: ScaleLevel[]
 }
