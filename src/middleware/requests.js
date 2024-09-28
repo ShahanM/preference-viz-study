@@ -5,7 +5,8 @@ export const CORSHeaders = {
 	'Content-Type': 'application/json',
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': '*',
-	'Access-Control-Allow-Methods': 'OPTIONS,PUT,POST,GET'
+	'Access-Control-Allow-Methods': 'OPTIONS,PUT,POST,GET',
+	'Authorization': ''
 };
 
 function getHeaders(userdata) {
@@ -28,6 +29,10 @@ export function get(path: string, userdata) {
 		method: 'GET',
 		headers: getHeaders(userdata)
 	});
+}
+
+export function put(path: string, data: any, userdata) {
+	return bodyRequest('PUT', path, data, getHeaders(userdata));
 }
 
 function bodyRequest(method: string, path: string, data: any, headers) {
