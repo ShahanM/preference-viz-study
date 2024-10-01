@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, Row } from "react-bootstrap";
+import { Col, Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
@@ -11,6 +11,9 @@ import { post } from "../../middleware/requests";
 import { mapKeyContainsAll } from "../../utils/helper";
 import Continuouscoupled from "../../widgets/ContinuousCoupled";
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
+import RightPanel from "../../widgets/rightpanel/RightPanel";
+import LeftPanel from "../../widgets/leftpanel/LeftPanel";
 
 
 type PrefVizRecItem = {
@@ -57,6 +60,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	// Convenient states to ensure state update and when to show the loader
 	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [loading, setLoading] = useState<boolean>(false);
+	const [activeItem, setActiveItem] = useState<number>();
 
 	// States to hold the recommendations
 	const [prefItemMap, setPrefItemMap] =
@@ -172,7 +176,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	}, [isUpdated, navigate, next]);
 
 	return (
-		<Container>
+		<Container fluid>
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
@@ -181,7 +185,23 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 					loading && prefItemDetails !== undefined && !(prefItemDetails.size > 0) ?
 						<LoadingScreen loading={loading} message="Loading Recommendations" />
 						:
-						<Continuouscoupled itemdata={prefItemDetails} />
+						<>
+							<Col md={3}>
+								<LeftPanel />
+							</Col>
+							<Col md={6}>
+								<Continuouscoupled itemdata={prefItemDetails} activeItemCallback={setActiveItem} />
+							</Col>
+							<Col md={3}>
+								{/* <Row style={{ margin: "2em 0 2em 0" }}> */}
+									{activeItem ?
+										<RightPanel movie={prefItemDetails?.get(activeItem)}
+											likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
+										: <></>
+									}
+								{/* </Row> */}
+							</Col>
+						</>
 				}
 			</Row>
 			<Row>

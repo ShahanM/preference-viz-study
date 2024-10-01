@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Col from 'react-bootstrap/Col';
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import RightPanel from "./RightPanel";
+import RightPanel from "./rightpanel/RightPanel";
 import SingleScaleGraph from "./SingleScaleGraph";
 import { LIKE_CUTOFF, DISLIKE_CUTOFF } from "../utils/constants";
 

@@ -2,7 +2,7 @@
 .layout-header {
 	padding: 1em 1rem;
 	margin-bottom: 0.5rem;
-	margin-top: 1.5rem;
+	/* margin-top: 1.5rem; */
 	background-color: #e9ecef;
 	border-radius: 0.3rem;
 }
@@ -10,7 +10,7 @@
 .layout-header-text {
 	width: fit-content;
 	margin: auto;
-	text-align: left;
+	/* text-align: left; */
 }
 
 /* End Header.jsx */
@@ -21,7 +21,7 @@
 	margin-top: 1.5rem;
 	background-color: #e9ecef;
 	border-radius: 0.3rem;
-	float: right;
+	/* float: right; */
 	width: 100%;
 }
 
