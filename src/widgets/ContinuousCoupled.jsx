@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Col from 'react-bootstrap/Col';
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../utils/constants";
 import CartesianGraph from "./CartesianGraph";
 import RightPanel from "./RightPanel";
-import { LIKE_CUTOFF, DISLIKE_CUTOFF } from "../utils/constants";
+import LoadingScreen from "../components/loadingscreen/LoadingScreen";
 
 export default function Continuouscoupled({ itemdata }) {
 
@@ -20,8 +21,10 @@ export default function Continuouscoupled({ itemdata }) {
 								graphID={"user_comm_graph"}
 								width={800} height={800}
 								data={itemdata}
-								xCol={"community_score"} yCol={"user_score"} 
-								onItemHover={setActiveItem} />
+								xCol={"community_score"} yCol={"user_score"}
+								onItemHover={setActiveItem}
+								showToggle={false}
+								variant={1} />
 						</Row>
 					</Col>
 					<Col xl={3} lg={3} md={4} sm={12}>
@@ -31,10 +34,8 @@ export default function Continuouscoupled({ itemdata }) {
 						</Row>
 					</Col>
 				</Row>
-				:
-				<Row style={{ height: "800px", width: "900px" }}>
-					<h1 style={{ margin: "auto" }}> Please wait some time.... </h1>
-				</Row>}
+				: <LoadingScreen loading={true} message="Loading Recommendations" />
+			}
 		</Container>
 	)
 }

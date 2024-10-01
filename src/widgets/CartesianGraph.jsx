@@ -27,7 +27,8 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 	const [collision, setCollision] = useState(false);
 	const [navLanes, setNavLanes] = useState(8);
 
-	const [vizVariant, setVizVariant] = useState(1);
+	const [vizVariant, setVizVariant] = useState(props.variant);
+	const [showToggle, setShowToggle] = useState(false);
 
 	useEffect(() => {
 		if (collision) {
@@ -84,17 +85,19 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 
 	return (
 		<>
-			<Row style={{ margin: "2em", padding: "0.5em" }}>
-				<ToggleButtonGroup type="radio" name="options" defaultValue={1}
-					onChange={(val) => setVizVariant(val)}>
-					<ToggleButton id="tbg-radio-1" value={1}>
-						Posters
-					</ToggleButton>
-					<ToggleButton id="tbg-radio-2" value={2}>
-						Dots
-					</ToggleButton>
-				</ToggleButtonGroup>
-			</Row>
+			{showToggle &&
+				<Row style={{ margin: "2em", padding: "0.5em" }}>
+					<ToggleButtonGroup type="radio" name="options" defaultValue={1}
+						onChange={(val) => setVizVariant(val)}>
+						<ToggleButton id="tbg-radio-1" value={1}>
+							Posters
+						</ToggleButton>
+						<ToggleButton id="tbg-radio-2" value={2}>
+							Dots
+						</ToggleButton>
+					</ToggleButtonGroup>
+				</Row>
+			}
 			{vizVariant === 1 ?
 				<ImageGraph data={data} graphID={graphID} width={width} height={height}
 					xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight}
@@ -114,7 +117,7 @@ function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, yS
 	return (
 		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height}>
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
-			{dataArray.map((item) => 
+			{dataArray.map((item) =>
 				<image key={`img-${graphID}-cc-${item.movie_id}`}
 					id={`img-${graphID}-cc-${item.movie_id}`}
 					width={posterWidth} height={posterHeight}
