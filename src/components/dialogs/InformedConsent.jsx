@@ -18,131 +18,75 @@ export default function InformedConsentModal(props) {
 
 	return (
 
-		< Modal show={props.show} dialogClassName="modal-80w" style={{ zIndex: "2050" }
-		}>
+		<Modal className="informedConsent"
+			show={props.show} dialogClassName="modal-80w" style={{ zIndex: "2050" }
+			}>
 			<Modal.Header>
 				<Modal.Title>
-					Testing an Interactive Movie Recommender System Using
-					Emotions for Diversification
+					<h2>
+						Testing preferences visualization for movie recommendations
+					</h2>
 				</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
-				<p className='informedConsent-title'>
-					Key Information About the Research Study
-				</p>
+				<h3>
+					Call for Participation and Consent
+				</h3>
 				<p>
-					<span className='informedConsent-bold'>
-						Voluntary Consent:&nbsp;
-					</span>
-					Dr. Bart Knijnenburg is inviting you to volunteer for a
-					research study. Dr. Knijnenburg is an associate professor
-					at Clemson University. He will conduct the study with Lijie
-					and Mehtab (both graduate students at Clemson University).
+					Dr. Bart Knijnenburg is inviting you to volunteer for a 
+					research study. Dr. Bart Knijnenburg is an Associate 
+					Professor at Clemson University conducting the study with 
+					graduate students. In this study, you will be asked to 
+					interact with a movie recommender system.
+				</p>
+				<h4>
+					Study Purpose
+				</h4>
+				<p>
+					The goal of this study is to support users in developing, 
+					exploring, and understanding their unique personal 
+					preferences to help them escape the trap of 
+					"Filter bubbles," a problematic side effect of 
+					recommendation technology that is otherwise meant to help 
+					make decisions. To support users and understand their unique
+					personal taste, we designed a movie rating system that 
+					displays items beyond the top-rated ones to help both the
+					users understand their tastes and recommenders get a better 
+					idea of users' tastes. In this experiment, we will ask users
+					to rate N number of movies in our system and complete a 
+					survey pertaining to their thoughts about how the movies 
+					helped them learn, grow, and expand their preferences.
 				</p>
 
+				<h4>
+					Eligibility
+				</h4>
 				<p>
-					<span className='informedConsent-bold'>
-						Alternative to Participation:&nbsp;
-					</span>
-					Participation is voluntary, and the only alternative is to
-					not participate. You will not be punished in any way if you
-					decide not to be in the study or to stop taking part in the
-					study.
-				</p>
-				<p>
-					If you decide not to take part or to stop taking part in
-					this study, it will not affect you in any way.
+					Please note that you may only participate in this study 
+					once. Previous participants in this study are not eligible 
+					to participate again. When you participate, please carefully
+					perform every task and read each question before you provide
+					your answers. We are not able to pay workers who just click 
+					through without paying attention to what they are doing. If 
+					your attention drops or your mouse hand gets tired, please 
+					take a short break before continuing the study. Feel free to
+					take it easy. Please feel free to reach out to Sushmita Khan
+					(sushmik@clemson.edu) if you have any questions.
+					Thank you for your time!
 				</p>
 
+				<h4>
+					Time and Compensation
+				</h4>
 				<p>
-					<span className='informedConsent-bold'>
-						Study Purpose:&nbsp;
-					</span>
-					The purpose of this research is to evaluate a movie
-					recommender system and better understand your
-					experiences with the system through your responses to
-					the post-task questionnaire.
+					It will take about 15 to 20 minutes to complete the study, 
+					and you will receive&nbsp;
+					<span className="textemph">$2.75</span>&nbsp;
+					upon completion. Participation is voluntary. Please feel 
+					free to reach out to Sushmita Khan (sushmik@clemson.edu) if 
+					you have any questions. Thank you for your time!
 				</p>
 
-				<p>
-					<span className='informedConsent-bold'>
-						Activities and Procedures:&nbsp;
-					</span>
-					Your part in this study will be viewing some
-					recommendations and completing a quick post-task survey.
-					It will take you about 10-15 minutes to be in this study,
-					but please make yourself available for 20 minutes just in
-					case.
-				</p>
-
-				<p>
-					<span className='informedConsent-bold'>
-						Risks and Benefits:&nbsp;
-					</span>
-					We do not know of any risks or discomforts to you in this
-					study. The only benefit to you is the learning experience
-					from participating in a research study. The benefit to
-					society is the contribution to scientific knowledge.
-				</p>
-
-				<p className='informedConsent-title'>Incentives</p>
-				<p>
-					Participants who complete all tasks will be compensated
-					with $2.40. Successful and careful completion of the tasks
-					is a prerequisite for payment.
-				</p>
-
-				<p className='informedConsent-title'>
-					Audio/Video Recording and Photographs
-				</p>
-				<p>
-					This session will not be audio/video recorded.
-				</p>
-
-				<p className='informedConsent-title'>
-					Protection of Privacy and Confidentiality
-				</p>
-				<p>
-					No identifiable information will be collected during the study.
-					The anonymous information collected in this study could be used
-					for future research studies or distributed to another
-					investigator for future research studies without additional
-					informed consent from the participants or legally authorized
-					representative.
-				</p>
-				<p>
-					The results of this study may be published in scientific
-					journals, professional publications, or educational
-					presentations. Published results will not include
-					identifiable information.
-				</p>
-
-				<p className='informedConsent-title'>
-					Contact Information
-				</p>
-				<p>
-					If you have any questions or concerns about your rights in this research study,
-					please contact the Clemson University Office of Research Compliance (ORC) at
-					864-656-0636 or <a href="mailto:irb@clemson.edu">irb@clemson.edu</a>. If you are
-					outside of the Upstate South Carolina area, please use the ORC's toll-free number,
-					866-297-3071. The Clemson IRB will not be able to answer some study-specific
-					questions. However, you may contact the Clemson IRB if the research staff cannot
-					be reached or if you wish to speak with someone other than the research staff.
-				</p>
-				<p>
-					If you have any study related questions or if any problem arise, please contact
-					Lijie <a href="mailto:lydiahsu7@gmail.com">lydiahsu7@gmail.com</a>.
-				</p>
-
-				<p className='informedConsent-title'>
-					Consent
-				</p>
-				<p className='informedConsent-bold'>
-					By participating in the study, you indicate that you have
-					read the information written above, been allowed to ask any
-					questions, and you are voluntarily choosing to take part in
-					this research.
-				</p>
 				<Form.Check style={{ fontWeight: "500", marginTop: "9px" }}
 					label="I have read and understood this consent form and I agree to participate in this
 					research study"
