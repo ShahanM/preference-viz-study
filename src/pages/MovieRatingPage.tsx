@@ -4,7 +4,6 @@ import Row from 'react-bootstrap/Row';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import LoadingScreen from '../components/loadingscreen/LoadingScreen';
 import { get } from '../middleware/requests';
 import { CurrentStep, StudyStep } from '../rssa-api/RssaApi.types';
 import { useStudy } from '../rssa-api/StudyProvider';
@@ -13,7 +12,6 @@ import { MovieRating } from '../widgets/moviegrid/moviegriditem/MovieGridItem.ty
 import { StudyPageProps } from './StudyPage.types';
 
 
-// export default function MovieRatingPage(props) {
 const MovieRatingPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
@@ -90,23 +88,16 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 		setButtonDisabled(ratedMovies.length < minRatingCount);
 	}, [ratedMovies])
 
-	const loadingMsg = 'Please wait while the system ' +
-		'prepares your recommendations'
-
 	return (
 		<Container>
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
 			<Row>
-				{loading ?
-					<LoadingScreen loading={loading} message={loadingMsg} />
-					:
-					<MovieGrid
-						dataCallback={setRatedMovies}
-						movieIds={movieIds}
-						itemsPerPage={itemsPerPage} />
-				}
+				<MovieGrid
+					dataCallback={setRatedMovies}
+					movieIds={movieIds}
+					itemsPerPage={itemsPerPage} />
 			</Row>
 			<Row>
 				<RankHolder count={ratedMovies.length} max={minRatingCount} />

@@ -10,7 +10,8 @@ import "./SurveyTemplate.css";
 
 interface SurveyTemplateProps {
 	surveyContent: SurveyPage;
-	updateResponse: (qid: number, value: number) => void;
+	validationFlags: Map<string, boolean>;
+	updateResponse: (itemid: string, responsestr: string) => void;
 }
 
 
@@ -18,10 +19,11 @@ interface SurveyTemplateProps {
 
 const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 	surveyContent,
+	validationFlags,
 	updateResponse,
 }) => {
 
-	const [response, setResponse] = useState<{ [key: string]: number }>({});
+	const [response, setResponse] = useState<Map<string, string>>(new Map<string, string>());
 	const [resBoolSet, setResBoolSet] = useState(new Set());
 	// const [showUnanswered, setShowUnanswered] = useState(false);
 	// const [smallestUnanswered, setSmallestUnanswered] = useState(0);
@@ -37,8 +39,8 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 	// TODO: Add logging for the survey answers.
 
 	useEffect(() => {
-		setResponse({});
-		setResBoolSet(new Set());
+		setResponse(new Map<string, string>());
+		// setResBoolSet(new Set());
 		// setSmallestUnanswered(0);
 	}, [surveyContent]);
 
@@ -52,6 +54,7 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 		const parsed = parse(clean);
 		return parsed;
 	}
+	console.log(validationFlags);
 
 	// FIXME: this only works the first time. Since, showUnanswered is not 
 	// updated, the useEffect is not called again. Fix this by using a
@@ -67,9 +70,9 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 		}
 	}, [response, surveyContent.construct_items,]);
 
-	const valueSelectHandler = (itemId: string, value: number) => {
-		let newResBoolSet = new Set(resBoolSet);
-		newResBoolSet.add(itemId);
+	const valueSelectHandler = (itemid: string, responsstr: string) => {
+		// let newResBoolSet = new Set(resBoolSet);
+		// newResBoolSet.add(itemId);
 
 		// FIXME: This will be based on the order and not the id.
 		// if (qid <= smallestUnanswered) {
@@ -82,11 +85,13 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 		// }
 
 		// props.logginCallback(qid, value);
-		let newResponse = { ...response };
+		// let newResponse = { ...response };
 		// newAnswers[qid] = value;
-		newResponse[itemId] = value;
-		setResponse(newResponse);
-		setResBoolSet(newResBoolSet);
+		// newResponse[itemId] = value;
+		// setResponse(newResponse);
+
+		// setResBoolSet(newResBoolSet);
+		updateResponse(itemid, responsstr);
 	}
 
 	return (
@@ -95,11 +100,13 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 				surveyContent.construct_items.map((item, i) => {
 					return (
 						<FormGroup key={item.id + '_' + i}
-							className={resBoolSet.has(i) ?
-								"survey-question-block-responded"
-								// : showUnanswered ?
-								// "survey-question-block-unanswered"
-								: "survey-question-block"}
+							className={
+								validationFlags.has(item.id) ?
+									validationFlags.get(item.id) ?
+										"survey-question-block-responded"
+										: "survey-question-block-unanswered"
+									: "survey-question-block"
+							}
 						// ref={i === smallestUnanswered ? topUnanswered : null}
 						>
 							<div>
@@ -109,6 +116,7 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({
 							</div>
 							<LikertBar
 								itemId={item.id}
+								scaleLevels={surveyContent.construct_scale}
 								changeCallback={valueSelectHandler} />
 						</FormGroup>
 					)

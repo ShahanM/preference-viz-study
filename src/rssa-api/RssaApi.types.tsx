@@ -21,6 +21,7 @@ export interface StudyStep extends OrderedComponent {
 	study_id: string;
 	name: string;
 	description: string;
+	pages: Page[];
 	date_created: string;
 }
 
@@ -82,6 +83,7 @@ export const emptyStep: StudyStep = {
 	study_id: '',
 	name: '',
 	description: '',
+	pages: [],
 	date_created: '',
 	order_position: 0
 }
@@ -98,6 +100,7 @@ export type CurrentStep = {
 export type ScaleLevel = {
 	level: number;
 	label: string;
+	scale_id: string;
 }
 
 
@@ -115,5 +118,16 @@ export type SurveyPage = {
 	order_position: number,
 	construct_id: string,
 	construct_items: ConstructItem[],
-	scale: ScaleLevel[]
+	construct_scale: ScaleLevel[]
+}
+
+export type SurveyItemResponse = {
+	item_id: string;
+	response: string;
+}
+
+export type SurveyResponse = {
+	participant_id: string;
+	page_id: string;
+	responses: SurveyItemResponse[];
 }

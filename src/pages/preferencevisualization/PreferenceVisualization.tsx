@@ -10,6 +10,7 @@ import { StudyPageProps } from "../StudyPage.types";
 import { post } from "../../middleware/requests";
 import { mapKeyContainsAll } from "../../utils/helper";
 import Continuouscoupled from "../../widgets/ContinuousCoupled";
+import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 
 
 type PrefVizRecItem = {
@@ -176,7 +177,12 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
 			<Row>
-				<Continuouscoupled itemdata={prefItemDetails} />
+				{
+					loading && prefItemDetails !== undefined && !(prefItemDetails.size > 0) ?
+						<LoadingScreen loading={loading} message="Loading Recommendations" />
+						:
+						<Continuouscoupled itemdata={prefItemDetails} />
+				}
 			</Row>
 			<Row>
 				<Footer callback={handleNextBtn} />
