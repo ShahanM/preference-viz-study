@@ -3,7 +3,7 @@ import { useStudy } from "../rssa-api/StudyProvider";
 import { StudyPageProps } from "./StudyPage.types";
 import { useEffect, useState } from "react";
 import { CurrentStep, StudyStep } from "../rssa-api/RssaApi.types";
-import { Container, Row } from "react-bootstrap";
+import { Container, Form, Row } from "react-bootstrap";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -49,17 +49,18 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 
 
 	return (
-		<Container>
+		<Container fluid>
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
 			<Row>
 				<p>Thank you for participating in our study! Please provide feedback on your experience.</p>
-				<form>
-					<label htmlFor="feedback">Feedback:</label>
-					<textarea id="feedback" name="feedback" rows={4} cols={50}></textarea>
-					<button type="submit">Submit</button>
-				</form>
+				<Form>
+					<Form.Group className="mb-3" controlId="feedback">
+						<Form.Label>Feedback</Form.Label>
+						<Form.Control as="textarea" rows={4}/>
+					</Form.Group>
+				</Form>
 			</Row>
 			<Row>
 				<Footer callback={handleNextBtn} />
