@@ -11,8 +11,9 @@ const svgFontHeight = 12;
 
 const svgDrawingBaseline = posterHeight;
 
-const ticksCount = 5;
+const ticksCount = 6;
 const svgTicksColor = "rgb(0, 0, 0)";
+const svgGridColor = "rgb(180, 117, 54)";
 const tickHeight = 10;
 
 const xAxisOffset = posterWidth;
@@ -54,20 +55,56 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 	}
 
 	const imgHoverEffect = (target, effect) => {
+		const itemX = target.getAttribute("x_val");
+		const itemY = target.getAttribute("y_val");
+		const parent = target.parentNode;
+		// const siblings = Array.from(parent.children).filter(child => child !== target);
+
 		switch (effect) {
 			case "out":
-				const itemX = target.getAttribute("x_val");
-				const itemY = target.getAttribute("y_val");
+				// Restore the original size and position of the target
 				target = transformImg(target, posterWidth, posterHeight,
-					(itemX - 1) * xSubdivWidth + xAxisOffset,
-					height - (itemY - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
+					(itemX) * xSubdivWidth + xAxisOffset,
+					height - (itemY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
+				target.removeAttribute("filter");
+
+				// Restore the original positions of the surrounding objects
+				// siblings.forEach(sibling => {
+				// 	const siblingX = parseFloat(sibling.getAttribute("x_val"));
+				// 	const siblingY = parseFloat(sibling.getAttribute("y_val"));
+				// 	transformImg(sibling, posterWidth, posterHeight,
+				// 		(siblingX) * xSubdivWidth + xAxisOffset,
+				// 		height - (siblingY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
+				// });
 				break;
 			case "in":
-				const parent = target.parentNode;
+				// const parent = target.parentNode;
+				// Enlarge the target and move it to the front
 				target = transformImg(target, posterWidth * 2, posterHeight * 2,
 					target.getAttribute("x") - posterWidth / 2,
 					target.getAttribute("y") - posterHeight / 2);
+				target.setAttribute("filter", "url(#drop-shadow");
 				parent.appendChild(target);
+
+				// // Spread out the surrounding objects
+				// siblings.forEach(sibling => {
+				// 	const siblingX = parseFloat(sibling.getAttribute("x_val"));
+				// 	const siblingY = parseFloat(sibling.getAttribute("y_val"));
+				// 	const dx = siblingX - itemX;
+				// 	const dy = siblingY - itemY;
+				// 	const distance = Math.sqrt(dx * dx + dy * dy);
+				// 	const spreadFactor = 1.5; // Spread factor to control the spread distance
+
+				// 	if (distance < 0.5) { // Only spread out the objects that are close to the target
+				// 		const newX = siblingX + dx * spreadFactor;
+				// 		// const newX = siblingX + dx;
+				// 		const newY = siblingY + dy * spreadFactor;
+				// 		// const newY = siblingY + posterHeight * 2;
+				// 		transformImg(sibling, posterWidth, posterHeight,
+				// 			(newX) * xSubdivWidth + xAxisOffset,
+				// 			height - (newY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
+				// 	}
+				// })
 				break;
 			default:
 				break;
@@ -112,17 +149,29 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 }
 
 
+const DropShadowFilter = () => (
+	<defs>
+		<filter id="drop-shadow" x="-50%" y="-50%" width="200%" height="200%">
+			<feOffset result="offOut" in="SourceAlpha" dx="9" dy="9" />
+			<feGaussianBlur result="blurOut" in="offOut" stdDeviation="9" />
+			<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+		</filter>
+	</defs>
+);
+
+
 function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, ySubdivHeight, hoverCallback }) {
 	const dataArray = Array.from(data.values());
 	return (
 		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height + svgFontHeight}>
+			<DropShadowFilter />
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
 			{dataArray.map((item) =>
 				<image key={`img-${graphID}-cc-${item.movie_id}`}
 					id={`img-${graphID}-cc-${item.movie_id}`}
 					width={posterWidth} height={posterHeight}
-					x={(item[xCol] - 1) * xSubdivWidth + xAxisOffset}
-					y={height - (item[yCol] - 1) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight}
+					x={(item[xCol]) * xSubdivWidth + xAxisOffset}
+					y={height - (item[yCol]) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight}
 					xlinkHref={imgurl(item.poster_identifier)}
 					cursor={"pointer"}
 					item_id={item.movie_id} x_val={item[xCol]} y_val={item[yCol]}
@@ -185,12 +234,12 @@ function XAxis({ graphID, width, height, xSubdivWidth }) {
 					y={height - svgFontHeight}
 					textAnchor="middle" fill={svgTicksColor}
 					fontSize={svgFontHeight}>
-					{i + 1}
+					{i}
 				</text>
 
 			)}
 			<text x={(3 * width) / 7} y={height + svgFontHeight / 2} fontSize={svgFontHeight * 1.5}>
-				Your ratings
+				Community ratings
 			</text>
 		</>
 	)
@@ -219,11 +268,11 @@ function YAxis({ graphID, height, ySubdivHeight }) {
 					y={height - (i) * ySubdivHeight - 3 * svgFontHeight}
 					textAnchor="middle" fill={svgTicksColor}
 					fontSize={svgFontHeight}>
-					{i + 1}
+					{i}
 				</text>
 			)}
 			<text x={-svgFontHeight} y={(height) / 2 + svgFontHeight} fontSize={svgFontHeight * 1.5} transform={`rotate(-90, ${svgFontHeight}, ${height / 2})`}>
-				Community ratings
+				Your ratings
 			</text>
 		</>
 	)
@@ -232,24 +281,24 @@ function YAxis({ graphID, height, ySubdivHeight }) {
 function Grid({ width, height, xSubdivWidth, ySubdivHeight }) {
 	return (
 		<>
-			{[...Array((ticksCount * 8) + 1).keys()].map(i =>
+			{[...Array((ticksCount * 8) + 3).keys()].map(i =>
 				<line key={`xGrid-${i}`}
 					x1={xAxisOffset + (i * xSubdivWidth / 10)}
 					y1={(svgFontHeight + tickHeight) * 2}
 					x2={xAxisOffset + (i * xSubdivWidth / 10)}
 					y2={height - svgFontHeight * 2 - tickHeight - 2}
 					style={{
-						stroke: svgTicksColor, strokeWidth: "0.5"
+						stroke: svgGridColor, strokeWidth: "0.2"
 					}} />
 			)}
-			{[...Array((ticksCount * 8) + 1).keys()].map(i =>
+			{[...Array((ticksCount * 8) + 3).keys()].map(i =>
 				<line key={`yGrid-${i}`}
 					x1={xAxisOffset}
 					y1={(svgFontHeight + tickHeight) * 2 + (i * ySubdivHeight / 10)}
 					x2={width}
 					y2={(svgFontHeight + tickHeight) * 2 + (i * ySubdivHeight / 10)}
 					style={{
-						stroke: svgTicksColor, strokeWidth: "0.5"
+						stroke: svgGridColor, strokeWidth: "0.2"
 					}} />
 			)}
 		</>

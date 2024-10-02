@@ -6,7 +6,9 @@
 }
 
 .rightpanel img {
-	width: 18em;
+	/* width: 18em; */
+	height: 320px;
+	width: auto;
 	margin: 0 auto;
 	border: white 0.5em solid;
 	
@@ -21,5 +23,7 @@
 .rightpanel .synopsis {
 	text-align: left;
 	margin: 0.5em;
+	height: 270px;
+	overflow-y: scroll;
 	/* width: 36em; */
 }
