@@ -15,7 +15,7 @@ const ticksCount = 5;
 const svgTicksColor = "rgb(0, 0, 0)";
 const tickHeight = 10;
 
-const xAxisOffset = posterWidth / 2;
+const xAxisOffset = posterWidth;
 const yAxisOffset = posterHeight / 2;
 
 const navDotRadius = 5;
@@ -38,7 +38,7 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 	}, [collision, navLanes]);
 
 	const xSubdivWidth = useMemo(() => {
-		return (width - 2 * xAxisOffset) / (ticksCount - 1);
+		return (width - xAxisOffset) / (ticksCount - 1);
 	}, [width]);
 
 	const ySubdivHeight = useMemo(() => {
@@ -115,7 +115,7 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, ySubdivHeight, hoverCallback }) {
 	const dataArray = Array.from(data.values());
 	return (
-		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height}>
+		<svg key={`${graphID}-cc`} id={graphID} width={width} height={height + svgFontHeight}>
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
 			{dataArray.map((item) =>
 				<image key={`img-${graphID}-cc-${item.movie_id}`}
@@ -167,7 +167,7 @@ function XAxis({ graphID, width, height, xSubdivWidth }) {
 		<>
 			<line key={`${graphID}-cc-xAxis`}
 				x1={xAxisOffset} y1={height - svgFontHeight * 2}
-				x2={width - xAxisOffset} y2={height - svgFontHeight * 2}
+				x2={width} y2={height - svgFontHeight * 2}
 				style={{ stroke: svgTicksColor, strokeWidth: "2" }} />
 			{[...Array(ticksCount).keys()].map(i =>
 				<line key={`xAxis-${graphID}-cc-${i}`}
@@ -189,6 +189,9 @@ function XAxis({ graphID, width, height, xSubdivWidth }) {
 				</text>
 
 			)}
+			<text x={(3 * width) / 7} y={height + svgFontHeight / 2} fontSize={svgFontHeight * 1.5}>
+				Your ratings
+			</text>
 		</>
 	)
 }
@@ -197,28 +200,31 @@ function YAxis({ graphID, height, ySubdivHeight }) {
 	return (
 		<>
 			<line key={`${graphID}-cc-yAxis`}
-				x1={parseInt(xAxisOffset / 2)} y1={height - svgFontHeight * 2 - tickHeight}
-				x2={parseInt(xAxisOffset / 2)} y2={svgFontHeight * 2 + tickHeight}
+				x1={parseInt(xAxisOffset - svgFontHeight)} y1={height - svgFontHeight * 2 - tickHeight - 2}
+				x2={parseInt(xAxisOffset - svgFontHeight)} y2={(svgFontHeight + tickHeight) * 2}
 				style={{ stroke: svgTicksColor, strokeWidth: "2" }} />
 			{[...Array(ticksCount).keys()].map(i =>
 				<line key={`yAxis-${graphID}-cc-${i}`}
-					x1={parseInt(xAxisOffset / 2)}
-					y1={height - (i) * ySubdivHeight - 3 * svgFontHeight}
-					x2={parseInt(xAxisOffset / 2) + tickHeight}
-					y2={height - (i) * ySubdivHeight - 3 * svgFontHeight}
+					x1={parseInt(xAxisOffset - svgFontHeight)}
+					y1={height - (i) * ySubdivHeight - 3 * svgFontHeight - 1}
+					x2={parseInt(xAxisOffset - svgFontHeight) + tickHeight}
+					y2={height - (i) * ySubdivHeight - 3 * svgFontHeight - 1}
 					style={{
 						stroke: svgTicksColor, strokeWidth: "2"
 					}} />
 			)}
 			{[...Array(ticksCount).keys()].map(i =>
 				<text key={`yAxisLabel-${graphID}-cc-${i}`}
-					x={parseInt(xAxisOffset / 2) - tickHeight}
+					x={parseInt(xAxisOffset - svgFontHeight) - tickHeight}
 					y={height - (i) * ySubdivHeight - 3 * svgFontHeight}
 					textAnchor="middle" fill={svgTicksColor}
 					fontSize={svgFontHeight}>
 					{i + 1}
 				</text>
 			)}
+			<text x={-svgFontHeight} y={(height) / 2 + svgFontHeight} fontSize={svgFontHeight * 1.5} transform={`rotate(-90, ${svgFontHeight}, ${height / 2})`}>
+				Community ratings
+			</text>
 		</>
 	)
 }
@@ -229,19 +235,19 @@ function Grid({ width, height, xSubdivWidth, ySubdivHeight }) {
 			{[...Array((ticksCount * 8) + 1).keys()].map(i =>
 				<line key={`xGrid-${i}`}
 					x1={xAxisOffset + (i * xSubdivWidth / 10)}
-					y1={svgFontHeight * 2 + tickHeight * 2}
+					y1={(svgFontHeight + tickHeight) * 2}
 					x2={xAxisOffset + (i * xSubdivWidth / 10)}
-					y2={height - svgFontHeight * 2 - tickHeight}
+					y2={height - svgFontHeight * 2 - tickHeight - 2}
 					style={{
 						stroke: svgTicksColor, strokeWidth: "0.5"
 					}} />
 			)}
 			{[...Array((ticksCount * 8) + 1).keys()].map(i =>
-				<line key={`xGrid-${i}`}
+				<line key={`yGrid-${i}`}
 					x1={xAxisOffset}
-					y1={svgFontHeight * 2 + tickHeight * 2 + i * (ySubdivHeight / 10)}
-					x2={width - xAxisOffset}
-					y2={svgFontHeight * 2 + tickHeight * 2 + i * (ySubdivHeight / 10)}
+					y1={(svgFontHeight + tickHeight) * 2 + (i * ySubdivHeight / 10)}
+					x2={width}
+					y2={(svgFontHeight + tickHeight) * 2 + (i * ySubdivHeight / 10)}
 					style={{
 						stroke: svgTicksColor, strokeWidth: "0.5"
 					}} />

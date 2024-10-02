@@ -28,6 +28,7 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
             <Row>
                 <h3>{ratingSummary}</h3>
             </Row>
+            <hr />
 
             {movie !== undefined ?
                 <>
@@ -46,6 +47,8 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
                         <p>
                             {movie.description}
                         </p>
+                        {/* <p>User score: {movie.user_score}</p> */}
+                        {/* <p>Community score: {movie.community_score}</p> */}
                     </Row>
                     {/* </Row> */}
                     {/* <Row style={{ marginTop: "2em" }}>

@@ -15,6 +15,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 			<Row>
 				<h3>Please write a short or medium length answer to the following questions.</h3>
 			</Row>
+			<hr />
 			<Row>
 				<h4>What is unique about your movie preferences?</h4>
 				<p>Hint: Movie(s) you like that others dislike or you dislike that others like.</p>
