@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { imgurl } from "../middleware/requests";
-import RightPanel from "./RightPanel";
+import RightPanel from "./rightpanel/RightPanel";
 import { LIKE_CUTOFF, DISLIKE_CUTOFF } from "../utils/constants";
 
 

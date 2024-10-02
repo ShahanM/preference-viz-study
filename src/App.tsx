@@ -63,7 +63,7 @@ function App() {
 
 
 	useEffect(() => {
-		const handleResize = () => { setShowWarning(window.innerWidth < 1000); }
+		const handleResize = () => { setShowWarning(window.innerWidth < 1200); }
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);

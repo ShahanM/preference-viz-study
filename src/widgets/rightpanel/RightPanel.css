@@ -1,0 +1,29 @@
+.rightpanel {
+	width: 30em;
+	height: 800px;
+	border-radius: 0.5em;
+	background-color: #e5e6dc;
+}
+
+.rightpanel img {
+	/* width: 18em; */
+	height: 320px;
+	width: auto;
+	margin: 0 auto;
+	border: white 0.5em solid;
+	
+}
+
+.rightpanel h3 {
+	font-size: 1.2rem;
+	text-align: center;
+	margin: 0.5em;
+}
+
+.rightpanel .synopsis {
+	text-align: left;
+	margin: 0.5em;
+	height: 270px;
+	overflow-y: scroll;
+	/* width: 36em; */
+}
