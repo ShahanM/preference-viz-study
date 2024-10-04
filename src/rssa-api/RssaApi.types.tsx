@@ -131,3 +131,39 @@ export type SurveyResponse = {
 	page_id: string;
 	responses: SurveyItemResponse[];
 }
+
+export type SurveyConstruct = {
+	construct_id: string;
+	construct_items: ConstructItem[];
+}
+
+export type TextConstruct = {
+	construct_id: string;
+	items: ConstructItem;
+}
+
+
+export type PageContent = {
+	page_id: string;
+	constructs: TextConstruct[];
+}
+
+
+export type Demographic = {
+	age_range: string,
+	gender: string,
+	gender_other: string,
+	race: string[],
+	race_other: string,
+	education: string,
+	country: string,
+	state_region: string
+}
+
+
+export type Feedback = {
+	participant_id: string,
+	feedback: string
+	feedback_type: string
+	feedback_category: string
+}
