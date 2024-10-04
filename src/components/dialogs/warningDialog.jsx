@@ -35,7 +35,9 @@ export const WarningDialog = (props) => {
 		<>
 			<Modal show={show} onHide={handleClose}>
 				<Modal.Header className="warning-header-ers"
-					{...!props.disableHide && { closeButton: true }}>
+				closeButton={false}
+					// {...props.disableHide ? { closeButton: false } : { closeButton: true }}
+					>
 					<Modal.Title>
 						{props.title}
 					</Modal.Title>
