@@ -1,13 +1,14 @@
 import { Container, Form, Row } from 'react-bootstrap';
 import './LeftPanel.css';
+import { SurveyConstruct, TextConstruct } from '../../rssa-api/RssaApi.types';
 
 
 interface LeftPanelProps {
-
+	prompts: TextConstruct[];
 }
 
 const LeftPanel: React.FC<LeftPanelProps> = ({
-
+	prompts
 }) => {
 
 	return (
@@ -16,7 +17,21 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 				<h3>Please write a short or medium length answer to the following questions.</h3>
 			</Row>
 			<hr />
-			<Row>
+			{prompts && prompts.length > 0 ? prompts.map((prompt, idx) => (
+				<Row>
+					<h4>{prompt.items.text}</h4>
+					<p>Hint: Movie(s) you like that others dislike or you dislike that others like.</p>
+					<Form>
+						<Form.Group className="mb-3" controlId="uniquePreferences">
+							<Form.Control as="textarea" rows={4} />
+						</Form.Group>
+					</Form>
+				</Row>
+			))
+				: <></>
+
+			}
+			{/* <Row>
 				<h4>What is unique about your movie preferences?</h4>
 				<p>Hint: Movie(s) you like that others dislike or you dislike that others like.</p>
 				<Form>
@@ -42,7 +57,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 						<Form.Control as="textarea" rows={4} />
 					</Form.Group>
 				</Form>
-			</Row>
+			</Row> */}
 		</Container>
 	);
 }

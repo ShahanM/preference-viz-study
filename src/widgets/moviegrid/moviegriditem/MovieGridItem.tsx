@@ -18,8 +18,13 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 	return (
 		<li id={"TN_" + movieItem.movie_id}
 			className={"grid-item"}>
-				<Image className="grid-item-image" height="200px" width="140px"
-					src={imgurl(poster_identifier)} alt={movieItem.title} />
+			<Image className="grid-item-image" height="200px" width="140px"
+				// src={movieItem.poster} 
+				src={imgurl(poster_identifier)}
+				alt={movieItem.title}
+				onError={(evt) => {
+					evt.currentTarget.src = "https://rssa.recsys.dev/movie/poster/default_movie_icon.svg"
+				}} />
 			<div className={movieItem.rating > 0 ? "rated overlay" : "overlay"}>
 				<div className={movieItem.rating > 0 ? 'star-div-rated' : 'star-div'}>
 					<StarRatings

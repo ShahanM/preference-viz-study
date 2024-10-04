@@ -10,7 +10,7 @@
 .layout-header-text {
 	width: fit-content;
 	margin: auto;
-	/* text-align: left; */
+	text-align: left;
 }
 
 /* End Header.jsx */

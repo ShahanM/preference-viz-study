@@ -79,7 +79,7 @@ const Survey: React.FC<StudyPageProps> = ({
 		console.log("SurveyPage submitResponse", surveyResponse, JSON.stringify([...surveyResponse.values()]));
 		if (!pageContent) { console.log("SurveyPage submitResponse empty pageContent"); return; }
 		if (surveyResponse.size === pageContent.construct_items.length) {
-			studyApi.post<SurveyResponse, boolean>(`participant/${participant.id}/response`, {
+			studyApi.post<SurveyResponse, boolean>(`participant/${participant.id}/surveyresponse`, {
 				participant_id: participant.id,
 				page_id: pageContent.page_id,
 				responses: [...surveyResponse.values()]

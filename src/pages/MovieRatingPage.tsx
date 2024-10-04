@@ -49,6 +49,8 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 
 	const handleNextBtn = () => {
 		console.log("MovieRatingPage stepID", participant.current_step);
+		setLoading(true);
+		setButtonDisabled(true);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
 		}).then((nextStep) => {
@@ -61,13 +63,11 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 	useEffect(() => {
 		// TODO: Move this to a recommender api hook
 		const getAllMovieIds = async () => {
-			setLoading(true);
 			return get('api/v2/movie/ids/ers')
 				.then((response): Promise<number[]> => response.json())
 				.then((newmovies: number[]) => {
 					localStorage.setItem('allMovieIds', JSON.stringify(newmovies));
 					setMovieIds(newmovies);
-					setLoading(false);
 				})
 				.catch((error) => {
 					console.log(error);
@@ -101,7 +101,8 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 			</Row>
 			<Row>
 				<RankHolder count={ratedMovies.length} max={minRatingCount} />
-				<Footer callback={handleNextBtn} disabled={buttonDisabled && !loading} />
+				<Footer callback={handleNextBtn} disabled={buttonDisabled}
+					loading={loading} />
 			</Row>
 		</Container>
 	);
@@ -118,7 +119,7 @@ const RankHolder: React.FC<RankHolderProps> = ({ count, max }) => {
 	console.log("RankHolder: count", count);
 	return (
 		<div className="rankHolder">
-			<span> Ranked Movies: </span>
+			<span>Rated Movies: </span>
 			<span><i>{count}</i></span>
 			<span><i>of {max}</i></span>
 		</div>

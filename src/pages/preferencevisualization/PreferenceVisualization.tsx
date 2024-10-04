@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { CurrentStep, StudyStep } from "../../rssa-api/RssaApi.types";
+import { CurrentStep, isEmptyStep, PageContent, StudyStep } from "../../rssa-api/RssaApi.types";
 import { useStudy } from "../../rssa-api/StudyProvider";
 import { Movie, MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
 import { StudyPageProps } from "../StudyPage.types";
@@ -59,9 +59,10 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	// Convenient states to ensure state update and when to show the loader
 	const [isUpdated, setIsUpdated] = useState<boolean>(false);
+	const [pageContent, setPageContent] = useState<PageContent>();
 	const [loading, setLoading] = useState<boolean>(false);
 	const [activeItem, setActiveItem] = useState<number>();
-
+	const [currentPageIdx, setCurrentPageIdx] = useState(0);
 	// States to hold the recommendations
 	const [prefItemMap, setPrefItemMap] =
 		useState<Map<number, PrefVizRecItem>>(
@@ -81,6 +82,34 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			navigate(checkpointUrl);
 		}
 	}, [checkpointUrl, location.pathname, navigate]);
+
+	const handleNextBtn = useCallback(() => {
+		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
+			current_step_id: participant.current_step
+		}).then((nextStep) => {
+			updateCallback(nextStep, next)
+			setIsUpdated(true);
+		});
+	}, [studyApi, participant, updateCallback, next])
+
+	useEffect(() => {
+		console.log("PreferenceVisualization page", currentPageIdx);
+		console.log("PreferenceVisualization studyStep", studyStep);
+
+		if (!isEmptyStep(studyStep)) {
+			if (studyStep.pages && studyStep.pages.length > 0) {
+				if (currentPageIdx < studyStep.pages.length) {
+					studyApi.get<PageContent>(`page/${studyStep.pages[currentPageIdx].id}`)
+						.then((pageContent) => {
+							setPageContent(pageContent);
+							console.log("PreferenceVisualization pageContent", pageContent);
+						})
+				} else {
+					handleNextBtn();
+				}
+			}
+		}
+	}, [studyApi, studyStep, currentPageIdx, handleNextBtn]);
 
 	// Fetch the recommendations from the server
 	// FIXME: abstract this into the studyApi
@@ -160,15 +189,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 	}, [prefItemMap, movieMap]);
 
-	const handleNextBtn = () => {
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep) => {
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
-	}
-
 	useEffect(() => {
 		if (isUpdated) {
 			navigate(next);
@@ -181,28 +201,29 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
 			<Row>
-				{
-					loading && prefItemDetails !== undefined && !(prefItemDetails.size > 0) ?
-						<LoadingScreen loading={loading} message="Loading Recommendations" />
-						:
-						<>
-							<Col md={3}>
-								<LeftPanel />
-							</Col>
-							<Col md={6}>
-								<Continuouscoupled itemdata={prefItemDetails} activeItemCallback={setActiveItem} />
-							</Col>
-							<Col md={3}>
-								{/* <Row style={{ margin: "2em 0 2em 0" }}> */}
-									{activeItem ?
-										<RightPanel movie={prefItemDetails?.get(activeItem)}
-											likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
-										: <></>
-									}
-								{/* </Row> */}
-							</Col>
-						</>
-				}
+				{/* <> */}
+				<Col md={3}>
+					{pageContent ?
+						<LeftPanel prompts={pageContent?.constructs} />
+						: <></>
+					}
+				</Col>
+				<Col md={6}>
+					{
+						!loading && prefItemDetails !== undefined && !(prefItemDetails.size > 0) ?
+							<LoadingScreen loading={loading} message="Loading Recommendations" />
+							:
+							<Continuouscoupled itemdata={prefItemDetails} activeItemCallback={setActiveItem} />
+					}
+				</Col>
+				<Col md={3}>
+					{activeItem ?
+						<RightPanel movie={prefItemDetails?.get(activeItem)}
+							likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
+						: <></>
+					}
+				</Col>
+				{/* </> */}
 			</Row>
 			<Row>
 				<Footer callback={handleNextBtn} />
