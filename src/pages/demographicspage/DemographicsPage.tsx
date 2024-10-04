@@ -8,7 +8,6 @@ import { CurrentStep, Demographic, StudyStep } from "../../rssa-api/RssaApi.type
 import { useStudy } from "../../rssa-api/StudyProvider";
 import { StudyPageProps } from "../StudyPage.types";
 import './DemographicsPage.css';
-// import CountrySelect from "../components/CountrySelector";
 
 
 
@@ -140,18 +139,6 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 
 
 	const validateForm = () => {
-		// if (age === "" || education === "" || gender === "" || race.length === 0) {
-		// 	return false;
-		// }
-		// if (race.indexOf('Not listed (Please specify)') > -1 && racText === '') {
-		// 	return false;
-		// }
-		// if (gender === 'Prefer to self-describe' && genderText === '') {
-		// 	return false;
-		// }
-
-		// return true;
-
 		return !((age === "" || education === "" || gender === "" || country === "" || race.length === 0)
 			|| (race.indexOf('Not listed (Please specify)') > -1 && racText === '')
 			|| (gender === 'Prefer to self-describe' && genderText === ''))
