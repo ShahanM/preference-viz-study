@@ -1,6 +1,6 @@
 import { Container, Form, Row } from 'react-bootstrap';
+import { TextConstruct } from '../../rssa-api/RssaApi.types';
 import './LeftPanel.css';
-import { SurveyConstruct, TextConstruct } from '../../rssa-api/RssaApi.types';
 
 
 interface LeftPanelProps {
@@ -18,7 +18,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 			</Row>
 			<hr />
 			{prompts && prompts.length > 0 ? prompts.map((prompt, idx) => (
-				<Row>
+				<Row key={`prompt-row-${idx}`}>
 					<h4>{prompt.items.text}</h4>
 					<p>Hint: Movie(s) you like that others dislike or you dislike that others like.</p>
 					<Form>
