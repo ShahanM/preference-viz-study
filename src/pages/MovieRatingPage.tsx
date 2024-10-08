@@ -17,7 +17,8 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 	checkpointUrl,
 	participant,
 	studyStep,
-	updateCallback
+	updateCallback,
+	sizeWarning
 }) => {
 	const itemsPerPage = 24;
 	const minRatingCount = 10;
@@ -93,12 +94,14 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
-			<Row>
-				<MovieGrid
-					dataCallback={setRatedMovies}
-					movieIds={movieIds}
-					itemsPerPage={itemsPerPage} />
-			</Row>
+			{sizeWarning ? <Row className="size-error-overlay">Nothing to display</Row> :
+				<Row>
+					<MovieGrid
+						dataCallback={setRatedMovies}
+						movieIds={movieIds}
+						itemsPerPage={itemsPerPage} />
+				</Row>
+			}
 			<Row>
 				<RankHolder count={ratedMovies.length} max={minRatingCount} />
 				<Footer callback={handleNextBtn} disabled={buttonDisabled}

@@ -110,7 +110,6 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 		}
 	}
 
-
 	const [hiddenGender, setHiddenGender] = useState<string>('hidden');
 	const [hiddenRace, setHiddenRace] = useState<string>('hidden');
 
@@ -139,8 +138,14 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 
 
 	const validateForm = () => {
-		return !((age === "" || education === "" || gender === "" || country === "" || race.length === 0)
-			|| (race.indexOf('Not listed (Please specify)') > -1 && racText === '')
+		return !(
+			(age === ""
+				|| education === ""
+				|| gender === ""
+				|| country === ""
+				|| race.length === 0)
+			|| (race.indexOf('Not listed (Please specify)') > -1
+				&& racText === '')
 			|| (gender === 'Prefer to self-describe' && genderText === ''))
 	}
 
@@ -189,7 +194,8 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 	return (
 		<Container>
 			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
+				<Header title={studyStep?.name}
+					content={studyStep?.description} />
 			</Row>
 			<Row className="demo-form">
 				<Form.Group className="mb-3" style={{ textAlign: "left" }}>
@@ -209,19 +215,24 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 					<Form.Label>What is your gender?</Form.Label>
 					<Form.Select
 						title="Dropdown"
-						onChange={(evt) => setGender(evt.target.value)} value={gender}>
+						onChange={(evt) => setGender(evt.target.value)}
+						value={gender}>
 						<option value="">Please choose an option</option>
 						{GENDER_OPTIONS.map((gendercat, idx) => {
-							return <option key={'gender_' + idx} value={gendercat}>
+							return <option key={'gender_' + idx}
+								value={gendercat}>
 								{gendercat}
 							</option>
 						})}
 					</Form.Select>
-					<Form.Control type={hiddenGender} style={{ marginTop: "9px" }}
+					<Form.Control type={hiddenGender}
+						style={{ marginTop: "9px" }}
 						placeholder="Please specify" value={genderText}
 						onChange={(evt) => setGenderText(evt.target.value)} />
 					<br />
-					<Form.Label>Choose one or more races that you identify with:</Form.Label>
+					<Form.Label>
+						Choose one or more races that you identify with:
+					</Form.Label>
 					{RACE_OPTIONS.map((raceval, idx) => (
 						<div key={"race-chck-" + idx}>
 							<Form.Check type="checkbox" id={"race-chck-" + idx}
@@ -235,13 +246,18 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 						placeholder="Please specify" value={racText}
 						onChange={(evt) => setRacText(evt.target.value)} />
 					<br />
-					<Form.Label>What is the highest degree or level of education you have completed?</Form.Label>
+					<Form.Label>
+						What is the highest degree or level of education you
+						have completed?
+					</Form.Label>
 					<Form.Select
 						title="Dropdown"
-						onChange={(evt) => setEducation(evt.target.value)} value={education}>
+						onChange={(evt) => setEducation(evt.target.value)}
+						value={education}>
 						<option value="">Please choose an option</option>
 						{EDUCATION_OPTIONS.map((educationgroup, idx) => {
-							return <option key={'education_' + idx} value={educationgroup}>
+							return <option key={'education_' + idx}
+								value={educationgroup}>
 								{educationgroup}
 							</option>
 						})}

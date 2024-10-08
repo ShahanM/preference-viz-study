@@ -14,6 +14,7 @@ import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import RightPanel from "../../widgets/rightpanel/RightPanel";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
+import "./PreferenceVisualization.css";
 
 
 type PrefVizRecItem = {
@@ -46,7 +47,8 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	checkpointUrl,
 	participant,
 	studyStep,
-	updateCallback
+	updateCallback,
+	sizeWarning
 }) => {
 
 	const { studyApi } = useStudy();
@@ -63,6 +65,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	const [loading, setLoading] = useState<boolean>(false);
 	const [activeItem, setActiveItem] = useState<number>();
 	const [currentPageIdx, setCurrentPageIdx] = useState(0);
+	
 	// States to hold the recommendations
 	const [prefItemMap, setPrefItemMap] =
 		useState<Map<number, PrefVizRecItem>>(
@@ -74,6 +77,17 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	// Do not need the metadata for the study, it was used to tune the hyperparameters
 	const [recMetadata, setRecMetadata] = useState<PrefVizMetadata>();
+
+	const [width, setWidth] = useState(window.innerWidth);
+
+	
+	useEffect(() => {
+		const handleResize = () => {
+			setWidth(window.innerWidth);
+		}
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	// Allowing for some simple checkpoint saving so the participant
 	// can return to the page in case of a browser/system crash
@@ -196,35 +210,39 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	}, [isUpdated, navigate, next]);
 
 	return (
-		<Container fluid>
+		<Container fluid={width < 2000}>
 			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
+				<Header title={studyStep?.name}
+					content={studyStep?.description} />
 			</Row>
-			<Row>
-				{/* <> */}
-				<Col md={3}>
-					{pageContent ?
-						<LeftPanel prompts={pageContent?.constructs} />
-						: <></>
-					}
-				</Col>
-				<Col md={6}>
-					{
-						!loading && prefItemDetails !== undefined && !(prefItemDetails.size > 0) ?
-							<LoadingScreen loading={loading} message="Loading Recommendations" />
+			{sizeWarning ? <Row className="size-error-overlay">Nothing to display</Row> :
+				<Row>
+					<Col xxxl={2} xxl={3} xl={2} md={3} className="me-0 pe-0">
+						{pageContent ?
+							<LeftPanel prompts={pageContent?.constructs} />
+							: <></>
+						}
+					</Col>
+					<Col xxxl={8} xxl={6} xl={8} md={6} className="m-0 p-0">
+						{!loading && prefItemDetails !== undefined
+							&& !(prefItemDetails.size > 0) ?
+							<LoadingScreen loading={loading}
+								message="Loading Recommendations" />
 							:
-							<Continuouscoupled itemdata={prefItemDetails} activeItemCallback={setActiveItem} />
-					}
-				</Col>
-				<Col md={3}>
-					{activeItem ?
-						<RightPanel movie={prefItemDetails?.get(activeItem)}
-							likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
-						: <></>
-					}
-				</Col>
-				{/* </> */}
-			</Row>
+							<Continuouscoupled itemdata={prefItemDetails}
+								activeItemCallback={setActiveItem} />
+						}
+					</Col>
+					<Col xxxl={2} xxl={3} xl={2} md={3} className="ms-0 ps-0">
+						{activeItem ?
+							<RightPanel movie={prefItemDetails?.get(activeItem)}
+								likeCuttoff={LIKE_CUTOFF}
+								dislikeCuttoff={DISLIKE_CUTOFF} />
+							: <></>
+						}
+					</Col>
+				</Row>
+			}
 			<Row>
 				<Footer callback={handleNextBtn} />
 			</Row>
