@@ -20,4 +20,8 @@ export const STRINGS = {
 					<strong><underline>1000 pixels wide</underline></strong>. 
 					Please resize your browser window or use a device with a 
 					larger screen.</p>`
+					larger screen.</p>`,
+	STUDY_ERROR: `<p>There was an error loading the study. 
+					Please try again later.</p><p>If the problem persists, 
+					please contact the study administrator.</p>`,
 }

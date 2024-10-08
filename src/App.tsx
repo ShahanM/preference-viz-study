@@ -23,6 +23,7 @@ function App() {
 	const [participant, setParticipant] = useState<Participant>(emptyParticipant);
 	const [studyStep, setStudyStep] = useState<StudyStep>(emptyStep);
 	const [checkpointUrl, setCheckpointUrl] = useState<string>('/');
+	const [studyError, setStudyError] = useState<boolean>(false);
 
 	const handleStepUpdate = (step: StudyStep, referrer: string) => {
 		const newParticipant = { ...participant, current_step: step.id };
@@ -55,8 +56,10 @@ function App() {
 			}
 		} else {
 			studyApi.get<StudyStep>('studystep/first').then((studyStep) => {
-				document.cookie = `studyStep:${JSON.stringify(studyStep)}; path=/'; `;
 				setStudyStep(studyStep);
+				setStudyError(false);
+			}).catch((error) => {
+				setStudyError(true);
 			});
 		}
 	}, [studyApi]);
@@ -163,6 +166,10 @@ function App() {
 				</Suspense>
 			</Router>
 		</div>
+				{
+					studyError && <WarningDialog show={studyError} title="Error"
+						message={STRINGS.STUDY_ERROR} />
+				}
 	);
 }
 
