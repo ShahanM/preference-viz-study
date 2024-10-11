@@ -4,7 +4,6 @@ import Row from 'react-bootstrap/Row';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import { get } from '../middleware/requests';
 import { CurrentStep, StudyStep } from '../rssa-api/RssaApi.types';
 import { useStudy } from '../rssa-api/StudyProvider';
 import MovieGrid from '../widgets/moviegrid/MovieGrid';
@@ -31,7 +30,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 	const [buttonDisabled, setButtonDisabled] = useState(true);
 	const [loading, setLoading] = useState(false);
 
-	const [movieIds, setMovieIds] = useState<number[]>([]);
+	const [movieIds, setMovieIds] = useState<string[]>([]);
 	const [ratedMovies, setRatedMovies] = useState<MovieRating[]>([]);
 
 
@@ -49,7 +48,6 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 	}, [isUpdated, navigate, next, ratedMovies]);
 
 	const handleNextBtn = () => {
-		console.log("MovieRatingPage stepID", participant.current_step);
 		setLoading(true);
 		setButtonDisabled(true);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
@@ -62,11 +60,9 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 	}
 
 	useEffect(() => {
-		// TODO: Move this to a recommender api hook
 		const getAllMovieIds = async () => {
-			return get('api/v2/movie/ids/ers')
-				.then((response): Promise<number[]> => response.json())
-				.then((newmovies: number[]) => {
+			return studyApi.get<string[]>('movie/ids/ers')
+				.then((newmovies: string[]) => {
 					localStorage.setItem('allMovieIds', JSON.stringify(newmovies));
 					setMovieIds(newmovies);
 				})
@@ -82,7 +78,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 		} else {
 			getAllMovieIds();
 		}
-	}, []);
+	}, [studyApi]);
 
 
 	useEffect(() => {
@@ -119,7 +115,6 @@ interface RankHolderProps {
 
 
 const RankHolder: React.FC<RankHolderProps> = ({ count, max }) => {
-	console.log("RankHolder: count", count);
 	return (
 		<div className="rankHolder">
 			<span>Rated Movies: </span>

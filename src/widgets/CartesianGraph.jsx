@@ -56,60 +56,33 @@ export default function CartesianGraph({ graphID, width, height, data, xCol, yCo
 		const item_id = target.getAttribute("item_id");
 		imgHoverEffect(target, effect);
 		console.log("Hovering over item", item_id);
-		if (props.onItemHover) { props.onItemHover(parseInt(item_id)); }
+		if (props.onItemHover) { props.onItemHover(item_id); }
 	}
 
 	const imgHoverEffect = (target, effect) => {
-		const itemX = target.getAttribute("x_val");
-		const itemY = target.getAttribute("y_val");
-		const parent = target.parentNode;
-		// const siblings = Array.from(parent.children).filter(child => child !== target);
-
 		switch (effect) {
 			case "out":
+				const itemX = target.getAttribute("x_val");
+				const itemY = target.getAttribute("y_val");
 				// Restore the original size and position of the target
 				target = transformImg(target, posterWidth, posterHeight,
 					(itemX) * xSubdivWidth + xAxisOffset,
 					height - (itemY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
 				target.removeAttribute("filter");
 
-				// Restore the original positions of the surrounding objects
-				// siblings.forEach(sibling => {
-				// 	const siblingX = parseFloat(sibling.getAttribute("x_val"));
-				// 	const siblingY = parseFloat(sibling.getAttribute("y_val"));
-				// 	transformImg(sibling, posterWidth, posterHeight,
-				// 		(siblingX) * xSubdivWidth + xAxisOffset,
-				// 		height - (siblingY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
-				// });
 				break;
 			case "in":
-				// const parent = target.parentNode;
+				const parent = target.parentNode;
 				// Enlarge the target and move it to the front
-				target = transformImg(target, posterWidth * 2, posterHeight * 2,
+				target = transformImg(target, posterWidth * 3, posterHeight * 2,
 					target.getAttribute("x") - posterWidth / 2,
 					target.getAttribute("y") - posterHeight / 2);
 				target.setAttribute("filter", "url(#drop-shadow");
 				parent.appendChild(target);
 
-				// // Spread out the surrounding objects
-				// siblings.forEach(sibling => {
-				// 	const siblingX = parseFloat(sibling.getAttribute("x_val"));
-				// 	const siblingY = parseFloat(sibling.getAttribute("y_val"));
-				// 	const dx = siblingX - itemX;
-				// 	const dy = siblingY - itemY;
-				// 	const distance = Math.sqrt(dx * dx + dy * dy);
-				// 	const spreadFactor = 1.5; // Spread factor to control the spread distance
+				parent.removeChild(target);
+				parent.appendChild(target);
 
-				// 	if (distance < 0.5) { // Only spread out the objects that are close to the target
-				// 		const newX = siblingX + dx * spreadFactor;
-				// 		// const newX = siblingX + dx;
-				// 		const newY = siblingY + dy * spreadFactor;
-				// 		// const newY = siblingY + posterHeight * 2;
-				// 		transformImg(sibling, posterWidth, posterHeight,
-				// 			(newX) * xSubdivWidth + xAxisOffset,
-				// 			height - (newY) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight);
-				// 	}
-				// })
 				break;
 			default:
 				break;
@@ -172,7 +145,7 @@ function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, yS
 			<DropShadowFilter />
 			<Grid width={width} height={height} xSubdivWidth={xSubdivWidth} ySubdivHeight={ySubdivHeight} />
 			{dataArray.map((item) =>
-				<g key={`img-${graphID}-cc-${item.movie_id}`}>
+				<g key={`img-${graphID}-cc-${item.id}`}>
 					{/* <mask id={`img-${graphID}-cc-${item.movie_id}`}>
 						<circle
 							cx={(item[xCol]) * xSubdivWidth + xAxisOffset + posterWidth / 2}
@@ -188,7 +161,7 @@ function ImageGraph({ data, graphID, width, height, xCol, yCol, xSubdivWidth, yS
 						y={height - (item[yCol]) * ySubdivHeight - posterHeight - 2 * svgFontHeight - tickHeight}
 						xlinkHref={item.poster}
 						cursor={"pointer"}
-						item_id={item.movie_id} x_val={item[xCol]} y_val={item[yCol]}
+						item_id={item.id} x_val={item[xCol]} y_val={item[yCol]}
 						item_type={"img"}
 						// mask={`url(#img-${graphID}-cc-${item.movie_id})`}
 						onMouseEnter={evt => hoverCallback(evt, "in")}

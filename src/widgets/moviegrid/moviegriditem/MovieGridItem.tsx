@@ -12,15 +12,15 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 	movieItem.rating = movieItem.rating || 0;
 
 	const handleRating = (newRating: number) => {
-		ratingCallback(newRating, movieItem.movie_id);
+		ratingCallback(newRating, movieItem.id);
 	}
 
 	return (
-		<li id={"TN_" + movieItem.movie_id}
+		<li id={"TN_" + movieItem.id}
 			className={"grid-item"}>
 			<Image className="grid-item-image" height="200px" width="140px"
-				// src={movieItem.poster} 
-				src={imgurl(poster_identifier)}
+				src={movieItem.poster} 
+				// src={imgurl(poster_identifier)}
 				alt={movieItem.title}
 				onError={(evt) => {
 					evt.currentTarget.src = "https://rssa.recsys.dev/movie/poster/default_movie_icon.svg"
@@ -35,7 +35,7 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 						starSpacing="1px"
 						changeRating={handleRating}
 						numberOfStars={5}
-						name={movieItem.movie_id.toString()} />
+						name={movieItem.id} />
 				</div>
 			</div>
 			<div className="grid-item-label">

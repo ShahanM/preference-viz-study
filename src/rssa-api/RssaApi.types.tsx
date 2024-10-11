@@ -138,7 +138,7 @@ export type SurveyConstruct = {
 }
 
 export type TextConstruct = {
-	construct_id: string;
+	id: string;
 	items: ConstructItem;
 }
 
@@ -166,4 +166,27 @@ export type Feedback = {
 	feedback: string
 	feedback_type: string
 	feedback_category: string
+}
+
+export type TextItemResponse = {
+	construct_id: string;
+	item_id: string;
+	response: string;
+}
+
+export type GroupedTextResponse = {
+	participant_id: string;
+	page_id: string;
+	responses: TextItemResponse[];
+}
+
+export type MovieRating = {
+	movie_id: number,
+	rating: number
+}
+
+export type PrefVizRequestObject = {
+	user_id: string
+	user_condition: string
+	ratings: MovieRating[]
 }

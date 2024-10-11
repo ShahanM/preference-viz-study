@@ -26,7 +26,6 @@ const StudyMap: React.FC<StudyPageProps> = ({
 	const presurvey = require("../res/pre-survey.png");
 	const rsinteract = require("../res/interact.png");
 	const postsurvey = require("../res/post-survey.png")
-	console.log("StudyMap", studyStep, participant);
 
 	useEffect(() => {
 		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
@@ -35,7 +34,6 @@ const StudyMap: React.FC<StudyPageProps> = ({
 	}, [checkpointUrl, location.pathname, navigate]);
 
 	const handleNextBtn = () => {
-		console.log("StudyMap stepID", participant.current_step);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
 		}).then((nextStep) => {

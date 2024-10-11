@@ -9,6 +9,7 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
     const [ratingSummary, setRatingSummary] = useState("");
 
     useEffect(() => {
+        console.log("movie", movie);
         if (movie === undefined) return;
         const comm_score = movie.community_score;
         const user_score = movie.user_score;

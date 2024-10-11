@@ -33,6 +33,7 @@ export default function Continuouscoupled({ itemdata, activeItemCallback }) {
 			}
 		}
 		window.addEventListener('resize', handleResize);
+		handleResize();
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 

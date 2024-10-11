@@ -1,19 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
+import ConfirmationDialog from "../../components/dialogs/ConfirmationDialog";
+import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { CurrentStep, isEmptyStep, PageContent, StudyStep } from "../../rssa-api/RssaApi.types";
-import { useStudy } from "../../rssa-api/StudyProvider";
-import { Movie, MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
-import { StudyPageProps } from "../StudyPage.types";
+import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 import { post } from "../../middleware/requests";
+import { CurrentStep, GroupedTextResponse, isEmptyStep, PageContent, PrefVizRequestObject, StudyStep, TextItemResponse } from "../../rssa-api/RssaApi.types";
+import { useStudy } from "../../rssa-api/StudyProvider";
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import { mapKeyContainsAll } from "../../utils/helper";
 import Continuouscoupled from "../../widgets/ContinuousCoupled";
-import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
-import RightPanel from "../../widgets/rightpanel/RightPanel";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
+import { Movie, MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
+import RightPanel from "../../widgets/rightpanel/RightPanel";
+import { StudyPageProps } from "../StudyPage.types";
 import "./PreferenceVisualization.css";
 
 
@@ -57,30 +59,31 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	// We are grabbing the rated movies from the preference elicitation step
 	const stateData = location.state as any;
-	const ratedMovies: Map<number, MovieRating> = stateData?.ratedMovies;
+	const ratedMovies = useRef<Map<number, MovieRating>>(stateData?.ratedMovies || new Map<number, MovieRating>());
+
+	console.log("PreferenceVisualization ratedMovies", ratedMovies.current);
 
 	// Convenient states to ensure state update and when to show the loader
 	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [pageContent, setPageContent] = useState<PageContent>();
 	const [loading, setLoading] = useState<boolean>(false);
-	const [activeItem, setActiveItem] = useState<number>();
+	const [activeItem, setActiveItem] = useState<string>();
 	const [currentPageIdx, setCurrentPageIdx] = useState(0);
-	
-	// States to hold the recommendations
-	const [prefItemMap, setPrefItemMap] =
-		useState<Map<number, PrefVizRecItem>>(
-			new Map<number, PrefVizRecItem>());
-	const [movieMap, setMovieMap] =
-		useState<Map<number, Movie>>(new Map<number, Movie>());
-	const [prefItemDetails, setPrefItemDetails] =
-		useState<Map<number, PrefVizRecItemDetail>>();
+	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
+	const [dataSubmitted, setDataSubmitted] = useState<boolean>(false);
+	const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
-	// Do not need the metadata for the study, it was used to tune the hyperparameters
-	const [recMetadata, setRecMetadata] = useState<PrefVizMetadata>();
+	// State to hold the recommendations
+	const [prefItemDetails, setPrefItemDetails] =
+		useState<Map<string, PrefVizRecItemDetail>>(
+			new Map<string, PrefVizRecItemDetail>());
+
+	const [promptResponses, setPromptResponses] =
+		useState<Map<string, TextItemResponse>>(
+			new Map<string, TextItemResponse>());
 
 	const [width, setWidth] = useState(window.innerWidth);
 
-	
 	useEffect(() => {
 		const handleResize = () => {
 			setWidth(window.innerWidth);
@@ -88,6 +91,38 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
+
+
+	useEffect(() => {
+
+		if (ratedMovies.current === undefined) {
+			const storedRatedMovies = localStorage.getItem('ratedMoviesData');
+			if (storedRatedMovies) {
+				ratedMovies.current = JSON.parse(storedRatedMovies);
+			}
+		}
+	}, [ratedMovies]);
+
+
+	useEffect(() => {
+		if (promptResponses.size === pageContent?.constructs.length) {
+			let allResponded = new Map<string, boolean>();
+			for (let key of promptResponses.keys()) {
+				const promptResponse = promptResponses.get(key);
+				if (promptResponse === undefined ||
+					promptResponse.response.length < 20) {
+					return;
+				} else {
+					allResponded.set(key, true);
+				}
+			}
+			if ([...allResponded.values()].every((x: boolean) => x)) {
+				setNextButtonDisabled(false);
+			} else {
+				setNextButtonDisabled(true);
+			}
+		}
+	}, [promptResponses, pageContent?.constructs.length]);
 
 	// Allowing for some simple checkpoint saving so the participant
 	// can return to the page in case of a browser/system crash
@@ -106,17 +141,43 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		});
 	}, [studyApi, participant, updateCallback, next])
 
-	useEffect(() => {
-		console.log("PreferenceVisualization page", currentPageIdx);
-		console.log("PreferenceVisualization studyStep", studyStep);
 
+	const handleSubmit = useCallback(() => {
+		if (!dataSubmitted) {
+			const responses = Array.from(promptResponses.values());
+			setLoading(true);
+			localStorage.setItem('prefviz', JSON.stringify(responses));
+			studyApi.post<GroupedTextResponse, boolean>(
+				`participant/${participant.id}/textresponse/`,
+				{
+					participant_id: participant.id,
+					page_id: studyStep.pages[currentPageIdx].id,
+					responses: responses
+				}).then((success: boolean) => {
+					if (success) {
+						setDataSubmitted(true);
+						setShowConfirmation(false);
+					}
+				}).catch((error) => console.log(error));
+		}
+	}, [studyApi, participant, studyStep, currentPageIdx, promptResponses,
+		dataSubmitted]);
+
+	useEffect(() => {
+		if (dataSubmitted) {
+			setLoading(false);
+		}
+	}, [dataSubmitted]);
+
+
+	useEffect(() => {
 		if (!isEmptyStep(studyStep)) {
 			if (studyStep.pages && studyStep.pages.length > 0) {
 				if (currentPageIdx < studyStep.pages.length) {
-					studyApi.get<PageContent>(`page/${studyStep.pages[currentPageIdx].id}`)
+					studyApi.get<PageContent>(
+						`page/${studyStep.pages[currentPageIdx].id}`)
 						.then((pageContent) => {
 							setPageContent(pageContent);
-							console.log("PreferenceVisualization pageContent", pageContent);
 						})
 				} else {
 					handleNextBtn();
@@ -125,83 +186,58 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 	}, [studyApi, studyStep, currentPageIdx, handleNextBtn]);
 
+	console.log("ACTIVE", activeItem);
+
 	// Fetch the recommendations from the server
 	// FIXME: abstract this into the studyApi
 	useEffect(() => {
 		const getRecommendations = async () => {
 			setLoading(true);
-			post("prefviz/recommendation/", {
-				user_id: 0, // TODO: change this to the actual user id
-				user_condition: 0, // TODO: change this to the actual user condition
-				ratings: [...ratedMovies.values()],
-				num_rec: 40, // FIXME: hardcoded value
-				algo: 'fishnet + single_linkage', // FIXME: hardcoded value
-				randomize: false, // FIXME: hardcoded value
-				init_sample_size: 500, // FIXME: hardcoded value
-				min_rating_count: 50 // FIXME: hardcoded value
-			}).then((response) => response.json())
-				.then((responseItems: PrefVizItem) => {
-					console.log("PreferenceVisualization responseItems", responseItems);
-					const itemMap = new Map(responseItems.recommendations.map(
-						(item: PrefVizRecItem) =>
-							[
-								parseInt(item.item_id.toString()),
-								item] as [number, PrefVizRecItem
-
-							]
-					));
-					setPrefItemMap(itemMap);
-					setRecMetadata(responseItems.metadata);
-					setLoading(false);
-				}).catch((err) => {
-					console.log("VisualizationLayout Error", err);
-				});
+			const requestObj = {
+				user_id: participant.id,
+				user_condition: participant.condition_id,
+				ratings: [...ratedMovies.current.values()].map(rating => {
+					return {
+						movie_id: rating.movielens_id,
+						rating: rating.rating
+					}
+				})
+			}
+			console.log("PreferenceVisualization getRecommendations", requestObj, participant);
+			studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>("prefviz/recommendation/", {
+				user_id: participant.id,
+				user_condition: participant.condition_id,
+				ratings: [...ratedMovies.current.values()].map(rating => {
+					return {
+						movie_id: rating.movielens_id,
+						rating: rating.rating
+					}
+				})
+			}).then((responseItems: PrefVizRecItemDetail[]) => {
+				console.log("PreferenceVisualization newstuff", responseItems);
+				let itemMap = new Map<string, PrefVizRecItemDetail>();
+				for (let item of responseItems) {
+					itemMap.set(item.id, item);
+				}
+				setPrefItemDetails(itemMap);
+				setLoading(false);
+			}).catch((err) => {
+				console.log("VisualizationLayout Error", err);
+			});
 		}
 
-		if (prefItemMap.size === 0) {
+		if (prefItemDetails.size === 0 && participant.id !== '' && participant.condition_id !== '') {
 			getRecommendations();
 		}
 
-	}, [ratedMovies, prefItemMap]);
+	}, [ratedMovies, prefItemDetails, studyApi, participant]);
 
-	// Fetch the movie data for the recommendations
-	useEffect(() => {
-		console.log("PreferenceVisualization items", prefItemMap);
-		console.log("PreferenceVisualization movieMap", movieMap);
-		const getMoviesByIDs = async (ids: number[]) => {
-			setLoading(true);
-			post('api/v2/movie/ers', ids)
-				.then((response): Promise<Movie[]> => response.json())
-				.then((movies: Movie[]) => {
-					const imap = new Map<number, Movie>(movieMap);
-					for (let movie of movies) {
-						imap.set(movie.movie_id, movie);
-					}
-					setMovieMap(imap);
-				})
-				.catch((error) => console.log(error));
-		}
-
-		// Creating a new map containing both scores and details for convenience
-		const itemIds = [...prefItemMap.keys()];
-		if (itemIds.length <= 0) { return }
-		if (!mapKeyContainsAll(movieMap, itemIds)) {
-			getMoviesByIDs(itemIds);
-		} else {
-			const itemdetails = new Map<number, PrefVizRecItemDetail>();
-			for (let itemid of itemIds) {
-				const item = prefItemMap.get(itemid);
-				const movie = movieMap.get(itemid);
-				if (item && movie) {
-					itemdetails.set(itemid, {
-						...movie,
-						...item
-					});
-				}
-			}
-			setPrefItemDetails(itemdetails);
-		}
-	}, [prefItemMap, movieMap]);
+	const promptsUpdateHandler = (response: TextItemResponse) => {
+		console.log("PreferenceVisualization promptsUpdateHandler", promptResponses);
+		const newResponses = new Map(promptResponses);
+		newResponses.set(response.item_id, response);
+		setPromptResponses(newResponses);
+	}
 
 	useEffect(() => {
 		if (isUpdated) {
@@ -210,16 +246,27 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	}, [isUpdated, navigate, next]);
 
 	return (
-		<Container fluid={width < 2000}>
+		<Container className="prefviz" fluid={width < 2000}>
 			<Row>
 				<Header title={studyStep?.name}
 					content={studyStep?.description} />
 			</Row>
-			{sizeWarning ? <Row className="size-error-overlay">Nothing to display</Row> :
+			<WarningDialog show={dataSubmitted} title="Success"
+				message={`Your responses have been submitted. 
+					You may now click the next button to proceed.`} />
+			<ConfirmationDialog show={showConfirmation} title="Confirmation"
+				message={`Are you sure you want to submit your responses?`}
+				onConfirm={handleSubmit}
+				onCancel={() => setShowConfirmation(false)} />
+			{sizeWarning ? <Row className="size-error-overlay">
+				Nothing to display
+			</Row> :
 				<Row>
 					<Col xxxl={2} xxl={3} xl={2} md={3} className="me-0 pe-0">
 						{pageContent ?
-							<LeftPanel prompts={pageContent?.constructs} />
+							<LeftPanel prompts={pageContent?.constructs}
+								lockFields={dataSubmitted}
+								promptsUpdateCallback={promptsUpdateHandler} />
 							: <></>
 						}
 					</Col>
@@ -244,7 +291,11 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				</Row>
 			}
 			<Row>
-				<Footer callback={handleNextBtn} />
+				<Footer callback={dataSubmitted ? handleNextBtn
+					: () => setShowConfirmation(true)}
+					disabled={nextButtonDisabled}
+					text={!dataSubmitted ? "Submit" : "Next"}
+				/>
 			</Row>
 		</Container>
 	);

@@ -12,7 +12,7 @@ import MovieGridItem from './moviegriditem/MovieGridItem';
 import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
 
 interface MovieGridProps {
-	movieIds: number[];
+	movieIds: string[];
 	itemsPerPage: number;
 	dataCallback: (data: any) => void;
 }
@@ -24,14 +24,14 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 ) => {
 
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<number, MovieRating>>();
+	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>();
 
-	const [movieMap, setMovieMap] = useState<Map<number, Movie>>(new Map<number, Movie>());
+	const [movieMap, setMovieMap] = useState<Map<string, Movie>>(new Map<string, Movie>());
 
 
 	const [loading, setLoading] = useState<boolean>(false);
-	const [movieIdCache, setMovieIdCache] = useState<number[]>(movieIds);
-	const [moviesToFetch, setMoviesToFetch] = useState<number[]>([]);
+	const [movieIdCache, setMovieIdCache] = useState<string[]>(movieIds);
+	const [moviesToFetch, setMoviesToFetch] = useState<string[]>([]);
 
 	const [prevBtnDisabled, setPrevBtnDisabled] = useState<boolean>(true);
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
@@ -39,21 +39,21 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	// FIXME: we do not need this anymore because the API response is already shuffled
 	// We just need to paginate the response.
-	const pickRandomMovies = (unfetchedIds: number[], numItems: number) => {
-		// const limit = itemsPerPage * 2;
-		const limit = numItems * 2 // FIXME hardcoded values
-		let randomMovies = [];
-		let moviearr = [...unfetchedIds];
-		for (let i = 0; i < limit; i++) {
-			let randomMovie = moviearr.splice(Math.floor(Math.random()
-				* moviearr.length), 1);
-			randomMovies.push(...randomMovie);
-		}
-		setMovieIdCache(moviearr);
-		setMoviesToFetch(randomMovies);
-	}
+	// const pickRandomMovies = (unfetchedIds: number[], numItems: number) => {
+	// 	// const limit = itemsPerPage * 2;
+	// 	const limit = numItems * 2 // FIXME hardcoded values
+	// 	let randomMovies = [];
+	// 	let moviearr = [...unfetchedIds];
+	// 	for (let i = 0; i < limit; i++) {
+	// 		let randomMovie = moviearr.splice(Math.floor(Math.random()
+	// 			* moviearr.length), 1);
+	// 		randomMovies.push(...randomMovie);
+	// 	}
+	// 	setMovieIdCache(moviearr);
+	// 	setMoviesToFetch(randomMovies);
+	// }
 
-	const updateMoviePageData = (unfetchIds: number[], numItems: number) => {
+	const updateMoviePageData = (unfetchIds: string[], numItems: number) => {
 		const limit = numItems * 2 // FIXME hardcoded values
 		let moviearr = [...unfetchIds];
 		let fetcharr = moviearr.splice(0, limit);
@@ -71,22 +71,22 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	}
 
 	useEffect(() => {
-		const getMoviesByIDs = async (ids: number[]) => {
+		const getMoviesByIDs = async (ids: string[]) => {
 			setLoading(true);
 			post('api/v2/movie/ers', ids)
 				.then((response): Promise<Movie[]> => response.json())
 				.then((newmovies: Movie[]) => {
 					console.log(newmovies);
-					let newmovieMap = new Map<number, Movie>(movieMap);
+					let newmovieMap = new Map<string, Movie>(movieMap);
 					newmovies.forEach(item => {
-						newmovieMap.set(item.movie_id, item);
+						newmovieMap.set(item.id, item);
 					});
 					setMovieMap(newmovieMap);
 					setMoviesToFetch([]);
 				})
 				.catch((error) => console.log(error));
 		}
-		if (moviesToFetch.length > 0 && !mapKeyContainsAll(movieMap, moviesToFetch)) {
+		if (moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, moviesToFetch)) {
 			getMoviesByIDs(moviesToFetch);
 		}
 	}, [moviesToFetch, movieMap]);
@@ -113,17 +113,24 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	useEffect(() => { setLoading(false); }, [movieMap])
 
-	const rateMovies = (newRating: number, movieid: number) => {
+	const rateMovies = (newRating: number, movieid: string) => {
 		console.log("MovieGrid rateMovies", newRating, movieid);
 
-		let galleryMovies = new Map<number, Movie>(movieMap);
-		let ratedMovies = new Map<number, MovieRating>(movieRatingsLookup);
+		let galleryMovies = new Map<string, Movie>(movieMap);
+		let ratedMovies = new Map<string, MovieRating>(movieRatingsLookup);
 
 		let ratedMovie = ratedMovies.get(movieid);
 		if (ratedMovie) {
 			ratedMovie.rating = newRating;
 		} else {
-			ratedMovie = { movie_id: movieid, rating: newRating };
+			const movie = movieMap.get(movieid);
+			if (movie) {
+				ratedMovie = {
+					id: movie.id,
+					movielens_id: movie.movielens_id,
+					rating: newRating
+				};
+			} else { return }
 		}
 
 		let ratedMovieData = galleryMovies.get(movieid);
@@ -152,7 +159,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 							{[...movieMap.values()].slice((currentPage - 1) * itemsPerPage,
 								currentPage * itemsPerPage)
 								.map(currentMovie => (
-									<MovieGridItem key={"TN_" + currentMovie.movie_id}
+									<MovieGridItem key={"TN_" + currentMovie.id}
 										movieItem={currentMovie}
 										ratingCallback={rateMovies} />
 								))}
