@@ -7,6 +7,7 @@ export interface StudyPageProps {
 	participant: Participant;
 	studyStep: StudyStep;
 	updateCallback: (nextStep: StudyStep, referrer: string) => void;
+	sizeWarning: boolean;
 }
 
 
@@ -16,4 +17,5 @@ export interface InitStudyPageProps {
 	studyStep: StudyStep;
 	setNewParticipant: (newParticipant: Participant) => void;
 	updateCallback: (nextStep: StudyStep, referrer: string) => void;
+	sizeWarning: boolean;
 }

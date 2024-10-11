@@ -1,43 +1,55 @@
-import { useState } from "react";
-import Col from 'react-bootstrap/Col';
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../utils/constants";
-import CartesianGraph from "./CartesianGraph";
-import RightPanel from "./rightpanel/RightPanel";
+import { useEffect, useState } from "react";
 import LoadingScreen from "../components/loadingscreen/LoadingScreen";
+import CartesianGraph from "./CartesianGraph";
+
+// This component is used to display the continuous coupled graph
+// @ < 1200px=> the study is unavailable
+// @ 1200px to 1399px => width:800, height:900 
+// @ 1400px to 1599px => width:700, height:900
+// @ >1600px => width:800, height:900 (default)
 
 export default function Continuouscoupled({ itemdata, activeItemCallback }) {
 
+	const [width, setWidth] = useState(800);
+	const [height, setHeight] = useState(900);
 	const handleHover = (item) => {
 		activeItemCallback(item);
 	}
 
+	useEffect(() => {
+		const handleResize = () => {
+			const windowWidth = window.innerWidth;
+			if (windowWidth < 1400) {
+				setWidth(900 - (1400 - windowWidth) / 2);
+				setHeight(900);
+			}
+			else if (windowWidth < 1800) {
+				setWidth(800 - (1800 - windowWidth) / 2);
+				setHeight(900);
+			}
+			else {
+				setWidth(1200);
+				setHeight(1200);
+			}
+		}
+		window.addEventListener('resize', handleResize);
+		handleResize();
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
+
 	return (
-		<Container>
+		<>
 			{itemdata ?
-				<Row style={{margin: "0 0 0 0"}}>
-					{/* <Col xl={9} lg={9} md={8} sm={12}> */}
-					{/* <Row style={{ margin: "0 0 2em 0" }}> */}
-						<CartesianGraph key={"user"}
-							graphID={"user_comm_graph"}
-							width={800} height={800}
-							data={itemdata}
-							xCol={"community_score"} yCol={"user_score"}
-							onItemHover={handleHover}
-							showToggle={false}
-							variant={1} />
-					{/* </Row> */}
-					{/* </Col> */}
-					{/* <Col xl={3} lg={3} md={4} sm={12}> */}
-					{/* <Row style={{ margin: "2em 0 2em 0" }}>
-							<RightPanel movie={itemdata.get(activeItem)}
-								likeCuttoff={LIKE_CUTOFF} dislikeCuttoff={DISLIKE_CUTOFF} />
-						</Row> */}
-					{/* </Col> */}
-				</Row>
+				<CartesianGraph key={"user"}
+					graphID={"user_comm_graph"}
+					width={width} height={height}
+					data={itemdata}
+					xCol={"community_score"} yCol={"user_score"}
+					onItemHover={handleHover}
+					showToggle={false}
+					variant={1} />
 				: <LoadingScreen loading={true} message="Loading Recommendations" />
 			}
-		</Container>
+		</>
 	)
 }

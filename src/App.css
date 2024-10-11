@@ -3,6 +3,7 @@
   /* min-width: 1200px; */
   /* overflow-x: scroll; */
   font-size: 1em;
+  font-weight: 300;
 }
 
 /* .App p {
@@ -47,10 +48,6 @@
 .modal-80w {
   max-width: 80%;
   margin: 1.75rem auto;
-}
-
-.overviewCard {
-  height: 18em;
 }
 
 .nextButton {
@@ -141,6 +138,7 @@
     box-shadow: 10014px 0 0 -5px;
   }
 }
+
 /* End Button loader */
 
 
@@ -293,4 +291,15 @@ p.informedConsent-text {
   margin-bottom: 0;
   font-weight: 500;
 }
+
 /* End Informed Consent */
+
+
+.size-error-overlay {
+  height: 900px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+  font-weight: 500;
+}

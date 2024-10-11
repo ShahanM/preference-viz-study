@@ -9,6 +9,7 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
     const [ratingSummary, setRatingSummary] = useState("");
 
     useEffect(() => {
+        console.log("movie", movie);
         if (movie === undefined) return;
         const comm_score = movie.community_score;
         const user_score = movie.user_score;
@@ -25,7 +26,7 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
 
     return (
         <Container className="rightpanel">
-            <Row>
+            <Row className="header">
                 <h3>{ratingSummary}</h3>
             </Row>
             <hr />
@@ -35,17 +36,26 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
                     {/* <Row> */}
                     <Row>
                         <img
-                            src={imgurl(movie.poster_identifier)}
+                            // src={imgurl(movie.poster_identifier)}
+                            src={movie.poster}
                             alt={movie.title} />
                     </Row>
                     <Row>
-                        <h3>
+                        <h3 className="movie-title">
                             {movie.title} ({movie.year})
                         </h3>
                     </Row>
-                    <Row className="synopsis">
+                    <Row className="details">
                         <p>
-                            {movie.description}
+                            <strong>Cast: </strong>{`${movie.cast.split("|").slice(0, 3).join(", ")}`}
+                            <span className="more"> [more]</span>
+                        </p>
+                        <p>
+                            <strong>Director: </strong>{movie.director}
+                        </p>
+                        <p>
+                            {movie.description.split(" ").slice(0, 25).join(" ")}
+                            <span className="more"> [more]</span>
                         </p>
                         {/* <p>User score: {movie.user_score}</p> */}
                         {/* <p>Community score: {movie.community_score}</p> */}

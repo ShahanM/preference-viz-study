@@ -5,7 +5,9 @@ import Row from 'react-bootstrap/Row';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import { CurrentStep, isEmptyStep, NewParticipant, Participant, StudyStep } from '../rssa-api/RssaApi.types';
+import {
+	CurrentStep, isEmptyStep, NewParticipant, Participant, StudyStep
+} from '../rssa-api/RssaApi.types';
 import { useStudy } from '../rssa-api/StudyProvider';
 import InformedConsentModal from '../components/dialogs/InformedConsent';
 import { InitStudyPageProps } from './StudyPage.types';
@@ -44,7 +46,6 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 					current_step: studyStep.id,
 					current_page: null
 				}).then((response) => {
-					console.log('Participant created: ', response);
 					setNewParticipant(response);
 					setParticipant(response);
 				});
@@ -52,9 +53,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 	}
 
 	useEffect(() => {
-		console.log("Welcome useEffect", participant);
 		if (participant) {
-			console.log("Welcome useEffect: getting next step");
 			studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 				current_step_id: participant.current_step
 			}).then((nextStep) => {
@@ -113,7 +112,8 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 			<InformedConsentModal show={show}
 				consentCallback={consentCallbackHandler} />
 			<Row>
-				<Footer callback={showInformedConsent} text={"Get Started"} disabled={isEmptyStep(studyStep)} />
+				<Footer callback={showInformedConsent} text={"Get Started"}
+					disabled={isEmptyStep(studyStep)} />
 			</Row>
 		</Container>
 	)

@@ -1,6 +1,4 @@
 .leftpanel {
-	/* width: 30em; */
-	height: 800px;
 	border-radius: 0.5em;
 	background-color: #e5e6dc;
 }
@@ -21,4 +19,23 @@
 	text-align: left;
 	font-weight: 300;
 	margin: 0.5em;
+}
+
+/* Visualization width is 800 at 1200px */
+@media screen and (min-width: 1200px) and (max-width: 1399px) {
+	.leftpanel h3 {
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.leftpanel h4 {
+		font-size: 1rem;
+		font-weight: 400;
+	}
+
+	.leftpanel p {
+		font-size: 0.9rem;
+		font-weight: 300;
+		margin: 0 0.5em;
+	}
 }

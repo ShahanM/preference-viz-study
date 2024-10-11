@@ -1,5 +1,6 @@
 export type Movie = {
-	movie_id: number,
+	id: string
+	movielens_id: number,
 	imdb_id: number,
 	title: string,
 	year: number,
@@ -24,11 +25,12 @@ export type Movie = {
 }
 
 export type MovieRating = {
-	movie_id: number,
+	id: string,
+	movielens_id: number,
 	rating: number
 }
 
 export interface MovieGridItemProps {
 	movieItem: Movie,
-	ratingCallback: (rating: number, movie_id: number) => void
+	ratingCallback: (rating: number, movie_id: string) => void
 }

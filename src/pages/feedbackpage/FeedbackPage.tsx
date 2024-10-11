@@ -37,7 +37,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	}, [checkpointUrl, location.pathname, navigate]);
 
 	const submitFeedback = (evt: React.MouseEvent<HTMLElement>) => {
-		if (feedback.length === 0){
+		if (feedback.length === 0) {
 			setShowWarning(true);
 			return;
 		} else {
@@ -49,11 +49,18 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 				feedback: feedback,
 				feedback_type: 'study',
 				feedback_category: 'participant general feedback'
-			}).then(() => {
-				setLoading(false);
-				setBtnDisabled(false);
+			}).then((success: boolean) => {
+				if (success) {
+					setLoading(false);
+					setBtnDisabled(false);
+				}
 			});
 		}
+	}
+
+	const handleWarningConfirm = () => {
+		setShowWarning(false);
+		setBtnDisabled(false);
 	}
 
 	const handleNextBtn = () => {
@@ -75,7 +82,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 
 	return (
 		<Container fluid>
-			{showWarning && <WarningDialog show={showWarning} confirmCallback={() => setShowWarning(false)}
+			{showWarning && <WarningDialog show={showWarning} confirmCallback={handleWarningConfirm}
 				title="Empty feedback" message="<p>You hardly wrote anything.</p><p>Are you sure you are done?</p>"
 				confirmText="Yes, I'm done"
 			/>}
@@ -109,3 +116,4 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 }
 
 export default FeedbackPage;
+// https://m.media-amazon.com/images/M/MV5BMjE4NTA1NzExN15BMl5BanBnXkFtZTYwNjc3MjM3._V1_.jpg
