@@ -1,14 +1,12 @@
-import StarRatings from 'react-star-ratings';
-import { imgurl, post } from '../../../middleware/requests';
-import { MovieGridItemProps } from './MovieGridItem.types';
-import './MovieGridItem.css';
 import { Image } from 'react-bootstrap';
+import StarRatings from 'react-star-ratings';
+import './MovieGridItem.css';
+import { MovieGridItemProps } from './MovieGridItem.types';
 
 const MovieGridItem: React.FC<MovieGridItemProps> = ({
 	movieItem,
 	ratingCallback
 }) => {
-	const poster_identifier = movieItem.poster_identifier;
 	movieItem.rating = movieItem.rating || 0;
 
 	const handleRating = (newRating: number) => {
@@ -20,7 +18,6 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 			className={"grid-item"}>
 			<Image className="grid-item-image" height="200px" width="140px"
 				src={movieItem.poster} 
-				// src={imgurl(poster_identifier)}
 				alt={movieItem.title}
 				onError={(evt) => {
 					evt.currentTarget.src = "https://rssa.recsys.dev/movie/poster/default_movie_icon.svg"
