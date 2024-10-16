@@ -10,6 +10,7 @@ import { mapKeyContainsAll } from '../../utils/helper';
 import './MovieGrid.css';
 import MovieGridItem from './moviegriditem/MovieGridItem';
 import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
+import { useStudy } from '../../rssa-api/StudyProvider';
 
 interface MovieGridProps {
 	movieIds: string[];
@@ -22,6 +23,8 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	itemsPerPage,
 	dataCallback }
 ) => {
+
+	const { studyApi } = useStudy();
 
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>();
@@ -73,10 +76,8 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	useEffect(() => {
 		const getMoviesByIDs = async (ids: string[]) => {
 			setLoading(true);
-			post('api/v2/movie/ers', ids)
-				.then((response): Promise<Movie[]> => response.json())
+			studyApi.post<string[], Movie[]>('movie/ers', ids)
 				.then((newmovies: Movie[]) => {
-					console.log(newmovies);
 					let newmovieMap = new Map<string, Movie>(movieMap);
 					newmovies.forEach(item => {
 						newmovieMap.set(item.id, item);
@@ -89,7 +90,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		if (moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, moviesToFetch)) {
 			getMoviesByIDs(moviesToFetch);
 		}
-	}, [moviesToFetch, movieMap]);
+	}, [moviesToFetch, movieMap, studyApi]);
 
 	const renderPrev = () => {
 		if (currentPage > 1) {
