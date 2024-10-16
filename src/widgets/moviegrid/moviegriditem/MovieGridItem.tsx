@@ -7,7 +7,7 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 	movieItem,
 	ratingCallback
 }) => {
-	const default_poster = require("../res/default_movie_icon.svg");
+	const default_poster = require("../../../res/default_movie_icon.svg");
 	movieItem.rating = movieItem.rating || 0;
 
 	const handleRating = (newRating: number) => {
