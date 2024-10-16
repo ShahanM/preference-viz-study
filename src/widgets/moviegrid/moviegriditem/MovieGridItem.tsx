@@ -7,7 +7,6 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 	movieItem,
 	ratingCallback
 }) => {
-	const default_poster = require("../../../res/default_movie_icon.svg");
 	movieItem.rating = movieItem.rating || 0;
 
 	const handleRating = (newRating: number) => {
@@ -21,7 +20,7 @@ const MovieGridItem: React.FC<MovieGridItemProps> = ({
 				src={movieItem.poster} 
 				alt={movieItem.title}
 				onError={(evt) => {
-					evt.currentTarget.src = {default_poster};
+					evt.currentTarget.src = "https://commons.wikimedia.org/wiki/Category:SVG_film_reel_icons#/media/File:Filmreel-icon.svg";
 				}} />
 			<div className={movieItem.rating > 0 ? "rated overlay" : "overlay"}>
 				<div className={movieItem.rating > 0 ? 'star-div-rated' : 'star-div'}>
