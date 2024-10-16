@@ -3,7 +3,6 @@ import { Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { CurrentStep, StudyStep } from "../rssa-api/RssaApi.types";
 import { useStudy } from "../rssa-api/StudyProvider";
 import { StudyPageProps } from "./StudyPage.types";
 
@@ -32,13 +31,6 @@ const FinalPage: React.FC<StudyPageProps> = ({
 	}, [checkpointUrl, location.pathname, navigate]);
 
 	const handleNextBtn = () => {
-		// console.log("MovieRatingPage stepID", participant.current_step);
-		// studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-		// 	current_step_id: participant.current_step
-		// }).then((nextStep) => {
-		// 	updateCallback(nextStep, next)
-		// 	setIsUpdated(true);
-		// });
 		localStorage.clear();
 		console.log("Local storage cleared");
 		setIsUpdated(true);
@@ -55,11 +47,24 @@ const FinalPage: React.FC<StudyPageProps> = ({
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
-			<Row>
-				<h1>Some reditect info.</h1>
+			<Row style={{ textAlign: "left" }}>
+				<p>
+					You should be automatically redirected back to the Prolific
+					page. If not, please click the link below.
+				</p>
+				<a href="#" style={{ textAlign: "center" }}>Some redirect url.</a>
+				<p>
+					Currently, this is a placeholder for testing. Please click
+					the Done button below to finish the study.
+				</p>
+				<p>
+					Note: If you do not click the Done button, you will not be
+					able to run the study again on this browser without clearing
+					browser data/cache.
+				</p>
 			</Row>
 			<Row>
-				<Footer callback={handleNextBtn} text={"Done"}/>
+				<Footer callback={handleNextBtn} text={"Done"} />
 			</Row>
 		</Container>
 	)
