@@ -181,7 +181,7 @@ export type GroupedTextResponse = {
 }
 
 export type MovieRating = {
-	movie_id: number,
+	item_id: number,
 	rating: number
 }
 
