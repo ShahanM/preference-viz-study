@@ -1,6 +1,6 @@
 {
-  "name": "rssa-preference-visualization",
-  "version": "0.1.0",
+  "name": "rssa-preference-visualization-study",
+  "version": "0.9.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react": "^0.26.12",

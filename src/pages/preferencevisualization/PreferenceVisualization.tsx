@@ -207,7 +207,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				user_condition: participant.condition_id,
 				ratings: [...ratedMovies.current.values()].map(rating => {
 					return {
-						movie_id: rating.movielens_id,
+						item_id: rating.movielens_id,
 						rating: rating.rating
 					}
 				})
