@@ -17,6 +17,7 @@ import Welcome from './pages/welcome';
 import { Participant, StudyStep, emptyParticipant, emptyStep, isEmptyParticipant, isEmptyStep } from './rssa-api/RssaApi.types';
 import { useStudy } from './rssa-api/StudyProvider';
 import { STRINGS } from './utils/constants';
+import ScenarioPage from './pages/ScenarioPage';
 
 
 const customBreakpoints = {
@@ -119,6 +120,16 @@ function App() {
 							} />
 							<Route path="/presurvey" element={
 								<Survey
+									next="/scenario"
+									checkpointUrl={checkpointUrl}
+									participant={participant}
+									studyStep={studyStep}
+									updateCallback={handleStepUpdate}
+									sizeWarning={showWarning}
+								/>
+							} />
+							<Route path="/scenario" element={
+								<ScenarioPage
 									next="/ratemovies"
 									checkpointUrl={checkpointUrl}
 									participant={participant}

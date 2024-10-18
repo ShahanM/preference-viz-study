@@ -64,7 +64,6 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	}
 
 	const handleNextBtn = () => {
-		console.log("MovieRatingPage stepID", participant.current_step);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
 		}).then((nextStep) => {
