@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import FormGroup from "react-bootstrap/FormGroup";
 import Row from "react-bootstrap/Row";
 import LikertBar from "../../components/LikertBar";
-import { SurveyPage } from "../../rssa-api/RssaApi.types";
+import { SurveyPage } from "rssa-api";
 import "./SurveyTemplate.css";
 
 

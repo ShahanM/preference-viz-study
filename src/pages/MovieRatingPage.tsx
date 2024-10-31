@@ -4,8 +4,7 @@ import Row from 'react-bootstrap/Row';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import { CurrentStep, StudyStep } from '../rssa-api/RssaApi.types';
-import { useStudy } from '../rssa-api/StudyProvider';
+import { useStudy, CurrentStep, StudyStep } from 'rssa-api';
 import MovieGrid from '../widgets/moviegrid/MovieGrid';
 import { MovieRating } from '../widgets/moviegrid/moviegriditem/MovieGridItem.types';
 import { StudyPageProps } from './StudyPage.types';
@@ -52,7 +51,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 		setButtonDisabled(true);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
@@ -66,7 +65,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 					localStorage.setItem('allMovieIds', JSON.stringify(newmovies));
 					setMovieIds(newmovies);
 				})
-				.catch((error) => {
+				.catch((error: any) => {
 					console.log(error);
 					return [];
 				});

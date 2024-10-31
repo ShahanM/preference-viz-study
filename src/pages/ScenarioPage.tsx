@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { StudyPageProps } from "./StudyPage.types"
-import { useStudy } from "../rssa-api/StudyProvider";
-import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, StudyStep } from "../rssa-api/RssaApi.types";
 import { Container, Row } from "react-bootstrap";
-import Header from "../components/Header";
+import { useLocation, useNavigate } from "react-router-dom";
+import { CurrentStep, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
+import { StudyPageProps } from "./StudyPage.types";
 
 
 
@@ -34,7 +33,7 @@ const ScenarioPage: React.FC<StudyPageProps> = ({
 	const handleNextBtn = () => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
 		});

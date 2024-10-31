@@ -1,5 +1,5 @@
 import { Container, Form, Row } from 'react-bootstrap';
-import { TextConstruct, TextItemResponse } from '../../rssa-api/RssaApi.types';
+import { TextConstruct, TextItemResponse } from 'rssa-api';
 import './LeftPanel.css';
 
 

@@ -1,6 +1,5 @@
+import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
-import { useState, useEffect } from 'react';
 import LoadingText from './LoadingText';
 
 export default function Footer({ callback, disabled = false, text = "Next",

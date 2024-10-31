@@ -1,23 +1,38 @@
 // import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles/custom-bootstrap.scss';
-import { Suspense, useEffect, useState } from 'react';
+import {
+	Suspense,
+	useEffect,
+	useState
+} from 'react';
 import { ThemeProvider } from 'react-bootstrap';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import './App.css';
+import {
+	Route,
+	BrowserRouter as Router,
+	Routes
+} from 'react-router-dom';
+import {
+	Participant,
+	StudyStep,
+	emptyParticipant,
+	emptyStep,
+	isEmptyParticipant,
+	isEmptyStep,
+	useStudy
+} from 'rssa-api';
 import { WarningDialog } from './components/dialogs/warningDialog';
-import './css/components.css';
 import DemographicsPage from './pages/demographicspage/DemographicsPage';
 import FeedbackPage from './pages/feedbackpage/FeedbackPage';
 import FinalPage from './pages/FinalPage';
 import MovieRatingPage from './pages/MovieRatingPage';
 import PreferenceVisualization from './pages/preferencevisualization/PreferenceVisualization';
+import ScenarioPage from './pages/ScenarioPage';
 import StudyMap from './pages/studymap';
 import Survey from './pages/SurveyPage';
 import Welcome from './pages/welcome';
-import { Participant, StudyStep, emptyParticipant, emptyStep, isEmptyParticipant, isEmptyStep } from './rssa-api/RssaApi.types';
-import { useStudy } from './rssa-api/StudyProvider';
+import './styles/_custom-bootstrap.scss';
+import './styles/App.css';
+import './styles/components.css';
 import { STRINGS } from './utils/constants';
-import ScenarioPage from './pages/ScenarioPage';
 
 
 const customBreakpoints = {
@@ -68,12 +83,13 @@ function App() {
 				setCheckpointUrl(checkpointUrl);
 			}
 		} else {
-			studyApi.get<StudyStep>('studystep/first').then((studyStep) => {
-				setStudyStep(studyStep);
-				setStudyError(false);
-			}).catch((error) => {
-				setStudyError(true);
-			});
+			studyApi.get<StudyStep>('studystep/first')
+				.then((studyStep: StudyStep) => {
+					setStudyStep(studyStep);
+					setStudyError(false);
+				}).catch((error: any) => {
+					setStudyError(true);
+				});
 		}
 	}, [studyApi]);
 
@@ -88,11 +104,17 @@ function App() {
 	return (
 		<ThemeProvider breakpoints={Object.keys(customBreakpoints)}>
 			<div className="App">
-				{showWarning && <WarningDialog show={showWarning} title="Warning"
-					message={STRINGS.WINDOW_TOO_SMALL} disableHide={true} />
+				{showWarning &&
+					<WarningDialog
+						show={showWarning}
+						title="Warning"
+						message={STRINGS.WINDOW_TOO_SMALL}
+						disableHide={true} />
 				}
-				{
-					studyError && <WarningDialog show={studyError} title="Error"
+				{studyError &&
+					<WarningDialog
+						show={studyError}
+						title="Error"
 						message={STRINGS.STUDY_ERROR} />
 				}
 				<Router basename='/preference-visualization'>

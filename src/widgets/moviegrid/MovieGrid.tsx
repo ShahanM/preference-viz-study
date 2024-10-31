@@ -4,13 +4,12 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
+import { useStudy } from 'rssa-api';
 import LoadingText from '../../components/LoadingText';
-import { post } from '../../middleware/requests';
 import { mapKeyContainsAll } from '../../utils/helper';
 import './MovieGrid.css';
 import MovieGridItem from './moviegriditem/MovieGridItem';
 import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
-import { useStudy } from '../../rssa-api/StudyProvider';
 
 interface MovieGridProps {
 	movieIds: string[];
@@ -38,23 +37,6 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	const [prevBtnDisabled, setPrevBtnDisabled] = useState<boolean>(true);
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
-
-
-	// FIXME: we do not need this anymore because the API response is already shuffled
-	// We just need to paginate the response.
-	// const pickRandomMovies = (unfetchedIds: number[], numItems: number) => {
-	// 	// const limit = itemsPerPage * 2;
-	// 	const limit = numItems * 2 // FIXME hardcoded values
-	// 	let randomMovies = [];
-	// 	let moviearr = [...unfetchedIds];
-	// 	for (let i = 0; i < limit; i++) {
-	// 		let randomMovie = moviearr.splice(Math.floor(Math.random()
-	// 			* moviearr.length), 1);
-	// 		randomMovies.push(...randomMovie);
-	// 	}
-	// 	setMovieIdCache(moviearr);
-	// 	setMoviesToFetch(randomMovies);
-	// }
 
 	const updateMoviePageData = (unfetchIds: string[], numItems: number) => {
 		const limit = numItems * 2 // FIXME hardcoded values
@@ -85,7 +67,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 					setMovieMap(newmovieMap);
 					setMoviesToFetch([]);
 				})
-				.catch((error) => console.log(error));
+				.catch((error: any) => console.log(error));
 		}
 		if (moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, moviesToFetch)) {
 			getMoviesByIDs(moviesToFetch);

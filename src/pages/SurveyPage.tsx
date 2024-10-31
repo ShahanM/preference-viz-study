@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CurrentStep, isEmptyStep, StudyStep, SurveyItemResponse, SurveyPage, SurveyResponse, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import SurveyTemplate from "../layouts/templates/SurveyTemplate";
-import { CurrentStep, isEmptyStep, StudyStep, SurveyItemResponse, SurveyPage, SurveyResponse } from "../rssa-api/RssaApi.types";
-import { useStudy } from "../rssa-api/StudyProvider";
 import { StudyPageProps } from "./StudyPage.types";
 
 
@@ -41,7 +40,7 @@ const Survey: React.FC<StudyPageProps> = ({
 	const handleNextBtn = useCallback(() => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next);
 			setIsUpdated(true);
 		});
@@ -53,7 +52,7 @@ const Survey: React.FC<StudyPageProps> = ({
 			if (studyStep.pages && studyStep.pages.length > 0) {
 				if (currentPageIdx < studyStep.pages.length) {
 					studyApi.get<SurveyPage>(`survey/${studyStep.pages[currentPageIdx].id}`)
-						.then((pageContent) => {
+						.then((pageContent: SurveyPage) => {
 							setPageContent(pageContent);
 						})
 				} else {

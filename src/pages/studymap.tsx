@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Card, Col, Container, Image, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CurrentStep, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { CurrentStep, StudyStep } from "../rssa-api/RssaApi.types";
-import { useStudy } from "../rssa-api/StudyProvider";
 import { StudyPageProps } from "./StudyPage.types";
 
 
@@ -36,7 +35,7 @@ const StudyMap: React.FC<StudyPageProps> = ({
 	const handleNextBtn = () => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
 		});

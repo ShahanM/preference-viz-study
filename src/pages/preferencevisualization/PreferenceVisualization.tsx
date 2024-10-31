@@ -6,8 +6,12 @@ import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import { CurrentStep, GroupedTextResponse, isEmptyStep, PageContent, PrefVizRequestObject, StudyStep, TextItemResponse } from "../../rssa-api/RssaApi.types";
-import { useStudy } from "../../rssa-api/StudyProvider";
+import {
+	useStudy,
+	CurrentStep,
+	GroupedTextResponse, isEmptyStep,
+	PageContent, PrefVizRequestObject, StudyStep, TextItemResponse
+} from "rssa-api";
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import Continuouscoupled from "../../widgets/ContinuousCoupled";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
@@ -133,7 +137,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	const handleNextBtn = useCallback(() => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
 		});
@@ -156,7 +160,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 						setDataSubmitted(true);
 						setShowConfirmation(false);
 					}
-				}).catch((error) => console.log(error));
+				}).catch((error: any) => console.log(error));
 		}
 	}, [studyApi, participant, studyStep, currentPageIdx, promptResponses,
 		dataSubmitted]);
@@ -174,7 +178,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				if (currentPageIdx < studyStep.pages.length) {
 					studyApi.get<PageContent>(
 						`page/${studyStep.pages[currentPageIdx].id}`)
-						.then((pageContent) => {
+						.then((pageContent: PageContent) => {
 							setPageContent(pageContent);
 						})
 				} else {
@@ -219,7 +223,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 				}
 				setPrefItemDetails(itemMap);
 				setLoading(false);
-			}).catch((err) => {
+			}).catch((err: any) => {
 				console.log("VisualizationLayout Error", err);
 			});
 		}
