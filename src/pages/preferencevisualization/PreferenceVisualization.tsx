@@ -94,16 +94,43 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
+	const getRecommendations = useCallback((ratings: Map<number, MovieRating>) => {
+		setLoading(true);
+		studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
+			"prefviz/recommendation/", {
+			user_id: participant.id,
+			user_condition: participant.condition_id,
+			ratings: [...ratings.values()].map(rating => {
+				return {
+					item_id: rating.movielens_id,
+					rating: rating.rating
+				}
+			})
+		}).then((responseItems: PrefVizRecItemDetail[]) => {
+			let itemMap = new Map<string, PrefVizRecItemDetail>();
+			for (let item of responseItems) {
+				itemMap.set(item.id, item);
+			}
+			setPrefItemDetails(itemMap);
+			setLoading(false);
+		}).catch((err: any) => {
+			console.log("VisualizationLayout Error", err);
+		});
+	}, [studyApi, participant]);
+
 
 	useEffect(() => {
-
-		if (ratedMovies.current === undefined) {
+		if (ratedMovies.current === undefined || ratedMovies.current.size === 0) {
 			const storedRatedMovies = localStorage.getItem('ratedMoviesData');
 			if (storedRatedMovies) {
 				ratedMovies.current = JSON.parse(storedRatedMovies);
+				getRecommendations(ratedMovies.current);
+			} else {
+				console.log("Something went wrong with the rated movies");
+				// TODO: Clear stored local data and redirect to start of study
 			}
 		}
-	}, [ratedMovies]);
+	}, [ratedMovies, getRecommendations]);
 
 
 	useEffect(() => {
@@ -190,49 +217,55 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	console.log("ACTIVE", activeItem);
 
+
+
+
 	// Fetch the recommendations from the server
 	// FIXME: abstract this into the studyApi
 	useEffect(() => {
-		const getRecommendations = async () => {
-			setLoading(true);
-			const requestObj = {
-				user_id: participant.id,
-				user_condition: participant.condition_id,
-				ratings: [...ratedMovies.current.values()].map(rating => {
-					return {
-						movie_id: rating.movielens_id,
-						rating: rating.rating
-					}
-				})
-			}
-			console.log("PreferenceVisualization getRecommendations", requestObj, participant);
-			studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>("prefviz/recommendation/", {
-				user_id: participant.id,
-				user_condition: participant.condition_id,
-				ratings: [...ratedMovies.current.values()].map(rating => {
-					return {
-						item_id: rating.movielens_id,
-						rating: rating.rating
-					}
-				})
-			}).then((responseItems: PrefVizRecItemDetail[]) => {
-				console.log("PreferenceVisualization newstuff", responseItems);
-				let itemMap = new Map<string, PrefVizRecItemDetail>();
-				for (let item of responseItems) {
-					itemMap.set(item.id, item);
-				}
-				setPrefItemDetails(itemMap);
-				setLoading(false);
-			}).catch((err: any) => {
-				console.log("VisualizationLayout Error", err);
-			});
+		// const getRecommendations = async () => {
+		// 	setLoading(true);
+		// 	const requestObj = {
+		// 		user_id: participant.id,
+		// 		user_condition: participant.condition_id,
+		// 		ratings: [...ratedMovies.current.values()].map(rating => {
+		// 			return {
+		// 				movie_id: rating.movielens_id,
+		// 				rating: rating.rating
+		// 			}
+		// 		})
+		// 	}
+		// 	console.log("PreferenceVisualization getRecommendations", requestObj, participant);
+		// 	studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>("prefviz/recommendation/", {
+		// 		user_id: participant.id,
+		// 		user_condition: participant.condition_id,
+		// 		ratings: [...ratedMovies.current.values()].map(rating => {
+		// 			return {
+		// 				item_id: rating.movielens_id,
+		// 				rating: rating.rating
+		// 			}
+		// 		})
+		// 	}).then((responseItems: PrefVizRecItemDetail[]) => {
+		// 		console.log("PreferenceVisualization newstuff", responseItems);
+		// 		let itemMap = new Map<string, PrefVizRecItemDetail>();
+		// 		for (let item of responseItems) {
+		// 			itemMap.set(item.id, item);
+		// 		}
+		// 		setPrefItemDetails(itemMap);
+		// 		setLoading(false);
+		// 	}).catch((err: any) => {
+		// 		console.log("VisualizationLayout Error", err);
+		// 	});
+		// }
+
+		if (prefItemDetails.size === 0 &&
+			participant.id !== '' &&
+			participant.condition_id !== '' &&
+			ratedMovies.current.size > 0) {
+			getRecommendations(ratedMovies.current);
 		}
 
-		if (prefItemDetails.size === 0 && participant.id !== '' && participant.condition_id !== '') {
-			getRecommendations();
-		}
-
-	}, [ratedMovies, prefItemDetails, studyApi, participant]);
+	}, [ratedMovies, getRecommendations, prefItemDetails, studyApi, participant]);
 
 	const promptsUpdateHandler = (response: TextItemResponse) => {
 		console.log("PreferenceVisualization promptsUpdateHandler", promptResponses);

@@ -97,8 +97,6 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	useEffect(() => { setLoading(false); }, [movieMap])
 
 	const rateMovies = (newRating: number, movieid: string) => {
-		console.log("MovieGrid rateMovies", newRating, movieid);
-
 		let galleryMovies = new Map<string, Movie>(movieMap);
 		let ratedMovies = new Map<string, MovieRating>(movieRatingsLookup);
 
