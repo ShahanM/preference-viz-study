@@ -1,4 +1,4 @@
-import { Participant, StudyStep } from '../rssa-api/RssaApi.types';
+import { Participant, StudyStep } from 'rssa-api';
 
 
 export interface StudyPageProps {

@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+	CurrentStep, isEmptyStep, NewParticipant, Participant, StudyStep,
+	useStudy
+} from 'rssa-api';
+import InformedConsentModal from '../components/dialogs/InformedConsent';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import {
-	CurrentStep, isEmptyStep, NewParticipant, Participant, StudyStep
-} from '../rssa-api/RssaApi.types';
-import { useStudy } from '../rssa-api/StudyProvider';
-import InformedConsentModal from '../components/dialogs/InformedConsent';
 import { InitStudyPageProps } from './StudyPage.types';
 
 
@@ -45,7 +45,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 					participant_type: '149078d0-cece-4b2c-81cd-a7df4f76d15a', // FIXME: use this as part of the environment variables and apiConfig
 					current_step: studyStep.id,
 					current_page: null
-				}).then((response) => {
+				}).then((response: Participant) => {
 					setNewParticipant(response);
 					setParticipant(response);
 				});
@@ -56,7 +56,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 		if (participant) {
 			studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 				current_step_id: participant.current_step
-			}).then((nextStep) => {
+			}).then((nextStep: StudyStep) => {
 				updateCallback(nextStep, next);
 				setIsUpdated(true);
 			});

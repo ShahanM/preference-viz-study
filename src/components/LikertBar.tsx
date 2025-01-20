@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FormLabel } from "react-bootstrap";
-import { ScaleLevel } from "../rssa-api/RssaApi.types";
+import { ScaleLevel } from "rssa-api";
 
 
 

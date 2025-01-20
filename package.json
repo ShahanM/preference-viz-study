@@ -19,6 +19,7 @@
     "react-scripts": "^5.0.1",
     "react-shepherd": "^4.3.0",
     "react-star-ratings": "^2.3.0",
+    "rssa-api": "github:ShahanM/react-rssa-api",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

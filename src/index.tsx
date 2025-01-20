@@ -1,9 +1,10 @@
 import React from "react";
 import { createRoot } from 'react-dom/client';
+import { StudyProvider } from 'rssa-api';
 import App from './App';
-import './index.css';
+import './styles/index.css';
 import reportWebVitals from './reportWebVitals';
-import { StudyProvider } from './rssa-api/StudyProvider';
+
 
 const REACT_APP_RSSA_API_DEV = process.env.REACT_APP_RSSA_API_DEV!;
 const REACT_APP_RSSA_API = process.env.REACT_APP_RSSA_API!;

@@ -3,7 +3,7 @@ import { Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { useStudy } from "../rssa-api/StudyProvider";
+import { useStudy } from "rssa-api";
 import { StudyPageProps } from "./StudyPage.types";
 
 

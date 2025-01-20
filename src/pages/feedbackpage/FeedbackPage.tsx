@@ -1,13 +1,12 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useStudy } from "../../rssa-api/StudyProvider";
-import { StudyPageProps } from "../StudyPage.types";
-import React, { ReactEventHandler, ReactHTMLElement, useEffect, useState } from "react";
-import { CurrentStep, Feedback, StudyStep } from "../../rssa-api/RssaApi.types";
+import React, { useEffect, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import "./FeedbackPage.css";
+import { useLocation, useNavigate } from "react-router-dom";
+import { CurrentStep, Feedback, StudyStep, useStudy } from "rssa-api";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
+import { StudyPageProps } from "../StudyPage.types";
+import "./FeedbackPage.css";
 
 const FeedbackPage: React.FC<StudyPageProps> = ({
 	next,
@@ -66,7 +65,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	const handleNextBtn = () => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
 		});

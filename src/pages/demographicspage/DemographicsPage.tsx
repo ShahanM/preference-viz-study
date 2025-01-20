@@ -4,8 +4,7 @@ import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { CurrentStep, Demographic, StudyStep } from "../../rssa-api/RssaApi.types";
-import { useStudy } from "../../rssa-api/StudyProvider";
+import { useStudy, CurrentStep, Demographic, StudyStep } from "rssa-api";
 import { StudyPageProps } from "../StudyPage.types";
 import './DemographicsPage.css';
 
@@ -169,7 +168,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 				if (response) {
 					handleNextBtn();
 				}
-			}).catch((err) => {
+			}).catch((err: any) => {
 				console.error("DemographicsPage submit error", err);
 			});
 		}
@@ -179,7 +178,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 		console.log("MovieRatingPage stepID", participant.current_step);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
-		}).then((nextStep) => {
+		}).then((nextStep: StudyStep) => {
 			updateCallback(nextStep, next)
 			setIsUpdated(true);
 		});
