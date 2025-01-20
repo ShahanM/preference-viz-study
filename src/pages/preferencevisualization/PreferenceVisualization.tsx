@@ -61,7 +61,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	// We are grabbing the rated movies from the preference elicitation step
 	const stateData = location.state as any;
-	const ratedMovies = useRef<Map<number, MovieRating>>(stateData?.ratedMovies || new Map<number, MovieRating>());
+	const ratedMovies = useRef<Map<number, MovieRating>>(new Map<number, MovieRating>());
 
 	console.log("PreferenceVisualization ratedMovies", ratedMovies.current);
 
@@ -121,17 +121,24 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	useEffect(() => {
 		if (ratedMovies.current === undefined || ratedMovies.current.size === 0) {
-			const storedRatedMovies = localStorage.getItem('ratedMoviesData');
-			if (storedRatedMovies) {
-				ratedMovies.current = JSON.parse(storedRatedMovies);
+			if (stateData && stateData.ratedMovies) {
+				const ratedMoviesData = stateData.ratedMovies as Map<number, MovieRating>;
+				ratedMovies.current = ratedMoviesData;
 				getRecommendations(ratedMovies.current);
 			} else {
-				console.log("Something went wrong with the rated movies");
-				// TODO: Clear stored local data and redirect to start of study
+				const storedRatedMovies = localStorage.getItem('ratedMoviesData');
+				if (storedRatedMovies) {
+					ratedMovies.current = JSON.parse(storedRatedMovies) as Map<number, MovieRating>;
+					console.log("PreferenceVisualization storedRatedMovies", ratedMovies.current);
+					getRecommendations(ratedMovies.current);
+				} else {
+					console.log("Something went wrong with the rated movies");
+					// TODO: Clear stored local data and redirect to start of study
+				}
 			}
 		}
-	}, [ratedMovies, getRecommendations]);
-
+	}, [ratedMovies, stateData, getRecommendations]);
+	console.log(ratedMovies.current);
 
 	useEffect(() => {
 		if (promptResponses.size === pageContent?.constructs.length) {
@@ -257,13 +264,16 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		// 		console.log("VisualizationLayout Error", err);
 		// 	});
 		// }
-
 		if (prefItemDetails.size === 0 &&
 			participant.id !== '' &&
 			participant.condition_id !== '' &&
 			ratedMovies.current.size > 0) {
 			getRecommendations(ratedMovies.current);
 		}
+		console.log("PreferenceVisualization prefItemDetails", prefItemDetails);
+		console.log("PreferenceVisualization ratedMovies  sss", ratedMovies.current);
+		console.log("PreferenceVisualization participant", participant);
+
 
 	}, [ratedMovies, getRecommendations, prefItemDetails, studyApi, participant]);
 
