@@ -8,14 +8,12 @@ import CartesianGraph from "./CartesianGraph";
 // @ 1400px to 1599px => width:700, height:900
 // @ >1600px => width:800, height:900 (default)
 
+
 export default function Continuouscoupled({ itemdata, activeItemCallback }) {
 
 	const [width, setWidth] = useState(800);
 	const [height, setHeight] = useState(900);
-	const handleHover = (item) => {
-		activeItemCallback(item);
-	}
-
+	
 	useEffect(() => {
 		const handleResize = () => {
 			const windowWidth = window.innerWidth;
@@ -36,7 +34,9 @@ export default function Continuouscoupled({ itemdata, activeItemCallback }) {
 		handleResize();
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
-
+	
+	const handleHover = (item) => { activeItemCallback(item); }
+	
 	return (
 		<>
 			{itemdata ?

@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import { imgurl } from "../../middleware/requests";
+import { useRecoilValue } from "recoil";
+import { activeItemState } from "../../pages/preferencevisualization/PreferenceVisualization";
 import "./RightPanel.css";
 
-export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
+export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
 
     const [ratingSummary, setRatingSummary] = useState("");
+    const movie = useRecoilValue(activeItemState);
 
     useEffect(() => {
         console.log("movie", movie);
@@ -33,10 +35,8 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
 
             {movie !== undefined ?
                 <>
-                    {/* <Row> */}
                     <Row>
                         <img
-                            // src={imgurl(movie.poster_identifier)}
                             src={movie.poster}
                             alt={movie.title} />
                     </Row>
@@ -57,15 +57,7 @@ export default function RightPanel({ movie, likeCuttoff, dislikeCuttoff }) {
                             {movie.description.split(" ").slice(0, 25).join(" ")}
                             <span className="more"> [more]</span>
                         </p>
-                        {/* <p>User score: {movie.user_score}</p> */}
-                        {/* <p>Community score: {movie.community_score}</p> */}
                     </Row>
-                    {/* </Row> */}
-                    {/* <Row style={{ marginTop: "2em" }}>
-                        <p>
-                            <b><i>{ratingSummary}</i></b>
-                        </p>
-                    </Row> */}
                 </> : <></>
             }
         </Container>
