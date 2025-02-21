@@ -1,49 +1,37 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import {
+	CurrentStep,
+	GroupedTextResponse,
+	isEmptyParticipant,
+	isEmptyStep,
+	PageContent,
+	Participant,
+	PrefVizRequestObject, StudyStep, TextItemResponse,
+	useStudy
+} from "rssa-api";
 import ConfirmationDialog from "../../components/dialogs/ConfirmationDialog";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import {
-	useStudy,
-	CurrentStep,
-	GroupedTextResponse, isEmptyStep,
-	PageContent, PrefVizRequestObject, StudyStep, TextItemResponse
-} from "rssa-api";
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
-import Continuouscoupled from "../../widgets/ContinuousCoupled";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
 import { Movie, MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
 import RightPanel from "../../widgets/rightpanel/RightPanel";
 import { StudyPageProps } from "../StudyPage.types";
+import ConditionView from "./ConditionView";
 import "./PreferenceVisualization.css";
+import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
+import { atom } from 'recoil';
 
 
-type PrefVizRecItem = {
-	item_id: number;
-	community_score: number;
-	user_score: number;
-	community_label: number;
-	user_label: number;
-	cluster: number;
-}
-
-type PrefVizMetadata = {
-	algo: string;
-	randomize: boolean;
-	init_sample_size: number;
-	min_rating_count: number;
-	num_rec: number;
-}
-
-type PrefVizItem = {
-	metadata: PrefVizMetadata;
-	recommendations: PrefVizRecItem[];
-}
-
-interface PrefVizRecItemDetail extends Movie, PrefVizRecItem { }
+// Recoil state for the active item to avoid re-rendering entire page
+export const activeItemState = atom<Movie>({
+	key: 'activeItem',
+	default: undefined
+});
 
 
 const PreferenceVisualization: React.FC<StudyPageProps> = ({
@@ -61,19 +49,20 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 
 	// We are grabbing the rated movies from the preference elicitation step
 	const stateData = location.state as any;
-	const ratedMovies = useRef<Map<number, MovieRating>>(new Map<number, MovieRating>());
-
-	console.log("PreferenceVisualization ratedMovies", ratedMovies.current);
+	// const ratedMovies = useRef<Map<number, MovieRating>>(new Map<number, MovieRating>());
+	const [ratedMovies, setRatedMovies] = useState(new Map<number, MovieRating>());
 
 	// Convenient states to ensure state update and when to show the loader
 	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [pageContent, setPageContent] = useState<PageContent>();
 	const [loading, setLoading] = useState<boolean>(false);
-	const [activeItem, setActiveItem] = useState<string>();
 	const [currentPageIdx, setCurrentPageIdx] = useState(0);
 	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
 	const [dataSubmitted, setDataSubmitted] = useState<boolean>(false);
 	const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+
+	// Temporary state to get condition from URL for development testing
+	const [searchParams, setSearchParams] = useSearchParams();
 
 	// State to hold the recommendations
 	const [prefItemDetails, setPrefItemDetails] =
@@ -94,51 +83,56 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	const getRecommendations = useCallback((ratings: Map<number, MovieRating>) => {
+	const getRecommendations = useCallback((ratings: Map<number, MovieRating>, participant: Participant) => {
 		setLoading(true);
 		studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
 			"prefviz/recommendation/", {
 			user_id: participant.id,
 			user_condition: participant.condition_id,
 			ratings: [...ratings.values()].map(rating => {
-				return {
-					item_id: rating.movielens_id,
-					rating: rating.rating
-				}
+				return { item_id: rating.movielens_id, rating: rating.rating }
 			})
 		}).then((responseItems: PrefVizRecItemDetail[]) => {
 			let itemMap = new Map<string, PrefVizRecItemDetail>();
-			for (let item of responseItems) {
-				itemMap.set(item.id, item);
-			}
+			for (let item of responseItems) { itemMap.set(item.id, item); }
 			setPrefItemDetails(itemMap);
 			setLoading(false);
 		}).catch((err: any) => {
-			console.log("VisualizationLayout Error", err);
+			console.error("VisualizationLayout Error", err);
 		});
-	}, [studyApi, participant]);
+	}, [studyApi]);
+
+
+	// useEffect(() => {
+	// }, []);
 
 
 	useEffect(() => {
-		if (ratedMovies.current === undefined || ratedMovies.current.size === 0) {
+		if (ratedMovies === undefined || ratedMovies.size === 0) {
 			if (stateData && stateData.ratedMovies) {
 				const ratedMoviesData = stateData.ratedMovies as Map<number, MovieRating>;
-				ratedMovies.current = ratedMoviesData;
-				getRecommendations(ratedMovies.current);
+				setRatedMovies(ratedMoviesData);
 			} else {
 				const storedRatedMovies = localStorage.getItem('ratedMoviesData');
 				if (storedRatedMovies) {
-					ratedMovies.current = JSON.parse(storedRatedMovies) as Map<number, MovieRating>;
-					console.log("PreferenceVisualization storedRatedMovies", ratedMovies.current);
-					getRecommendations(ratedMovies.current);
+					const ratedMovieCache = JSON.parse(storedRatedMovies);
+					const ratedMovieData = new Map<number, MovieRating>();
+					for (let key in ratedMovieCache) {
+						ratedMovieData.set(parseInt(key), ratedMovieCache[key]);
+					}
+					setRatedMovies(ratedMovieData);
 				} else {
-					console.log("Something went wrong with the rated movies");
+					console.error("Something went wrong with the rated movies");
 					// TODO: Clear stored local data and redirect to start of study
 				}
 			}
 		}
-	}, [ratedMovies, stateData, getRecommendations]);
-	console.log(ratedMovies.current);
+		if (prefItemDetails.size === 0 &&
+			!isEmptyParticipant(participant) &&
+			ratedMovies.size > 0) {
+			getRecommendations(ratedMovies, participant);
+		}
+	}, [ratedMovies, stateData, getRecommendations, prefItemDetails, participant]);
 
 	useEffect(() => {
 		if (promptResponses.size === pageContent?.constructs.length) {
@@ -194,17 +188,14 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 						setDataSubmitted(true);
 						setShowConfirmation(false);
 					}
-				}).catch((error: any) => console.log(error));
+				}).catch((error: any) => console.error(error));
 		}
 	}, [studyApi, participant, studyStep, currentPageIdx, promptResponses,
 		dataSubmitted]);
 
 	useEffect(() => {
-		if (dataSubmitted) {
-			setLoading(false);
-		}
+		if (dataSubmitted) { setLoading(false); }
 	}, [dataSubmitted]);
-
 
 	useEffect(() => {
 		if (!isEmptyStep(studyStep)) {
@@ -222,63 +213,8 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 	}, [studyApi, studyStep, currentPageIdx, handleNextBtn]);
 
-	console.log("ACTIVE", activeItem);
-
-
-
-
-	// Fetch the recommendations from the server
-	// FIXME: abstract this into the studyApi
-	useEffect(() => {
-		// const getRecommendations = async () => {
-		// 	setLoading(true);
-		// 	const requestObj = {
-		// 		user_id: participant.id,
-		// 		user_condition: participant.condition_id,
-		// 		ratings: [...ratedMovies.current.values()].map(rating => {
-		// 			return {
-		// 				movie_id: rating.movielens_id,
-		// 				rating: rating.rating
-		// 			}
-		// 		})
-		// 	}
-		// 	console.log("PreferenceVisualization getRecommendations", requestObj, participant);
-		// 	studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>("prefviz/recommendation/", {
-		// 		user_id: participant.id,
-		// 		user_condition: participant.condition_id,
-		// 		ratings: [...ratedMovies.current.values()].map(rating => {
-		// 			return {
-		// 				item_id: rating.movielens_id,
-		// 				rating: rating.rating
-		// 			}
-		// 		})
-		// 	}).then((responseItems: PrefVizRecItemDetail[]) => {
-		// 		console.log("PreferenceVisualization newstuff", responseItems);
-		// 		let itemMap = new Map<string, PrefVizRecItemDetail>();
-		// 		for (let item of responseItems) {
-		// 			itemMap.set(item.id, item);
-		// 		}
-		// 		setPrefItemDetails(itemMap);
-		// 		setLoading(false);
-		// 	}).catch((err: any) => {
-		// 		console.log("VisualizationLayout Error", err);
-		// 	});
-		// }
-		if (prefItemDetails.size === 0 &&
-			participant.id !== '' &&
-			participant.condition_id !== '' &&
-			ratedMovies.current.size > 0) {
-			getRecommendations(ratedMovies.current);
-		}
-		console.log("PreferenceVisualization prefItemDetails", prefItemDetails);
-		console.log("PreferenceVisualization ratedMovies  sss", ratedMovies.current);
-		console.log("PreferenceVisualization participant", participant);
-
-
-	}, [ratedMovies, getRecommendations, prefItemDetails, studyApi, participant]);
 
 	const promptsUpdateHandler = (response: TextItemResponse) => {
-		console.log("PreferenceVisualization promptsUpdateHandler", promptResponses);
 		const newResponses = new Map(promptResponses);
 		newResponses.set(response.item_id, response);
 		setPromptResponses(newResponses);
@@ -320,18 +256,15 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 							&& !(prefItemDetails.size > 0) ?
 							<LoadingScreen loading={loading}
 								message="Loading Recommendations" />
-							:
-							<Continuouscoupled itemdata={prefItemDetails}
-								activeItemCallback={setActiveItem} />
+							: <ConditionView
+								condition={parseInt(searchParams.get('cond') || '1')}
+								prefItemDetails={prefItemDetails} />
+
 						}
 					</Col>
 					<Col xxxl={2} xxl={3} xl={2} md={3} className="ms-0 ps-0">
-						{activeItem ?
-							<RightPanel movie={prefItemDetails?.get(activeItem)}
-								likeCuttoff={LIKE_CUTOFF}
-								dislikeCuttoff={DISLIKE_CUTOFF} />
-							: <></>
-						}
+						<RightPanel likeCuttoff={LIKE_CUTOFF}
+							dislikeCuttoff={DISLIKE_CUTOFF} />
 					</Col>
 				</Row>
 			}
@@ -345,5 +278,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		</Container>
 	);
 }
+
+
 
 export default PreferenceVisualization;

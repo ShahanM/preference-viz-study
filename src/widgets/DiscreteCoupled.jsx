@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
-import { imgurl } from "../middleware/requests";
-import RightPanel from "./rightpanel/RightPanel";
-import { LIKE_CUTOFF, DISLIKE_CUTOFF } from "../utils/constants";
+import { useMemo } from "react";
+import { Col, Row } from "react-bootstrap";
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../utils/constants";
+import * as d3 from "d3";
 
 
 const testContainerStyle = { border: "1px solid black" }
@@ -13,102 +12,100 @@ const posterHeight = 63;
 const likeCuttoff = LIKE_CUTOFF;
 const dislikeCuttoff = DISLIKE_CUTOFF;
 
-export default function DiscreteCoupled({ itemdata }) {
+export default function DiscreteCoupled({ itemdata, onItemHover }) {
 
-    const [activeItem, setActiveItem] = useState(undefined);
+    console.log("DiscreteCoupled", itemdata);
 
-    const mylikesCommLikes = useMemo(() => Object.entries(itemdata['movies']).filter((d) =>
-        parseFloat(d[1].user_score) > likeCuttoff && parseFloat(d[1].community_score) > likeCuttoff
-    ).map((d) => d[1]), [itemdata])
+    const mylikesCommLikes = useMemo(() => Array.from(itemdata.values().filter((d) =>
+        parseFloat(d.user_score) > likeCuttoff && parseFloat(d.community_score) > likeCuttoff
+    )), [itemdata])
 
-    const mylikesCommDislikes = useMemo(() => Object.entries(itemdata['movies']).filter((d) =>
+    const mylikesCommDislikes = useMemo(() => Array.from(itemdata.values().filter((d) =>
         parseFloat(d.user_score) > likeCuttoff && parseFloat(d.community_score) < dislikeCuttoff
-    ).map((d) => d[1]), [itemdata])
+    )), [itemdata])
 
-    const mydislikesCommLikes = useMemo(() => Object.entries(itemdata['movies']).filter((d) =>
-        parseFloat(d[1].user_score) < dislikeCuttoff && parseFloat(d[1].community_score) > likeCuttoff
-    ).map((d) => d[1]), [itemdata])
+    const mydislikesCommLikes = useMemo(() => Array.from(itemdata.values().filter((d) =>
+        parseFloat(d.user_score) < dislikeCuttoff && parseFloat(d.community_score) > likeCuttoff
+    )), [itemdata])
 
-    const mydislikesCommDislikes = useMemo(() => Object.entries(itemdata['movies']).filter((d) =>
-        parseFloat(d[1].user_score) < dislikeCuttoff && parseFloat(d[1].community_score) < dislikeCuttoff
-    ).map((d) => d[1]), [itemdata])
+    const mydislikesCommDislikes = useMemo(() => Array.from(itemdata.values().filter((d) =>
+        parseFloat(d.user_score) < dislikeCuttoff && parseFloat(d.community_score) < dislikeCuttoff
+    )), [itemdata])
+
+    console.log("mylikesCommLikes", mylikesCommLikes);
+    console.log("mylikesCommDislikes", mylikesCommDislikes);
+    console.log("mydislikesCommLikes", mydislikesCommLikes);
+    console.log("mydislikesCommDislikes", mydislikesCommDislikes);
 
     return (
-        <Container>
-            {Object.keys(itemdata['movies']).length ?
-                <Row>
-                    <Col xl={8} lg={9} md={8} sm={12}>
-                        <Row style={{ margin: "0 0 2em 0" }}>
-                            <Row style={{ ...testContainerStyle, padding: "0" }}>
-                                <Col lg={2} style={testContainerStyle}></Col>
-                                <Col lg={5} style={{ ...testContainerStyle, textAlign: "center" }}>
-                                    <p style={{ fontWeight: "bold" }}>My Likes</p>
-                                </Col>
-                                <Col lg={5} style={{ testContainerStyle, textAlign: "center" }}>
-                                    <p style={{ fontWeight: "bold" }}>My Dislikes</p>
-                                </Col>
-                            </Row>
-                            <Row style={{ ...testContainerStyle, padding: "0" }}>
-                                <Col lg={2} style={{ ...testContainerStyle, textAlign: "center" }}>
-                                    <p style={{ fontWeight: "bold", marginTop: "127px" }}>Community Likes</p>
-                                </Col>
-                                <Col lg={5} style={testContainerStyle}>
-                                    {mylikesCommLikes.length > 0 ?
-                                        <PreferenceContainer graphID={"mylikes_commlikes"}
-                                            movies={mylikesCommLikes}
-                                            width={300} height={300}
-                                            onItemHover={setActiveItem} />
-                                        : <></>
-                                    }
-                                </Col>
-                                <Col lg={5} style={testContainerStyle}>
-                                    {mydislikesCommLikes.length > 0 ?
-                                        <PreferenceContainer graphID={"mydislikes_commlikes"}
-                                            movies={mydislikesCommLikes}
-                                            width={300} height={300}
-                                            onItemHover={setActiveItem} />
-                                        : <></>
-                                    }
-                                </Col>
-                            </Row>
-                            <Row style={{ testContainerStyle, padding: "0" }}>
-                                <Col lg={2} style={{ ...testContainerStyle, textAlign: "center" }}>
-                                    <p style={{ fontWeight: "bold", marginTop: "127px" }}>Community dislikes</p>
-                                </Col>
-                                <Col lg={5} style={testContainerStyle}>
-                                    {mylikesCommDislikes.length > 0 ?
-                                        <PreferenceContainer graphID={"mylikes_commdislikes"}
-                                            movies={mylikesCommDislikes}
-                                            width={300} height={300}
-                                            onItemHover={setActiveItem} />
-                                        : <></>
-                                    }
-                                </Col>
-                                <Col lg={5} style={testContainerStyle}>
-                                    {mydislikesCommDislikes.length > 0 ?
-                                        <PreferenceContainer graphID={"mydislikes_commdislikes"}
-                                            movies={mydislikesCommDislikes}
-                                            width={300} height={300}
-                                            onItemHover={setActiveItem} />
-                                        :
-                                        <></>
-                                    }
-                                </Col>
-                            </Row>
+        <>
+            <Row>
+                <Col xl={8} lg={9} md={8} sm={12}>
+                    <Row style={{ margin: "0 0 2em 0" }}>
+                        <Row style={{ ...testContainerStyle, padding: "0" }}>
+                            <Col lg={2} style={testContainerStyle}></Col>
+                            <Col lg={5} style={{ ...testContainerStyle, textAlign: "center" }}>
+                                <p style={{ fontWeight: "bold" }}>My Likes</p>
+                            </Col>
+                            <Col lg={5} style={{ testContainerStyle, textAlign: "center" }}>
+                                <p style={{ fontWeight: "bold" }}>My Dislikes</p>
+                            </Col>
                         </Row>
-                    </Col>
-                    <Col xl={4} lg={3} md={4} sm={12}>
-                        <Row style={{ margin: "2em 0 2em 0" }}>
-                            <RightPanel movie={itemdata['movies'][activeItem]}
-                                likeCuttoff={likeCuttoff} dislikeCuttoff={dislikeCuttoff} />
+                        <Row style={{ ...testContainerStyle, padding: "0" }}>
+                            <Col lg={2} style={{ ...testContainerStyle, textAlign: "center" }}>
+                                <p style={{ fontWeight: "bold", marginTop: "127px" }}>Community Likes</p>
+                            </Col>
+                            <Col lg={5} style={testContainerStyle}>
+                                {mylikesCommLikes.length > 0 ?
+                                    <PreferenceContainer graphID={"mylikes_commlikes"}
+                                        movies={mylikesCommLikes}
+                                        width={300} height={300}
+                                        onItemHover={onItemHover} />
+                                    : <></>
+                                }
+                            </Col>
+                            <Col lg={5} style={testContainerStyle}>
+                                {mydislikesCommLikes.length > 0 ?
+                                    <PreferenceContainer graphID={"mydislikes_commlikes"}
+                                        movies={mydislikesCommLikes}
+                                        width={300} height={300}
+                                        onItemHover={onItemHover} />
+                                    : <></>
+                                }
+                            </Col>
                         </Row>
-                    </Col>
-                </Row>
-                :
+                        <Row style={{ testContainerStyle, padding: "0" }}>
+                            <Col lg={2} style={{ ...testContainerStyle, textAlign: "center" }}>
+                                <p style={{ fontWeight: "bold", marginTop: "127px" }}>Community dislikes</p>
+                            </Col>
+                            <Col lg={5} style={testContainerStyle}>
+                                {mylikesCommDislikes.length > 0 ?
+                                    <PreferenceContainer graphID={"mylikes_commdislikes"}
+                                        movies={mylikesCommDislikes}
+                                        width={300} height={300}
+                                        onItemHover={onItemHover} />
+                                    : <></>
+                                }
+                            </Col>
+                            <Col lg={5} style={testContainerStyle}>
+                                {mydislikesCommDislikes.length > 0 ?
+                                    <PreferenceContainer graphID={"mydislikes_commdislikes"}
+                                        movies={mydislikesCommDislikes}
+                                        width={300} height={300}
+                                        onItemHover={onItemHover} />
+                                    :
+                                    <></>
+                                }
+                            </Col>
+                        </Row>
+                    </Row>
+                </Col>
+            </Row>
+            {/* :
                 <Row style={{ height: "800px", width: "900px" }}>
                     <h1 style={{ margin: "auto" }}> Please wait some time.... </h1>
-                </Row>}
-        </Container>
+                </Row>} */}
+        </>
     )
 }
 
@@ -188,14 +185,14 @@ function PreferenceContainer({ graphID, movies, width, height, onItemHover }) {
     return (
         <svg key={graphID} id={graphID} width={width} height={height}>
             {movies.map((d, i) =>
-                <image key={`img-${graphID}-cc-${d.movie_id}`}
-                    id={`img-${graphID}-cc-${d.movie_id}`}
+                <image key={`img-${graphID}-cc-${d.item_id}`}
+                    id={`img-${graphID}-cc-${d.item_id}`}
                     width={posterWidth} height={posterHeight}
                     x={coords[i].x}
                     y={coords[i].y}
-                    xlinkHref={imgurl(d.poster_identifier)}
+                    xlinkHref={d.poster}
                     cursor={"pointer"}
-                    item_id={d.movie_id}
+                    item_id={d.id}
                     x_val={coords[i].x} y_val={coords[i].y}
                     item_type={"img"}
                     onMouseEnter={evt => handleHover(evt, "in")}

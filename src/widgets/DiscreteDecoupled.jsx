@@ -1,7 +1,7 @@
 
 
 
-export default function DiscreteDecoupled({ itemdata }) {
+export default function DiscreteDecoupledOld({ itemdata }) {
 
     return (
         <Container>

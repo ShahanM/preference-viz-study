@@ -2,7 +2,8 @@
 import {
 	Suspense,
 	useEffect,
-	useState
+	useState,
+	useCallback
 } from 'react';
 import { ThemeProvider } from 'react-bootstrap';
 import {
@@ -33,6 +34,7 @@ import './styles/_custom-bootstrap.scss';
 import './styles/App.css';
 import './styles/components.css';
 import { STRINGS } from './utils/constants';
+import { RecoilRoot } from 'recoil';
 
 
 const customBreakpoints = {
@@ -64,34 +66,33 @@ function App() {
 	}
 
 
-
 	useEffect(() => {
-		const participantCache = localStorage.getItem('participant');
-		const studyStepCache = localStorage.getItem('studyStep');
-		const checkpointUrl = localStorage.getItem('lastUrl');
-		if (participantCache && studyStepCache) {
-			const cparticipant = JSON.parse(participantCache);
-			if (!isEmptyParticipant(cparticipant)) {
-				setParticipant(cparticipant);
+		console.log('App useEffect');
+		const loadCachedData = () => {
+			const participantCache = localStorage.getItem('participant');
+			const studyStepCache = localStorage.getItem('studyStep');
+			const checkpointUrl = localStorage.getItem('lastUrl');
+			if (participantCache && studyStepCache) {
+				const cparticipant = JSON.parse(participantCache);
+				if (!isEmptyParticipant(cparticipant)) {
+					setParticipant(cparticipant);
+				}
+				const cstudyStep = JSON.parse(studyStepCache);
+				if (!isEmptyStep(cstudyStep)) { setStudyStep(cstudyStep); }
+				if (checkpointUrl) { setCheckpointUrl(checkpointUrl); }
 			}
-			const cstudyStep = JSON.parse(studyStepCache);
-			if (!isEmptyStep(cstudyStep)) {
-				setStudyStep(cstudyStep);
-			}
-
-			if (checkpointUrl) {
-				setCheckpointUrl(checkpointUrl);
-			}
-		} else {
-			studyApi.get<StudyStep>('studystep/first')
-				.then((studyStep: StudyStep) => {
-					setStudyStep(studyStep);
-					setStudyError(false);
-				}).catch((error: any) => {
-					setStudyError(true);
-				});
+			return false;
 		}
-	}, [studyApi]);
+		if (isEmptyParticipant(participant) && isEmptyStep(studyStep)) {
+			if (!loadCachedData()) {
+				studyApi.get<StudyStep>('studystep/first')
+					.then((studyStep: StudyStep) => {
+						setStudyStep(studyStep);
+						setStudyError(false);
+					}).catch((error: any) => { setStudyError(true); });
+			}
+		}
+	}, [studyApi, participant, studyStep]);
 
 
 	useEffect(() => {
@@ -102,6 +103,7 @@ function App() {
 
 
 	return (
+		console.log('App render', participant, studyStep),
 		<ThemeProvider breakpoints={Object.keys(customBreakpoints)}>
 			<div className="App">
 				{showWarning &&
@@ -172,14 +174,16 @@ function App() {
 							} />
 							{/* TODO: Add an intermediary loading page to prepare recommendations */}
 							<Route path="/recommendations" element={
-								<PreferenceVisualization
-									next="/feedback"
-									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
-									updateCallback={handleStepUpdate}
-									sizeWarning={showWarning}
-								/>
+								<RecoilRoot>
+									<PreferenceVisualization
+										next="/feedback"
+										checkpointUrl={checkpointUrl}
+										participant={participant}
+										studyStep={studyStep}
+										updateCallback={handleStepUpdate}
+										sizeWarning={showWarning}
+									/>
+								</RecoilRoot>
 							} />
 							<Route path="/feedback" element={
 								<FeedbackPage

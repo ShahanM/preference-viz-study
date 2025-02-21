@@ -1,0 +1,81 @@
+.image-with-border {
+	filter: drop-shadow(0 0.75rem 0.75rem rgba(255, 255, 255, 1));
+}
+
+.discrete-viz-container {
+	display: grid;
+	grid-template-columns: repeat(auto, 2, 1fr);
+	grid-template-rows: repeat(auto, 2, 1fr);
+}
+
+.discrete-viz-container:first-child:not(last-child) {
+	margin-bottom: 2.5rem;
+}
+
+.discrete-viz-label-container {
+	text-align: center;
+	font-weight: bold;
+	align-content: space-around;
+	margin: 0.5rem;
+	min-width: 81px;
+}
+
+.discrete-viz-content-box {
+	border: 1px solid gray;
+}
+
+.discrete-viz-content-box.decoupled:first-child {
+	margin-bottom: 0.5rem;
+}
+
+.discrete-viz-content-box.decoupled:last-child {
+	margin-top: 0.5rem;
+}
+
+/* For the column headers */
+.row-1-col-2 {
+	grid-row: 1;
+	grid-column: 2;
+}
+
+.row-1-col-3 {
+	grid-row: 1;
+	grid-column: 3;
+}
+
+/* For the row headers */
+.row-2-col-1 {
+	grid-row: 2;
+	grid-column: 1;
+}
+
+.row-3-col-1 {
+	grid-row: 3;
+	grid-column: 1;
+}
+
+/* For the content */
+
+/* Cell 1 */
+.row-2-col-2 {
+	grid-row: 2;
+	grid-column: 2;
+}
+
+/* Cell 2 */
+.row-2-col-3 {
+	grid-row: 2;
+	grid-column: 3;
+}
+
+/* Cell 3 */
+.row-3-col-2 {
+	grid-row: 3;
+	grid-column: 2;
+}
+
+/* Cell 4 */
+.row-3-col-3 {
+	grid-row: 3;
+	grid-column: 3;
+}
