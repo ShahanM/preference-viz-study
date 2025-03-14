@@ -177,6 +177,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			const responses = Array.from(promptResponses.values());
 			setLoading(true);
 			localStorage.setItem('prefviz', JSON.stringify(responses));
+			console.log("Submitting responses", studyStep, currentPageIdx);
 			studyApi.post<GroupedTextResponse, boolean>(
 				`participant/${participant.id}/textresponse/`,
 				{

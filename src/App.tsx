@@ -1,16 +1,16 @@
-// import 'bootstrap/dist/css/bootstrap.min.css';
 import {
 	Suspense,
 	useEffect,
-	useState,
-	useCallback
+	useState
 } from 'react';
 import { ThemeProvider } from 'react-bootstrap';
 import {
+	Navigate,
 	Route,
 	BrowserRouter as Router,
 	Routes
 } from 'react-router-dom';
+import { RecoilRoot } from 'recoil';
 import {
 	Participant,
 	StudyStep,
@@ -34,7 +34,6 @@ import './styles/_custom-bootstrap.scss';
 import './styles/App.css';
 import './styles/components.css';
 import { STRINGS } from './utils/constants';
-import { RecoilRoot } from 'recoil';
 
 
 const customBreakpoints = {
@@ -52,45 +51,79 @@ function App() {
 	const [studyStep, setStudyStep] = useState<StudyStep>(emptyStep);
 	const [checkpointUrl, setCheckpointUrl] = useState<string>('/');
 	const [studyError, setStudyError] = useState<boolean>(false);
+	const [isLoading, setIsLoaiding] = useState<boolean>(true);
 
 	const handleStepUpdate = (step: StudyStep, referrer: string) => {
 		const newParticipant = { ...participant, current_step: step.id };
-		studyApi.put('participant/', newParticipant).then(() => {
-			localStorage.setItem('participant', JSON.stringify(newParticipant));
-			localStorage.setItem('studyStep', JSON.stringify(step));
-			localStorage.setItem('lastUrl', referrer);
-		});
-		setParticipant(newParticipant);
-		setStudyStep(step);
-		setCheckpointUrl(referrer);
+		try {
+
+			studyApi.put('participant/', newParticipant).then(() => {
+				localStorage.setItem('participant', JSON.stringify(newParticipant));
+				localStorage.setItem('studyStep', JSON.stringify(step));
+				localStorage.setItem('lastUrl', referrer);
+			});
+			setParticipant(newParticipant);
+			setStudyStep(step);
+			setCheckpointUrl(referrer);
+		} catch (error) {
+			console.error("Error updating participant", error);
+			setStudyError(true);
+		}
 	}
 
 
 	useEffect(() => {
-		console.log('App useEffect');
 		const loadCachedData = () => {
 			const participantCache = localStorage.getItem('participant');
 			const studyStepCache = localStorage.getItem('studyStep');
 			const checkpointUrl = localStorage.getItem('lastUrl');
+
 			if (participantCache && studyStepCache) {
-				const cparticipant = JSON.parse(participantCache);
-				if (!isEmptyParticipant(cparticipant)) {
-					setParticipant(cparticipant);
+				try {
+					const cparticipant = JSON.parse(participantCache);
+					const cstudyStep = JSON.parse(studyStepCache);
+
+					if (!isEmptyParticipant(cparticipant)) {
+						setParticipant(cparticipant);
+					}
+					if (!isEmptyStep(cstudyStep)) { setStudyStep(cstudyStep); }
+					if (checkpointUrl) { setCheckpointUrl(checkpointUrl); }
+					return true;
+				} catch (error) {
+					console.error("Error parsing cached data", error);
+
+					localStorage.removeItem('participant');
+					localStorage.removeItem('studyStep');
+					localStorage.removeItem('lastUrl');
+					return false;
+
 				}
-				const cstudyStep = JSON.parse(studyStepCache);
-				if (!isEmptyStep(cstudyStep)) { setStudyStep(cstudyStep); }
-				if (checkpointUrl) { setCheckpointUrl(checkpointUrl); }
 			}
 			return false;
-		}
+		};
+
+		const fetchInitialData = async () => {
+			setIsLoaiding(true);
+			try {
+				const studyStep = await studyApi.get<StudyStep>('studystep/first');
+				setStudyStep(studyStep);
+				setStudyError(false);
+			} catch (error) {
+				console.error("Error fetching initial study data:", error);
+				setStudyError(true);
+			} finally {
+				setIsLoaiding(false);
+			}
+		};
+
 		if (isEmptyParticipant(participant) && isEmptyStep(studyStep)) {
 			if (!loadCachedData()) {
-				studyApi.get<StudyStep>('studystep/first')
-					.then((studyStep: StudyStep) => {
-						setStudyStep(studyStep);
-						setStudyError(false);
-					}).catch((error: any) => { setStudyError(true); });
+				fetchInitialData();
+			} else {
+				setIsLoaiding(false);
 			}
+		} else {
+			setIsLoaiding(false);
 		}
 	}, [studyApi, participant, studyStep]);
 
@@ -101,9 +134,11 @@ function App() {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
+	if (isLoading) {
+		return <div>Loading...</div>
+	}
 
 	return (
-		console.log('App render', participant, studyStep),
 		<ThemeProvider breakpoints={Object.keys(customBreakpoints)}>
 			<div className="App">
 				{showWarning &&
@@ -120,8 +155,9 @@ function App() {
 						message={STRINGS.STUDY_ERROR} />
 				}
 				<Router basename='/preference-visualization'>
-					<Suspense fallback={<h1>Loading</h1>}>
+					<Suspense fallback={<div>Loading...</div>}>
 						<Routes>
+							{!studyStep && <Route path="*" element={<Navigate to="/" replace />} />}
 							<Route path="/" element={
 								<Welcome
 									next="/studyoverview"
