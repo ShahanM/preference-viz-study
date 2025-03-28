@@ -11,7 +11,6 @@ export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
     const movie = useRecoilValue(activeItemState);
 
     useEffect(() => {
-        console.log("movie", movie);
         if (movie === undefined) return;
         const comm_score = movie.community_score;
         const user_score = movie.user_score;
@@ -28,9 +27,9 @@ export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
 
     return (
         <Container className="rightpanel">
-            <Row className="header">
+            {/* <Row className="header">
                 <h3>{ratingSummary}</h3>
-            </Row>
+            </Row> */}
             <hr />
 
             {movie !== undefined ?
@@ -44,6 +43,9 @@ export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
                         <h3 className="movie-title">
                             {movie.title} ({movie.year})
                         </h3>
+                    </Row>
+                    <Row style={{textAlign: "left", fontWeight: "bold"}}>
+                        <p>{ratingSummary}</p>
                     </Row>
                     <Row className="details">
                         <p>

@@ -110,7 +110,11 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	useEffect(() => {
 		if (ratedMovies === undefined || ratedMovies.size === 0) {
 			if (stateData && stateData.ratedMovies) {
-				const ratedMoviesData = stateData.ratedMovies as Map<number, MovieRating>;
+				const ratedMoviesData = new Map<number, MovieRating>();
+				for (let key in stateData.ratedMovies) {
+					let moviedata = stateData.ratedMovies[key];
+					ratedMoviesData.set(moviedata.movielens_id, moviedata);
+				}
 				setRatedMovies(ratedMoviesData);
 			} else {
 				const storedRatedMovies = localStorage.getItem('ratedMoviesData');
