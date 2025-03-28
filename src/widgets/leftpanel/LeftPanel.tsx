@@ -1,7 +1,7 @@
 import { Container, Form, Row } from 'react-bootstrap';
 import { TextConstruct, TextItemResponse } from 'rssa-api';
 import './LeftPanel.css';
-
+import Parse from 'html-react-parser';
 
 interface LeftPanelProps {
 	prompts: TextConstruct[];
@@ -24,24 +24,23 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 			response: response
 		});
 	}
-	console.log("prompts", prompts);
 
 	return (
 		<Container className="leftpanel">
 			<Row>
 				<h3>
-					Please write a short or medium length answer to the
-					following questions.
+					Please answer the following questions.
 				</h3>
+				<p>Answers must be 50 words or more.</p>
 			</Row>
 			<hr />
 			{prompts && prompts.length > 0 ? prompts.map((prompt, idx) => (
-				<Row key={`prompt-row-${idx}`}>
-					<h4>{prompt.items.text}</h4>
-					<p>
+				<Row key={`prompt-row-${idx}`} style={{textAlign: "left", padding: "0.5rem"}}>
+					{Parse(prompt.items.text)}
+					{/* <p>
 						Hint: Movie(s) you like that others dislike or you
 						dislike that others like.
-					</p>
+					</p> */}
 					<Form>
 						<Form.Group className="mb-3" controlId="uniquePreferences">
 							<Form.Control as="textarea" rows={4}

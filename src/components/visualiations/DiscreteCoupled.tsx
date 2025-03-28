@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { useEffect, useMemo, useRef } from "react";
-import { Row } from 'react-bootstrap';
+import { Col, Container, Row } from 'react-bootstrap';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import "./Visualization.css";
 import { VizDataProps, VisualizationProps } from "./VisualizationTypes.types";
@@ -178,51 +178,59 @@ const DiscreteCoupled: React.FC<VisualizationProps> = ({
 	};
 
 	return (
-		<Row style={{ margin: "2em", padding: "0.5em" }}>
-			<div className="discrete-viz-container"> {/* 3x3 Grid */}
-				{/* Column Headers */}
-				<div className="row-1-col-2 discrete-viz-label-container">
-					User Likes
-				</div>
-				<div className="row-1-col-3 discrete-viz-label-container">
-					User Dislikes
-				</div>
+		<Container className="d-flex">
+			{/* <Col className="viz-label-label-v" xxl={1}>Me</Col> */}
+			{/* <Col> */}
+			{/* <Col className="viz-label-label-v"><p>Me</p></Col> */}
+			<p className="viz-label-label-v">Me</p>
+			<Col>
+				<Row>
+					<div className="discrete-viz-container"> {/* 3x3 Grid */}
 
-				{/* Row Headers */}
-				<div className="row-2-col-1 discrete-viz-label-container">
-					Community Likes
-				</div>
-				<div className="row-3-col-1 discrete-viz-label-container">
-					Community Dislikes
-				</div>
+						{/* Row Headers */}
+						<div className="row-1-col-1 discrete-viz-label-container">
+							<p>Likes</p>
+						</div>
+						<div className="row-2-col-1 discrete-viz-label-container">
+							<p>Dislikes</p>
+						</div>
 
-				{/* Content Boxes */}
-				<div className="row-2-col-2 discrete-viz-content-box">
-					{/* Canvas 1: My Likes & Community Likes */}
-					<svg ref={setSvgRef(0)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-				<div className="row-2-col-3 discrete-viz-content-box">
-					{/* Canvas 2: My Dislikes & Community Likes */}
-					<svg ref={setSvgRef(1)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-				<div className="row-3-col-2 discrete-viz-content-box">
-					{/* Canvas 3: My Likes & Community Dislikes */}
-					<svg ref={setSvgRef(2)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-				<div className="row-3-col-3 discrete-viz-content-box">
-					{/* Canvas 4: My Dislikes & Community Dislikes */}
-					<svg ref={setSvgRef(3)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-			</div>
-		</Row>
+						{/* Content Boxes */}
+						<div className="row-1-col-2 discrete-viz-content-box">
+							{/* Canvas 1: My Likes & Community Likes */}
+							<svg ref={setSvgRef(0)}
+								width={width / 2}
+								height={height / 2}></svg>
+						</div>
+						<div className="row-2-col-2 discrete-viz-content-box">
+							{/* Canvas 3: My Likes & Community Dislikes */}
+							<svg ref={setSvgRef(1)}
+								width={width / 2}
+								height={height / 2}></svg>
+						</div>
+						<div className="row-1-col-3 discrete-viz-content-box">
+							{/* Canvas 2: My Dislikes & Community Likes */}
+							<svg ref={setSvgRef(2)}
+								width={width / 2}
+								height={height / 2}></svg>
+						</div>
+						<div className="row-2-col-3 discrete-viz-content-box">
+							{/* Canvas 4: My Dislikes & Community Dislikes */}
+							<svg ref={setSvgRef(3)}
+								width={width / 2}
+								height={height / 2}></svg>
+						</div>
+						<div className="row-3-col-2 discrete-viz-label-container">
+							Likes
+						</div>
+						<div className="row-3-col-3 discrete-viz-label-container">
+							Dislikes
+						</div>
+					</div>
+				</Row>
+				<Row className="viz-label-label-h">Everyone else</Row>
+			</Col>
+		</Container>
 	);
 }
 

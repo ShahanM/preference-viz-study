@@ -110,7 +110,11 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	useEffect(() => {
 		if (ratedMovies === undefined || ratedMovies.size === 0) {
 			if (stateData && stateData.ratedMovies) {
-				const ratedMoviesData = stateData.ratedMovies as Map<number, MovieRating>;
+				const ratedMoviesData = new Map<number, MovieRating>();
+				for (let key in stateData.ratedMovies) {
+					let moviedata = stateData.ratedMovies[key];
+					ratedMoviesData.set(moviedata.movielens_id, moviedata);
+				}
 				setRatedMovies(ratedMoviesData);
 			} else {
 				const storedRatedMovies = localStorage.getItem('ratedMoviesData');
@@ -177,6 +181,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			const responses = Array.from(promptResponses.values());
 			setLoading(true);
 			localStorage.setItem('prefviz', JSON.stringify(responses));
+			console.log("Submitting responses", studyStep, currentPageIdx);
 			studyApi.post<GroupedTextResponse, boolean>(
 				`participant/${participant.id}/textresponse/`,
 				{
