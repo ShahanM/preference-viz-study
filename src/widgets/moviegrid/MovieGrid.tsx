@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
@@ -17,11 +17,46 @@ interface MovieGridProps {
 	dataCallback: (data: any) => void;
 }
 
+interface MovieGridState {
+	movieIdCache: string[],
+	moviesToFetch: string[],
+	loading: boolean
+}
+
+type MovieGridAction = 
+	| { type: 'SET_MOVIES_TO_FETCH'; payload: string[] }
+	| { type: 'SET_MOVIE_ID_CACHE'; payload: string[] }
+	| { type: 'SET_LOADING'; payload: boolean };
+
+
+const MovieGridReduce = (
+	state: MovieGridState,
+	action: MovieGridAction
+): MovieGridState => {
+	switch(action.type) {
+		case 'SET_MOVIES_TO_FETCH':
+			return { ...state, moviesToFetch: action.payload };
+		case 'SET_MOVIE_ID_CACHE':
+			return { ...state, movieIdCache: action.payload };
+		case 'SET_LOADING':
+			return { ...state, loading: action.payload };
+		default:
+			return state;
+	}
+}
+
+
 const MovieGrid: React.FC<MovieGridProps> = ({
 	movieIds,
 	itemsPerPage,
 	dataCallback }
 ) => {
+
+	const initialState: MovieGridState = {
+		movieIdCache: movieIds,
+		moviesToFetch: [],
+		loading: false
+	}
 
 	const { studyApi } = useStudy();
 
@@ -30,34 +65,23 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	const [movieMap, setMovieMap] = useState<Map<string, Movie>>(new Map<string, Movie>());
 
-
-	const [loading, setLoading] = useState<boolean>(false);
-	const [movieIdCache, setMovieIdCache] = useState<string[]>(movieIds);
-	const [moviesToFetch, setMoviesToFetch] = useState<string[]>([]);
+	const [state, dispatch] = React.useReducer(MovieGridReduce, initialState);
 
 	const [prevBtnDisabled, setPrevBtnDisabled] = useState<boolean>(true);
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
 
-	const updateMoviePageData = (unfetchIds: string[], numItems: number) => {
-		const limit = numItems * 2 // FIXME hardcoded values
-		let moviearr = [...unfetchIds];
-		let fetcharr = moviearr.splice(0, limit);
-
-		setMovieIdCache(moviearr);
-		setMoviesToFetch(fetcharr);
-	}
 
 	useEffect(() => {
-		updateMoviePageData(movieIds, itemsPerPage);
-	}, [movieIds, itemsPerPage])
+        const startIndex = (currentPage - 1) * itemsPerPage * 2;
+        const endIndex = currentPage * itemsPerPage * 2;
+        const fetcharr = movieIds.slice(startIndex, endIndex);
+        dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: fetcharr });
+    }, [movieIds, itemsPerPage, currentPage]);
 
-	const updateCurrentPage = (page: number) => {
-		setCurrentPage(page);
-	}
 
 	useEffect(() => {
 		const getMoviesByIDs = async (ids: string[]) => {
-			setLoading(true);
+			dispatch({ type: 'SET_LOADING', payload: true });
 			studyApi.post<string[], Movie[]>('movie/ers', ids)
 				.then((newmovies: Movie[]) => {
 					let newmovieMap = new Map<string, Movie>(movieMap);
@@ -65,27 +89,37 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 						newmovieMap.set(item.id, item);
 					});
 					setMovieMap(newmovieMap);
-					setMoviesToFetch([]);
+					dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: [] });
 				})
-				.catch((error: any) => console.log(error));
+				.catch((error: any) => {
+					console.log(error);
+					dispatch({ type: 'SET_LOADING', payload: false });
+				}).finally(() => {
+					dispatch({ type: 'SET_LOADING', payload: false });
+				});
 		}
-		if (moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, moviesToFetch)) {
-			getMoviesByIDs(moviesToFetch);
+		if (state.moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, state.moviesToFetch)) {
+			getMoviesByIDs(state.moviesToFetch);
 		}
-	}, [moviesToFetch, movieMap, studyApi]);
+	}, [state.moviesToFetch, movieMap, studyApi]);
 
 	const renderPrev = () => {
 		if (currentPage > 1) {
-			updateCurrentPage(currentPage - 1)
 			setCurrentPage(currentPage - 1);
 		}
 	}
 
 	const renderNext = () => {
-		if (currentPage * itemsPerPage < movieMap.size) {
-			updateMoviePageData(movieIdCache, 24);
-		}
-		updateCurrentPage(currentPage + 1);
+		const totalMovies = movieMap.size;
+        const nextPageIndex = currentPage * itemsPerPage;
+
+        if (nextPageIndex < totalMovies) {
+            const startIndex = nextPageIndex;
+            const endIndex = startIndex + itemsPerPage * 2;
+            const fetcharr = movieIds.slice(startIndex, endIndex);
+
+            dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: fetcharr });
+        }
 		setCurrentPage(currentPage + 1);
 	}
 
@@ -93,8 +127,6 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		setNextBtnDisabled(currentPage * itemsPerPage >= movieMap.size);
 		setPrevBtnDisabled(currentPage === 1);
 	}, [currentPage, itemsPerPage, movieMap.size])
-
-	useEffect(() => { setLoading(false); }, [movieMap])
 
 	const rateMovies = (newRating: number, movieid: string) => {
 		let galleryMovies = new Map<string, Movie>(movieMap);
@@ -131,19 +163,24 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		}
 	}, [movieRatingsLookup, dataCallback])
 
+	const visibleMovies = useMemo(() => {
+		return [...movieMap.values()].slice(
+			(currentPage - 1) * itemsPerPage,
+			currentPage * itemsPerPage
+		);
+	}, [movieMap, currentPage, itemsPerPage]);
+
 	return (
 		<Container className="gallery">
 			<Row>
 				<div className="grid-container">
 					{(currentPage * itemsPerPage <= movieMap.size) ?
 						<ul>
-							{[...movieMap.values()].slice((currentPage - 1) * itemsPerPage,
-								currentPage * itemsPerPage)
-								.map(currentMovie => (
-									<MovieGridItem key={"TN_" + currentMovie.id}
-										movieItem={currentMovie}
-										ratingCallback={rateMovies} />
-								))}
+							{visibleMovies.map(currentMovie => (
+								<MovieGridItem key={"TN_" + currentMovie.id}
+									movieItem={currentMovie}
+									ratingCallback={rateMovies} />
+							))}
 						</ul>
 						: <div style={{
 							minWidth: "918px",
@@ -173,10 +210,9 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 						<Button id="gallery-right-btn"
 							disabled={nextBtnDisabled}
 							variant="ers" onClick={renderNext}>
-							{nextBtnDisabled && loading ?
+							{nextBtnDisabled && state.loading ?
 								<LoadingText text={"Fetching more movies"} />
 								: ">"}
-
 						</Button>
 					</div>
 				</Col>
