@@ -9,6 +9,47 @@ interface LeftPanelProps {
 	promptsUpdateCallback: (response: TextItemResponse) => void;
 }
 
+const PROMPTS: TextConstruct[] = [
+	{
+		id: "1",
+		items: {
+			id: "1",
+			construct_id: "1",
+			text: "<p>Which one of the movies on the visualization is unfamiliar to you?</p>",
+			order_position: 1,
+			item_type: "text"
+		}
+	},
+	{
+		id: "2",
+		items: {
+			id: "2",
+			construct_id: "2",
+			text: `<p>Please tell us how you think you could use this visualization to:
+				<ul>
+					<li>Expand your preference/Explore new interests. 
+						For example, I have watched most popular movies in a genre but I haven't gone into the 
+						depth/haven't gone into the niche.</li>
+					<li>Widening an existing interest: Expanding beyond your niche.<li>
+					<li>Deepening an interest: Going down the niche rabbit hole.</li>
+				</ul>
+			</p>`,
+			order_position: 2,
+			item_type: "text"
+		}
+	},
+	{
+		id: "3",
+		items: {
+			id: "3",
+			construct_id: "3",
+			text: `<p>What are your action plan to extend preferences?</p>`,
+			order_position: 3,
+			item_type: "text"
+		}
+	}
+]
+
 const LeftPanel: React.FC<LeftPanelProps> = ({
 	prompts,
 	lockFields,
@@ -34,8 +75,8 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 				<p>Answers must be 50 words or more.</p>
 			</Row>
 			<hr />
-			{prompts && prompts.length > 0 ? prompts.map((prompt, idx) => (
-				<Row key={`prompt-row-${idx}`} style={{textAlign: "left", padding: "0.5rem"}}>
+			{PROMPTS && PROMPTS.length > 0 ? PROMPTS.map((prompt, idx) => (
+				<Row key={`prompt-row-${idx}`} style={{ textAlign: "left", padding: "0.5rem" }}>
 					{Parse(prompt.items.text)}
 					{/* <p>
 						Hint: Movie(s) you like that others dislike or you

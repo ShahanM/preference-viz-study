@@ -6,7 +6,7 @@ import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
 const posterWidth = 54;
 const posterHeight = 81;
 
-const margin = { top: 20, right: 20, bottom: 30, left: 40 }; // Define margins
+const margin = { top: 20, right: 20, bottom: 40, left: 40 }; // Define margins
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
 
 const ContinuousDecoupled: React.FC<VisualizationProps> = ({
@@ -53,7 +53,7 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 		if (!simNodeData) return;
 		const currentSvgRefs = svgRefs.current.slice();
 
-		function renderViz(svgRef: SVGSVGElement, ctxData: VizDataProps[]) {
+		function renderViz(svgRef: SVGSVGElement, ctxData: VizDataProps[], label: string) {
 
 			const xScale = d3.scaleLinear().domain([0, 5]).range([0, innerWidth]);
 			const yScale = d3.scaleLinear().domain([0, 5]).range([innerHeight, 0]); // Note: range is inverted for y-axis
@@ -144,13 +144,21 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 						onHover("");
 					}
 				});
+
+			svg.append("text")
+				.attr("x", innerWidth / 2 + margin.left)
+				.attr("y", svgHeight - 5) // Position below the chart
+				.style("text-anchor", "middle")
+				.style("font-weight", "bold")
+				.text(label);
 		}
 
 		const dataArrays = Object.values(simNodeData);
 		if (currentSvgRefs.length === dataArrays.length) {
 			currentSvgRefs.forEach((svgRef, i) => {
 				const ctxData = dataArrays[i];
-				renderViz(svgRef, ctxData);
+				const label = i === 0 ? "My Ratings" : "Everyone else's Ratings";
+				renderViz(svgRef, ctxData, label);
 			});
 
 		}

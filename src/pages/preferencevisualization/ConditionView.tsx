@@ -54,7 +54,6 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 
 	if (prefItemDetails && prefItemDetails.size > 0) {
 		switch (condition) {
-			// Continuous coupled
 			case 1:
 				return <ContinuousCoupled
 					width={width}
@@ -62,23 +61,13 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover} />;
-			// return <CartesianGraph key={"user"}
-			// 	graphID={"user_comm_graph"}
-			// 	width={width} height={height}
-			// 	data={prefItemDetails}
-			// 	xCol={"community_score"} yCol={"user_score"}
-			// 	onItemHover={handleHover}
-			// 	showToggle={false}
-			// 	variant={1} />;
-			// Continuous decoupled
-			case 2: // TODO
+			case 2:
 				return <ContinuousDecoupled
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover} />;
-			// Discrete coupled
 			case 3: return <DiscreteCoupled
 				width={width}
 				height={height}
@@ -86,8 +75,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 				xCol={"community_score"} yCol={"user_score"}
 				onHover={handleHover}
 			/>;
-			// Discrete decoupled
-			case 4: // TODO
+			case 4:
 				return <DiscreteDecoupled
 					width={width}
 					height={height}

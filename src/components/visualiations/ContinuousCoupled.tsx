@@ -18,7 +18,7 @@ const ContinuousCoupled: React.FC<VisualizationProps> = ({
 
 	useEffect(() => {
 		if (data && svgRef.current) {
-			const margin = { top: 20, right: 20, bottom: 40, left: 40 }; // Adjust margins as needed
+			const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Adjust margins as needed
 			const innerWidth = width - margin.left - margin.right;
 			const innerHeight = height - margin.top - margin.bottom;
 
@@ -30,7 +30,6 @@ const ContinuousCoupled: React.FC<VisualizationProps> = ({
 			svg.selectAll("*").remove();
 			const g = svg.append<SVGGElement>("g")
 				.attr("transform", `translate(${margin.left},${margin.top})`);
-
 
 			// Grid lines (x-axis)
 			g.append("g")
@@ -55,6 +54,24 @@ const ContinuousCoupled: React.FC<VisualizationProps> = ({
 				.call(d3.axisBottom(xScale));
 
 			g.append("g").call(d3.axisLeft(yScale));
+
+			// X-axis label
+			g.append("text")
+				.attr("class", "axis-label")
+				.attr("transform", `translate(${innerWidth / 2}, ${innerHeight + margin.bottom - 10})`)
+				.style("text-anchor", "middle")
+				.style("font-weight", "bold")
+				.text("Everyone else's ratings");
+
+			// Y-axis label
+			g.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 0 - margin.left + 15) // Adjusted position
+				.attr("x", 0 - (innerHeight / 2))
+				.attr("dy", "1em")
+				.style("text-anchor", "middle")
+				.style("font-weight", "bold")
+				.text("My ratings");
 
 			// CSS for grid lines (add this to your CSS file or a <style> tag)
 			svg.append("style").text(`
