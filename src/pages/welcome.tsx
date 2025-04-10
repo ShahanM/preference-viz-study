@@ -112,7 +112,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 			<InformedConsentModal show={show}
 				consentCallback={consentCallbackHandler} />
 			<Row>
-				<Footer callback={showInformedConsent} text={"Get Started"}
+				<Footer callback={() => consentCallbackHandler(true)} text={"Get Started"}
 					disabled={isEmptyStep(studyStep)} />
 			</Row>
 		</Container>

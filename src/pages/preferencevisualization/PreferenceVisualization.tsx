@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Col, Container, FormGroup, FormLabel, FormSelect, Row } from "react-bootstrap";
+import { Alert, Button, Col, Container, FormGroup, FormLabel, FormSelect, Row } from "react-bootstrap";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
 	CurrentStep,
@@ -60,6 +60,9 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
 	const [dataSubmitted, setDataSubmitted] = useState<boolean>(false);
 	const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+
+
+	const [backButtonInitiated, setBackButtonInitiated] = useState<boolean>(false);
 
 	// Temporary state to get condition from URL for development testing
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -161,10 +164,13 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	// Allowing for some simple checkpoint saving so the participant
 	// can return to the page in case of a browser/system crash
 	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
+		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname && !backButtonInitiated) {
 			navigate(checkpointUrl);
+		} else if (backButtonInitiated) {
+			navigate('/');
+			localStorage.clear();
 		}
-	}, [checkpointUrl, location.pathname, navigate]);
+	}, [checkpointUrl, location.pathname, navigate, backButtonInitiated]);
 
 	const handleNextBtn = useCallback(() => {
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
@@ -231,6 +237,12 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 	}, [isUpdated, navigate, next]);
 
+	const handleBackBtn = () => {
+		localStorage.clear();
+		console.log("Local storage cleared");
+		setBackButtonInitiated(true);
+	}
+
 	return (
 		<Container className="prefviz" fluid={width < 2000}>
 			<Row>
@@ -239,25 +251,28 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			</Row>
 			<Row>
 				<Col className="condition-label" style={{ margin: "0.5em auto" }}>
-					<FormGroup>
+					<FormGroup style={{ width: "fit-content", margin: "0 auto", display: "flex" }}>
 						<FormLabel>
 							Select visualization
+							<FormSelect
+								style={{ width: "fit-content", margin: "0 auto" }}
+								className="condition-select"
+								aria-label="Select Condition"
+								value={searchParams.get('cond') || '1'}
+								onChange={(e) => {
+									const selectedCondition = e.currentTarget.value;
+									setSearchParams({ cond: selectedCondition });
+									navigate(`?cond=${selectedCondition}`);
+								}}>
+								<option value="1">Continuous coupled</option>
+								<option value="2">Continuous decoupled</option>
+								<option value="3">Discrete coupled</option>
+								<option value="4">Discrete decoupled</option>
+							</FormSelect>
 						</FormLabel>
-						<FormSelect
-							style={{ width: "fit-content", margin: "0 auto" }}
-							className="condition-select"
-							aria-label="Select Condition"
-							value={searchParams.get('cond') || '1'}
-							onChange={(e) => {
-								const selectedCondition = e.currentTarget.value;
-								setSearchParams({ cond: selectedCondition });
-								navigate(`?cond=${selectedCondition}`);
-							}}>
-							<option value="1">Continuous coupled</option>
-							<option value="2">Continuous decoupled</option>
-							<option value="3">Discrete coupled</option>
-							<option value="4">Discrete decoupled</option>
-						</FormSelect>
+						<Button style={{ margin: "1em 0 0.5em 5em", height: "45px" }}
+							onClick={handleBackBtn}
+						>Go back to welcome page</Button>
 					</FormGroup>
 				</Col>
 			</Row>
