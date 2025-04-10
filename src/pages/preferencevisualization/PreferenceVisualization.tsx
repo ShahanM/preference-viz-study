@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+import { Col, Container, FormGroup, FormLabel, FormSelect, Row } from "react-bootstrap";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
 	CurrentStep,
@@ -236,6 +236,30 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			<Row>
 				<Header title={studyStep?.name}
 					content={studyStep?.description} />
+			</Row>
+			<Row>
+				<Col className="condition-label" style={{ margin: "0.5em auto" }}>
+					<FormGroup>
+						<FormLabel>
+							Select visualization
+						</FormLabel>
+						<FormSelect
+							style={{ width: "fit-content", margin: "0 auto" }}
+							className="condition-select"
+							aria-label="Select Condition"
+							value={searchParams.get('cond') || '1'}
+							onChange={(e) => {
+								const selectedCondition = e.currentTarget.value;
+								setSearchParams({ cond: selectedCondition });
+								navigate(`?cond=${selectedCondition}`);
+							}}>
+							<option value="1">Continuous coupled</option>
+							<option value="2">Continuous decoupled</option>
+							<option value="3">Discrete coupled</option>
+							<option value="4">Discrete decoupled</option>
+						</FormSelect>
+					</FormGroup>
+				</Col>
 			</Row>
 			<WarningDialog show={dataSubmitted} title="Success"
 				message={`Your responses have been submitted. 

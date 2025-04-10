@@ -3,3 +3,10 @@
 		max-width: 2000px !important;
 	}
 }
+
+
+.leftpanel li {
+	list-style: none;
+	margin: 0.5em;
+	padding: 0.5em;
+}
