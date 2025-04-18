@@ -182,18 +182,20 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			setLoading(true);
 			localStorage.setItem('prefviz', JSON.stringify(responses));
 			console.log("Submitting responses", studyStep, currentPageIdx);
-			studyApi.post<GroupedTextResponse, boolean>(
-				`participant/${participant.id}/textresponse/`,
-				{
-					participant_id: participant.id,
-					page_id: studyStep.pages[currentPageIdx].id,
-					responses: responses
-				}).then((success: boolean) => {
-					if (success) {
-						setDataSubmitted(true);
-						setShowConfirmation(false);
-					}
-				}).catch((error: any) => console.error(error));
+			// studyApi.post<GroupedTextResponse, boolean>(
+			// 	`participant/${participant.id}/textresponse/`,
+			// 	{
+			// 		participant_id: participant.id,
+			// 		page_id: studyStep.pages[currentPageIdx].id,
+			// 		responses: responses
+			// 	}).then((success: boolean) => {
+			// 		if (success) {
+			// 			setDataSubmitted(true);
+			// 			setShowConfirmation(false);
+			// 		}
+			// 	}).catch((error: any) => console.error(error));
+			setDataSubmitted(true);
+			setShowConfirmation(false);
 		}
 	}, [studyApi, participant, studyStep, currentPageIdx, promptResponses,
 		dataSubmitted]);
