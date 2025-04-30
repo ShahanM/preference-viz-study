@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
-import CartesianGraph from "../../widgets/CartesianGraph";
-import { activeItemState } from './PreferenceVisualization';
-import { PrefVizRecItemDetail } from './VisualizationTypes.types';
-import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
+import Baseline from '../../components/visualiations/Baseline';
 import ContinuousCoupled from '../../components/visualiations/ContinuousCoupled';
 import ContinuousDecoupled from '../../components/visualiations/ContinuousDecoupled';
+import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
+import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
+import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
+import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
+import { activeItemState } from './PreferenceVisualization';
+import { PrefVizRecItemDetail } from './VisualizationTypes.types';
 // import { MySimDatum } from '../../components/visualiations/DiscreteDecoupled';
 
 
@@ -68,13 +70,14 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover} />;
-			case 3: return <DiscreteCoupled
-				width={width}
-				height={height}
-				data={prefItemDetails}
-				xCol={"community_score"} yCol={"user_score"}
-				onHover={handleHover}
-			/>;
+			case 3:
+				return <DiscreteCoupled
+					width={width}
+					height={height}
+					data={prefItemDetails}
+					xCol={"community_score"} yCol={"user_score"}
+					onHover={handleHover}
+				/>;
 			case 4:
 				return <DiscreteDecoupled
 					width={width}
@@ -83,6 +86,28 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover}
 				/>;
+			case 5:
+				return <Baseline
+					width={width}
+					height={height}
+					data={prefItemDetails}
+					xCol={"community_score"} yCol={"user_score"}
+					onHover={handleHover}
+				/>
+			case 6:
+				return <ContinuousSelf
+					width={width}
+					height={height}
+					data={prefItemDetails}
+					xCol={"community_score"} yCol={"user_score"}
+					onHover={handleHover} />;
+			case 7:
+				return <DiscreteSelf
+					width={width}
+					height={height}
+					data={prefItemDetails}
+					xCol={"community_score"} yCol={"user_score"}
+					onHover={handleHover} />;
 			default: return <LoadingScreen loading={true} message="Loading Recommendations" />;
 		}
 	} else {

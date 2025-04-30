@@ -9,7 +9,7 @@ const posterHeight = 81;
 const margin = { top: 20, right: 20, bottom: 40, left: 40 }; // Define margins
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
 
-const ContinuousDecoupled: React.FC<VisualizationProps> = ({
+const ContinuousSelf: React.FC<VisualizationProps> = ({
 	width,
 	height,
 	data,
@@ -17,17 +17,13 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 	yCol,
 	onHover
 }) => {
-	// const svgRef = useRef<SVGSVGElement>(null);
-
 	const svgHeight = height / 4;
 	const innerWidth = width - margin.left - margin.right;
 	const innerHeight = svgHeight - margin.top - margin.bottom;
 
-	const svgRefs = useRef<SVGSVGElement[]>([]);
+	const svgRef = useRef<SVGSVGElement>();
 	const simNodeData = useMemo(() => {
 		const myPrefOrder: VizDataProps[] = [];
-		const commPrefOrder: VizDataProps[] = [];
-
 		if (data) {
 			for (const d of data.values()) {
 				myPrefOrder.push({
@@ -35,23 +31,14 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 					x: d.user_score,
 					y: innerHeight / 2
 				})
-
-				commPrefOrder.push({
-					...d,
-					x: d.community_score,
-					y: innerHeight / 2
-				})
 			}
 		}
-		return {
-			myPrefs: myPrefOrder,
-			commPrefs: commPrefOrder
-		}
+		return myPrefOrder;
 	}, [data, innerHeight]);
 
 	useEffect(() => {
 		if (!simNodeData) return;
-		const currentSvgRefs = svgRefs.current.slice();
+		const currentSvgRef = svgRef.current;
 
 		function renderViz(svgRef: SVGSVGElement, ctxData: VizDataProps[], label: string) {
 
@@ -153,27 +140,22 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 				.text(label);
 		}
 
-		const dataArrays = Object.values(simNodeData);
-		if (currentSvgRefs.length === dataArrays.length) {
-			currentSvgRefs.forEach((svgRef, i) => {
-				const ctxData = dataArrays[i];
-				const label = i === 0 ? "My Ratings" : "Everyone else's Ratings";
-				renderViz(svgRef, ctxData, label);
-			});
-
+		if(currentSvgRef) {
+			const ctxData = simNodeData
+			const label = "My Ratings";
+			renderViz(currentSvgRef, ctxData, label);
 		}
-	}, [simNodeData, svgRefs, innerWidth, innerHeight, xCol, yCol, onHover, width, svgHeight]);
+	}, [simNodeData, svgRef, innerWidth, innerHeight, xCol, yCol, onHover, width, svgHeight]);
 
-	const setSvgRef = (index: number) => (element: SVGSVGElement | null) => {
-		svgRefs.current[index] = element!;
+	const setSvgRef = () => (element: SVGSVGElement | null) => {
+		svgRef.current = element!;
 	};
 
 	return (
 		<div style={{marginTop: "9vh"}}>
-			<svg ref={setSvgRef(0)} width={width} height={height / 4}></svg>
-			<svg ref={setSvgRef(1)} width={width} height={height / 4}></svg>
+			<svg ref={setSvgRef()} width={width} height={height / 4}></svg>
 		</div>
 	);
 }
 
-export default ContinuousDecoupled;
+export default ContinuousSelf;

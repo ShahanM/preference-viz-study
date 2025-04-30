@@ -17,7 +17,7 @@ const colHeaderHeight = 100;
 
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
 
-const DiscreteDecoupled: React.FC<VisualizationProps> = ({
+const DiscreteSelf: React.FC<VisualizationProps> = ({
 	width,
 	height,
 	data,
@@ -196,33 +196,8 @@ const DiscreteDecoupled: React.FC<VisualizationProps> = ({
 						height={height / 2}></svg>
 				</div>
 			</div>
-
-			<div className="discrete-viz-container"> {/* 2x3 Grid */}
-				<div className="row-2-col-1 discrete-viz-label-container">
-					Community
-				</div>
-				<div className="row-1-col-2 discrete-viz-label-container">
-					Likes
-				</div>
-				<div className="row-1-col-3 discrete-viz-label-container">
-					Dislikes
-				</div>
-
-				<div className="row-2-col-2 discrete-viz-content-box">
-					{/* Canvas 3: Community Likes */}
-					<svg ref={setSvgRef(2)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-				<div className="row-2-col-3 discrete-viz-content-box">
-					{/* Canvas 4: Community Dislikes */}
-					<svg ref={setSvgRef(3)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-			</div>
 		</Row>
 	);
 }
 
-export default DiscreteDecoupled;
+export default DiscreteSelf;
