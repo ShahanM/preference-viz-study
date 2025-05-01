@@ -62,6 +62,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
 	// Temporary state to get condition from URL for development testing
+	// NOTE: Condition 5 is Baseline in the test study, so we will get TopN
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	// State to hold the recommendations
@@ -89,6 +90,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			"prefviz/recommendation/", {
 			user_id: participant.id,
 			user_condition: participant.condition_id,
+			is_baseline: parseInt(searchParams.get('cond') || '1') === 5, // FIXME: Remember this should be based on the participant condition
 			ratings: [...ratings.values()].map(rating => {
 				return { item_id: rating.movielens_id, rating: rating.rating }
 			})
@@ -100,7 +102,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}).catch((err: any) => {
 			console.error("VisualizationLayout Error", err);
 		});
-	}, [studyApi]);
+	}, [studyApi, searchParams]);
 
 
 	// useEffect(() => {

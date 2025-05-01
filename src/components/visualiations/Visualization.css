@@ -103,3 +103,26 @@
 	/* transform: rotate(-90deg); */
 	transform: rotate(-90deg);
 }
+
+/* Baseline css */
+.baseline-image {
+	width: 81px;
+	object-fit: cover;
+	margin: 0 auto;
+}
+
+.baseline-item-div {
+	display: flex;
+	flex-direction: column;
+	/* justify-content: center; */
+	align-items: center;
+	padding: 0.5rem;
+	margin: 0.5rem 0;
+}
+
+.baseline-image:hover {
+	cursor: pointer;
+	opacity: 0.8;
+	transition: opacity 0.3s ease;
+	/* width: 81px; */
+}
