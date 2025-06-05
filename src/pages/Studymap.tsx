@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card, Col, Container, Image, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, StudyStep, useStudy } from "rssa-api";
+import { useRecoilValue } from "recoil";
+import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { participantState, studyStepState } from "../state/studyState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
 const StudyMap: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	participant,
-	studyStep,
 	updateCallback
 }) => {
-
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
+	const participant: Participant | null = useRecoilValue(participantState);
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
@@ -32,21 +32,21 @@ const StudyMap: React.FC<StudyPageProps> = ({
 		}
 	}, [checkpointUrl, location.pathname, navigate]);
 
-	const handleNextBtn = () => {
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
-	}
-
-	useEffect(() => {
-		if (isUpdated) {
-			navigate(next);
+	const handleNextBtn = async () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
 		}
-	}, [isUpdated, navigate, next]);
-
+		try {
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+				current_step_id: participant.current_step
+			});
+			updateCallback(nextStep, participant, next);
+			navigate(next);
+		} catch (error) {
+			console.error("Error getting next to updating study progress", error);
+		}
+	}
 
 	return (
 		<Container>

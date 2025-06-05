@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
+import { CurrentStep, Participant, StudyStep, useStudy } from 'rssa-api';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import { useStudy, CurrentStep, StudyStep } from 'rssa-api';
+import { participantState, studyStepState } from '../state/studyState';
 import MovieGrid from '../widgets/moviegrid/MovieGrid';
 import { MovieRating } from '../widgets/moviegrid/moviegriditem/MovieGridItem.types';
 import { StudyPageProps } from './StudyPage.types';
@@ -13,23 +15,21 @@ import { StudyPageProps } from './StudyPage.types';
 const MovieRatingPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	participant,
-	studyStep,
 	updateCallback,
 	sizeWarning
 }) => {
 	const itemsPerPage = 24;
 	const minRatingCount = 10;
 
+	const participant: Participant | null = useRecoilValue(participantState);
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [buttonDisabled, setButtonDisabled] = useState(true);
 	const [loading, setLoading] = useState(false);
-
-	const [movieIds, setMovieIds] = useState<string[]>([]);
 	const [ratedMovies, setRatedMovies] = useState<MovieRating[]>([]);
 
 
@@ -39,50 +39,43 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 		}
 	}, [checkpointUrl, location.pathname, navigate]);
 
-	useEffect(() => {
-		if (isUpdated) {
-			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
-			navigate(next, { state: { ratedMovies: ratedMovies } });
+	const handleNextBtn = useCallback(async () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
 		}
-	}, [isUpdated, navigate, next, ratedMovies]);
+		if (ratedMovies.length < minRatingCount) {
+			console.warn(`Please rate at least ${minRatingCount} movies.`);
+			// TODO: Show a toast or alert to inform the user
+			return;
+		}
 
-	const handleNextBtn = () => {
 		setLoading(true);
 		setButtonDisabled(true);
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
+
+		try {
+			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+				current_step_id: participant.current_step
+			});
+
+			updateCallback(nextRouteStep, participant, next);
 			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
+
+			navigate(next, { state: { ratedMovies: ratedMovies } });
+		} catch (error) {
+			console.error("Error getting next step:", error);
+		} finally {
+			setLoading(false);
+		}
+	}, [studyApi, participant, studyStep, updateCallback, next, ratedMovies, minRatingCount, navigate]);
+
+	useEffect(() => {
+		setButtonDisabled(ratedMovies.length < minRatingCount || !participant || !studyStep);
+	}, [ratedMovies, minRatingCount, participant, studyStep]);
+
+	if (!participant || !studyStep) {
+		return <div>Loading study data...</div>;
 	}
-
-	useEffect(() => {
-		const getAllMovieIds = async () => {
-			return studyApi.get<string[]>('movie/ids/ers')
-				.then((newmovies: string[]) => {
-					localStorage.setItem('allMovieIds', JSON.stringify(newmovies));
-					setMovieIds(newmovies);
-				})
-				.catch((error: any) => {
-					console.log(error);
-					return [];
-				});
-		}
-
-		if (localStorage.getItem('allMovieIds')) {
-			const allmovieIds = JSON.parse(localStorage.getItem('allMovieIds') || '[]');
-			setMovieIds(allmovieIds);
-		} else {
-			getAllMovieIds();
-		}
-	}, [studyApi]);
-
-
-	useEffect(() => {
-		setButtonDisabled(ratedMovies.length < minRatingCount);
-	}, [ratedMovies])
 
 	return (
 		<Container>
@@ -93,7 +86,6 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 				<Row>
 					<MovieGrid
 						dataCallback={setRatedMovies}
-						movieIds={movieIds}
 						itemsPerPage={itemsPerPage} />
 				</Row>
 			}

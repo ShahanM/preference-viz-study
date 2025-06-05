@@ -4,6 +4,7 @@ import { StudyProvider } from 'rssa-api';
 import App from './App';
 import './styles/index.css';
 import reportWebVitals from './reportWebVitals';
+import { RecoilRoot } from "recoil";
 
 
 const REACT_APP_RSSA_API_DEV = process.env.REACT_APP_RSSA_API_DEV!;
@@ -25,7 +26,9 @@ root.render(
 	<React.StrictMode>
 		<StudyProvider
 			config={providerConfig}>
-			<App />
+			<RecoilRoot>
+				<App />
+			</RecoilRoot>
 		</StudyProvider>,
 	</React.StrictMode>
 );

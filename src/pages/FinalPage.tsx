@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
 import { Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { useStudy } from "rssa-api";
+import { participantState, studyStepState } from "../state/studyState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
 const FinalPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	participant,
-	studyStep,
+	// participant,
+	// studyStep,
 	updateCallback
 }) => {
+
+	const participant: Participant | null = useRecoilValue(participantState);
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();

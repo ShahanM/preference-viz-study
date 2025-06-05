@@ -10,14 +10,10 @@ import {
 	BrowserRouter as Router,
 	Routes
 } from 'react-router-dom';
-import { RecoilRoot } from 'recoil';
+import { RecoilRoot, useRecoilState } from 'recoil';
 import {
 	Participant,
 	StudyStep,
-	emptyParticipant,
-	emptyStep,
-	isEmptyParticipant,
-	isEmptyStep,
 	useStudy
 } from 'rssa-api';
 import { WarningDialog } from './components/dialogs/warningDialog';
@@ -27,9 +23,10 @@ import FinalPage from './pages/FinalPage';
 import MovieRatingPage from './pages/MovieRatingPage';
 import PreferenceVisualization from './pages/preferencevisualization/PreferenceVisualization';
 import ScenarioPage from './pages/ScenarioPage';
-import StudyMap from './pages/studymap';
+import StudyMap from './pages/Studymap';
 import Survey from './pages/SurveyPage';
-import Welcome from './pages/welcome';
+import Welcome from './pages/Welcome';
+import { participantState, studyStepState } from './state/studyState';
 import './styles/_custom-bootstrap.scss';
 import './styles/App.css';
 import './styles/components.css';
@@ -47,16 +44,22 @@ function App() {
 
 	const { studyApi } = useStudy();
 	const [showWarning, setShowWarning] = useState<boolean>(false);
-	const [participant, setParticipant] = useState<Participant>(emptyParticipant);
-	const [studyStep, setStudyStep] = useState<StudyStep>(emptyStep);
+	// const [participant, setParticipant] = useState<Participant>(emptyParticipant);
+	const [participant, setParticipant] = useRecoilState(participantState);
+	// const [studyStep, setStudyStep] = useState<StudyStep>(emptyStep);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 	const [checkpointUrl, setCheckpointUrl] = useState<string>('/');
 	const [studyError, setStudyError] = useState<boolean>(false);
 	const [isLoading, setIsLoaiding] = useState<boolean>(true);
 
-	const handleStepUpdate = (step: StudyStep, referrer: string) => {
-		const newParticipant = { ...participant, current_step: step.id };
+	const handleStepUpdate = (step: StudyStep, currentParticipant: Participant, referrer: string) => {
+		// const newParticipant = { ...participant, current_step: step.id };
+		const newParticipant: Participant = {
+			...currentParticipant,
+			current_step: step.id,
+		};
+		console.log("Updating participant with new step:", newParticipant, currentParticipant);
 		try {
-
 			studyApi.put('participant/', newParticipant).then(() => {
 				localStorage.setItem('participant', JSON.stringify(newParticipant));
 				localStorage.setItem('studyStep', JSON.stringify(step));
@@ -65,6 +68,7 @@ function App() {
 			setParticipant(newParticipant);
 			setStudyStep(step);
 			setCheckpointUrl(referrer);
+			studyApi.setParticipantId(newParticipant.id);
 		} catch (error) {
 			console.error("Error updating participant", error);
 			setStudyError(true);
@@ -83,10 +87,11 @@ function App() {
 					const cparticipant = JSON.parse(participantCache);
 					const cstudyStep = JSON.parse(studyStepCache);
 
-					if (!isEmptyParticipant(cparticipant)) {
+					if (cparticipant) {
 						setParticipant(cparticipant);
+						studyApi.setParticipantId(cparticipant.id);
 					}
-					if (!isEmptyStep(cstudyStep)) { setStudyStep(cstudyStep); }
+					if (cstudyStep) { setStudyStep(cstudyStep); }
 					if (checkpointUrl) { setCheckpointUrl(checkpointUrl); }
 					return true;
 				} catch (error) {
@@ -105,7 +110,7 @@ function App() {
 		const fetchInitialData = async () => {
 			setIsLoaiding(true);
 			try {
-				const studyStep = await studyApi.get<StudyStep>('studystep/first');
+				const studyStep = await studyApi.get<StudyStep>('study/step/first');
 				setStudyStep(studyStep);
 				setStudyError(false);
 			} catch (error) {
@@ -116,7 +121,8 @@ function App() {
 			}
 		};
 
-		if (isEmptyParticipant(participant) && isEmptyStep(studyStep)) {
+		if (!participant && !studyStep) {
+			// if (!participant && !studyStep) {
 			if (!loadCachedData()) {
 				fetchInitialData();
 			} else {
@@ -125,7 +131,24 @@ function App() {
 		} else {
 			setIsLoaiding(false);
 		}
-	}, [studyApi, participant, studyStep]);
+		// } else if (!participant && !studyStep) {
+		// if (!loadCachedData()) {
+		// fetchInitialData();
+		// } else {
+		// setIsLoaiding(false);
+		// }
+		// }
+
+		// if (studyApi.getParticipantId === null) {
+		// 	console.log("Setting participant ID from local storage");
+		// 	// If the participant ID is not set in the API, set it from the cached participant
+		// 	// This is necessary for the API to correctly associate requests with the participant
+		// 	if (participant && participant.id) {
+		// 		studyApi.setParticipantId(participant.id);
+		// 	}
+		// }
+		console.log("App initialized with participant:", participant, "and studyStep:", studyStep);
+	}, [studyApi, setParticipant, setStudyStep, participant, studyStep]);
 
 
 	useEffect(() => {
@@ -162,7 +185,7 @@ function App() {
 								<Welcome
 									next="/studyoverview"
 									checkpointUrl={checkpointUrl}
-									studyStep={studyStep}
+									// studyStep={studyStep}
 									setNewParticipant={setParticipant}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
@@ -172,8 +195,8 @@ function App() {
 								<StudyMap
 									next="/presurvey"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -182,8 +205,8 @@ function App() {
 								<Survey
 									next="/scenario"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -192,8 +215,8 @@ function App() {
 								<ScenarioPage
 									next="/ratemovies"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -202,31 +225,31 @@ function App() {
 								<MovieRatingPage
 									next="/recommendations"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
 							} />
 							{/* TODO: Add an intermediary loading page to prepare recommendations */}
 							<Route path="/recommendations" element={
-								<RecoilRoot>
+								// <RecoilRoot>
 									<PreferenceVisualization
 										next="/feedback"
 										checkpointUrl={checkpointUrl}
-										participant={participant}
-										studyStep={studyStep}
+										// participant={participant}
+										// studyStep={studyStep}
 										updateCallback={handleStepUpdate}
 										sizeWarning={showWarning}
 									/>
-								</RecoilRoot>
+								// </RecoilRoot>
 							} />
 							<Route path="/feedback" element={
 								<FeedbackPage
 									next="/postsurvey"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -235,8 +258,8 @@ function App() {
 								<Survey
 									next="/demographics"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -245,8 +268,8 @@ function App() {
 								<DemographicsPage
 									next="/endstudy"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>
@@ -255,8 +278,8 @@ function App() {
 								<FinalPage
 									next="/"
 									checkpointUrl={checkpointUrl}
-									participant={participant}
-									studyStep={studyStep}
+									// participant={participant}
+									// studyStep={studyStep}
 									updateCallback={handleStepUpdate}
 									sizeWarning={showWarning}
 								/>

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Container, Form, Row } from "react-bootstrap";
 import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { CurrentStep, Demographic, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { useStudy, CurrentStep, Demographic, StudyStep } from "rssa-api";
+import { participantState, studyStepState } from "../../state/studyState";
 import { StudyPageProps } from "../StudyPage.types";
 import './DemographicsPage.css';
 
@@ -58,10 +60,13 @@ export const EDUCATION_OPTIONS = [
 const DemographicsPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	participant,
-	studyStep,
+	// participant,
+	// studyStep,
 	updateCallback
 }) => {
+
+	const participant: Participant | null = useRecoilValue(participantState);
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
@@ -150,6 +155,10 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 
 
 	const submitResponse = () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
+		}
 		if (!validateForm()) {
 			alert("Please fill in all the required fields.");
 			return;
@@ -175,11 +184,15 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 	}
 
 	const handleNextBtn = () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
+		}
 		console.log("MovieRatingPage stepID", participant.current_step);
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
 		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
+			updateCallback(nextStep, participant, next)
 			setIsUpdated(true);
 		});
 	}
@@ -192,7 +205,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 
 	return (
 		<Container>
-			<Row>
+			<Row>;
 				<Header title={studyStep?.name}
 					content={studyStep?.description} />
 			</Row>

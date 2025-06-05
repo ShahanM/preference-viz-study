@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
@@ -6,162 +6,148 @@ import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
 import { useStudy } from 'rssa-api';
 import LoadingText from '../../components/LoadingText';
-import { mapKeyContainsAll } from '../../utils/helper';
 import './MovieGrid.css';
 import MovieGridItem from './moviegriditem/MovieGridItem';
 import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
 
 interface MovieGridProps {
-	movieIds: string[];
 	itemsPerPage: number;
 	dataCallback: (data: any) => void;
 }
 
-interface MovieGridState {
-	movieIdCache: string[],
-	moviesToFetch: string[],
-	loading: boolean
-}
-
-type MovieGridAction = 
-	| { type: 'SET_MOVIES_TO_FETCH'; payload: string[] }
-	| { type: 'SET_MOVIE_ID_CACHE'; payload: string[] }
-	| { type: 'SET_LOADING'; payload: boolean };
-
-
-const MovieGridReduce = (
-	state: MovieGridState,
-	action: MovieGridAction
-): MovieGridState => {
-	switch(action.type) {
-		case 'SET_MOVIES_TO_FETCH':
-			return { ...state, moviesToFetch: action.payload };
-		case 'SET_MOVIE_ID_CACHE':
-			return { ...state, movieIdCache: action.payload };
-		case 'SET_LOADING':
-			return { ...state, loading: action.payload };
-		default:
-			return state;
-	}
-}
-
+const RETRY_DELAYS_MS = [5000, 10000, 30000, 60000];
 
 const MovieGrid: React.FC<MovieGridProps> = ({
-	movieIds,
 	itemsPerPage,
 	dataCallback }
 ) => {
 
-	const initialState: MovieGridState = {
-		movieIdCache: movieIds,
-		moviesToFetch: [],
-		loading: false
-	}
-
 	const { studyApi } = useStudy();
 
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>();
-
+	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>(new Map());
 	const [movieMap, setMovieMap] = useState<Map<string, Movie>>(new Map<string, Movie>());
 
-	const [state, dispatch] = React.useReducer(MovieGridReduce, initialState);
+	const [isLoadingMovies, setIsLoadingMovies] = useState<boolean>(false);
+	const [fetchError, setFetchError] = useState<boolean>(false); // New: to track if a fetch error occurred
+	const [retryAttempt, setRetryAttempt] = useState<number>(0); // New: count of retry attempts
+	const [currentFetchTrigger, setCurrentFetchTrigger] = useState<number>(0);
 
 	const [prevBtnDisabled, setPrevBtnDisabled] = useState<boolean>(true);
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
 
+	// --- Core movie fetching logic, extracted into a useCallback function ---
+	const fetchMovies = useCallback(async () => {
+		setIsLoadingMovies(true);
+		setFetchError(false); // Reset error state on new fetch attempt
 
-	useEffect(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage * 2;
-        const endIndex = currentPage * itemsPerPage * 2;
-        const fetcharr = movieIds.slice(startIndex, endIndex);
-        dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: fetcharr });
-    }, [movieIds, itemsPerPage, currentPage]);
+		const offset = movieMap.size;
+		const limit = itemsPerPage * 2;
 
-
-	useEffect(() => {
-		const getMoviesByIDs = async (ids: string[]) => {
-			dispatch({ type: 'SET_LOADING', payload: true });
-			studyApi.post<string[], Movie[]>('movie/ers', ids)
-				.then((newmovies: Movie[]) => {
-					let newmovieMap = new Map<string, Movie>(movieMap);
-					newmovies.forEach(item => {
-						newmovieMap.set(item.id, item);
-					});
-					setMovieMap(newmovieMap);
-					dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: [] });
-				})
-				.catch((error: any) => {
-					console.log(error);
-					dispatch({ type: 'SET_LOADING', payload: false });
-				}).finally(() => {
-					dispatch({ type: 'SET_LOADING', payload: false });
+		try {
+			const movies: Movie[] = await studyApi.get<Movie[]>(`movie/ers?offset=${offset}&limit=${limit}`);
+			setMovieMap(prevMovieMap => {
+				const newMovieMap = new Map<string, Movie>(prevMovieMap);
+				movies.forEach(item => {
+					newMovieMap.set(item.id, item);
 				});
+				return newMovieMap;
+			});
+			setRetryAttempt(0); // Reset retry count on successful fetch
+		} catch (error: any) {
+			console.error("Error fetching movies:", error);
+			setFetchError(true); // Set error state if fetch fails
+		} finally {
+			setIsLoadingMovies(false); // Always set loading to false after fetch attempt
 		}
-		if (state.moviesToFetch.length > 0 && !mapKeyContainsAll<string>(movieMap, state.moviesToFetch)) {
-			getMoviesByIDs(state.moviesToFetch);
-		}
-	}, [state.moviesToFetch, movieMap, studyApi]);
+	}, [movieMap, itemsPerPage, studyApi]); // movieMap is a dependency because offset depends on its size
 
-	const renderPrev = () => {
+
+	useEffect(() => {
+		const requiredMoviesForNextPage = (currentPage + 1) * itemsPerPage;
+		if (movieMap.size < requiredMoviesForNextPage && !isLoadingMovies && !fetchError) {
+			fetchMovies();
+		}
+
+	}, [movieMap, itemsPerPage, currentPage, isLoadingMovies, fetchError, fetchMovies, currentFetchTrigger]);
+
+	// --- Effect 2: Handles retry logic when a fetch error occurs ---
+	useEffect(() => {
+		// This effect runs when an error occurs and no fetch is currently in progress
+		if (fetchError && !isLoadingMovies) {
+			const nextDelay = RETRY_DELAYS_MS[retryAttempt]; // Get the delay for the current retry attempt
+
+			if (nextDelay !== undefined) { // Check if there's another retry attempt scheduled
+				console.log(`Retrying fetch in ${nextDelay / 1000} seconds... (Attempt ${retryAttempt + 1})`);
+				const timerId = setTimeout(() => {
+					setRetryAttempt(prev => prev + 1); // Increment attempt count for the *next* retry sequence
+					setCurrentFetchTrigger(prev => prev + 1); // Manually trigger the main fetch useEffect
+				}, nextDelay);
+
+				// Cleanup function: Clear the timer if the component unmounts or the effect re-runs
+				return () => clearTimeout(timerId);
+			} else {
+				console.warn("Max retry attempts reached. Please refresh to try again.");
+				// At this point, you might want to display a persistent error message to the user
+				// The UI will reflect this via the `fetchError` state.
+			}
+		}
+	}, [fetchError, isLoadingMovies, retryAttempt]); // Dependencies for this effect
+	const renderPrev = useCallback(() => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1);
+			setRetryAttempt(0);
 		}
-	}
+	}, [currentPage]);
 
-	const renderNext = () => {
-		const totalMovies = movieMap.size;
-        const nextPageIndex = currentPage * itemsPerPage;
-
-        if (nextPageIndex < totalMovies) {
-            const startIndex = nextPageIndex;
-            const endIndex = startIndex + itemsPerPage * 2;
-            const fetcharr = movieIds.slice(startIndex, endIndex);
-
-            dispatch({ type: 'SET_MOVIES_TO_FETCH', payload: fetcharr });
-        }
+	const renderNext = useCallback(() => {
 		setCurrentPage(currentPage + 1);
-	}
+		setRetryAttempt(0);
+	}, [currentPage]);
 
 	useEffect(() => {
-		setNextBtnDisabled(currentPage * itemsPerPage >= movieMap.size);
+		// Determine if there are potentially more movies to load beyond what's currently in movieMap
+		const hasMoreMoviesToLoad = movieMap.size < (currentPage + 1) * itemsPerPage;
+		// Determine if max retries have been reached for the current error
+		const maxRetriesReached = fetchError && RETRY_DELAYS_MS[retryAttempt] === undefined;
+
+		setNextBtnDisabled(
+			(isLoadingMovies && hasMoreMoviesToLoad) || // Still loading, and more content is needed for next page
+			(currentPage * itemsPerPage >= movieMap.size && !isLoadingMovies && !fetchError) || // No more movies in map and not loading (implies end of data)
+			maxRetriesReached // Max retries reached for an error
+		);
 		setPrevBtnDisabled(currentPage === 1);
-	}, [currentPage, itemsPerPage, movieMap.size])
+	}, [currentPage, itemsPerPage, movieMap.size, isLoadingMovies, fetchError, retryAttempt]);
 
-	const rateMovies = (newRating: number, movieid: string) => {
-		let galleryMovies = new Map<string, Movie>(movieMap);
-		let ratedMovies = new Map<string, MovieRating>(movieRatingsLookup);
 
-		let ratedMovie = ratedMovies.get(movieid);
-		if (ratedMovie) {
-			ratedMovie.rating = newRating;
-		} else {
+	const rateMovies = useCallback((newRating: number, movieid: string) => {
+		setMovieMap(prevMovieMap => {
+			const newGalleryMovies = new Map<string, Movie>(prevMovieMap);
+			const ratedMovieData = newGalleryMovies.get(movieid);
+			if (ratedMovieData) {
+				ratedMovieData.rating = newRating;
+				newGalleryMovies.set(movieid, ratedMovieData);
+			}
+			return newGalleryMovies;
+		});
+
+		setMovieRatingsLookup(prevRatedMovies => {
+			const newRatedMovies = new Map<string, MovieRating>(prevRatedMovies);
 			const movie = movieMap.get(movieid);
 			if (movie) {
-				ratedMovie = {
+				newRatedMovies.set(movieid, {
 					id: movie.id,
 					movielens_id: movie.movielens_id,
 					rating: newRating
-				};
-			} else { return }
-		}
-
-		let ratedMovieData = galleryMovies.get(movieid);
-		if (ratedMovieData) {
-			ratedMovieData.rating = newRating;
-			galleryMovies.set(movieid, ratedMovieData);
-			setMovieMap(galleryMovies);
-		}
-
-		ratedMovies.set(movieid, ratedMovie);
-		setMovieRatingsLookup(ratedMovies);
-	}
+				});
+			}
+			return newRatedMovies;
+		});
+	}, [movieMap]);
 
 	useEffect(() => {
-		if (movieRatingsLookup) {
-			dataCallback([...movieRatingsLookup.values()]);
-		}
-	}, [movieRatingsLookup, dataCallback])
+		dataCallback([...movieRatingsLookup.values()]);
+	}, [movieRatingsLookup, dataCallback]);
 
 	const visibleMovies = useMemo(() => {
 		return [...movieMap.values()].slice(
@@ -169,30 +155,37 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 			currentPage * itemsPerPage
 		);
 	}, [movieMap, currentPage, itemsPerPage]);
-
+	const hasContentOnCurrentPage = visibleMovies.length > 0;
 	return (
 		<Container className="gallery">
 			<Row>
 				<div className="grid-container">
-					{(currentPage * itemsPerPage <= movieMap.size) ?
-						<ul>
-							{visibleMovies.map(currentMovie => (
-								<MovieGridItem key={"TN_" + currentMovie.id}
-									movieItem={currentMovie}
-									ratingCallback={rateMovies} />
-							))}
-						</ul>
-						: <div style={{
+					{isLoadingMovies && !hasContentOnCurrentPage ? (
+						<div style={{
 							minWidth: "918px",
-							minHeight: "fit-parent"
+							minHeight: "fit-parent",
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center"
 						}}>
 							<Spinner animation="border" role="status"
 								style={{
-									margin: "18% 50%",
 									width: "54px", height: "54px"
 								}} />
 						</div>
-					}
+					) : (
+						hasContentOnCurrentPage ? (
+							<ul>
+								{visibleMovies.map(currentMovie => (
+									<MovieGridItem key={"TN_" + currentMovie.id}
+										movieItem={currentMovie}
+										ratingCallback={rateMovies} />
+								))}
+							</ul>
+						) : (
+							<div>No movies to display.</div>
+						)
+					)}
 				</div>
 			</Row>
 			<Row className="galleryFooter">
@@ -210,7 +203,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 						<Button id="gallery-right-btn"
 							disabled={nextBtnDisabled}
 							variant="ers" onClick={renderNext}>
-							{nextBtnDisabled && state.loading ?
+							{isLoadingMovies && nextBtnDisabled ?
 								<LoadingText text={"Fetching more movies"} />
 								: ">"}
 						</Button>

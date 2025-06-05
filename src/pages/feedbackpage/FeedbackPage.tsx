@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, Feedback, StudyStep, useStudy } from "rssa-api";
+import { useRecoilValue } from "recoil";
+import { CurrentStep, Feedback, Participant, StudyStep, useStudy } from "rssa-api";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
+import { participantState, studyStepState } from "../../state/studyState";
 import { StudyPageProps } from "../StudyPage.types";
 import "./FeedbackPage.css";
 
 const FeedbackPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	participant,
-	studyStep,
+	// participant,
+	// studyStep,
 	updateCallback
 }) => {
+
+	const participant: Participant | null = useRecoilValue(participantState);
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
@@ -36,6 +41,10 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	}, [checkpointUrl, location.pathname, navigate]);
 
 	const submitFeedback = (evt: React.MouseEvent<HTMLElement>) => {
+		if (!participant || !studyStep) {
+			console.warn("SurveyPage or participant is undefined in transformedSurveyReponse.");
+			return null;
+		}
 		if (feedback.length === 0) {
 			setShowWarning(true);
 			return;
@@ -63,10 +72,14 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	}
 
 	const handleNextBtn = () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
+		}
 		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
 			current_step_id: participant.current_step
 		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
+			updateCallback(nextStep, participant, next)
 			setIsUpdated(true);
 		});
 	}

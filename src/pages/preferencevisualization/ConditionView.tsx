@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 import Baseline from '../../components/visualiations/Baseline';
 import ContinuousCoupled from '../../components/visualiations/ContinuousCoupled';
@@ -8,7 +8,7 @@ import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
 import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
 import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
 import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
-import { activeItemState } from './PreferenceVisualization';
+import { movieSelectionState } from '../../state/ItemState';
 import { PrefVizRecItemDetail } from './VisualizationTypes.types';
 // import { MySimDatum } from '../../components/visualiations/DiscreteDecoupled';
 
@@ -26,7 +26,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 	const [width, setWidth] = useState(800);
 	const [height, setHeight] = useState(900);
 
-	const setActiveItem = useSetRecoilState(activeItemState);
+	const [selectedMovie, setSelectedMovie] = useRecoilState(movieSelectionState)
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -51,7 +51,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 
 	const handleHover = (item: string) => {
 		const selectedMovie = prefItemDetails.get(item);
-		if (selectedMovie) setActiveItem(selectedMovie);
+		if (selectedMovie) setSelectedMovie(selectedMovie);
 	}
 
 	if (prefItemDetails && prefItemDetails.size > 0) {

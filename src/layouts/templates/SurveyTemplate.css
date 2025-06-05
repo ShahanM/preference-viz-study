@@ -1,4 +1,4 @@
-.survey-question-block {
+.survey-item {
 	padding: 0 9px 0 9px;
 	border-left-width: 3px;
 	border-left: darkgray;
@@ -9,11 +9,11 @@
 	text-align: left;
 }
 
-.survey-question-block:nth-child(even) {
+.survey-item:nth-child(even) {
 	background: linear-gradient(0.25turn, #f2f2f2bb, #f2f2f299, white);
 }
 
-.survey-question-block-responded {
+.survey-item-responded {
 	padding: 0 9px 0 9px;
 	border-left-width: 3px;
 	border-left: green;
@@ -24,7 +24,7 @@
 	text-align: left;
 }
 
-.survey-question-block-unanswered {
+.survey-item-unanswered {
 	padding: 0 9px 0 9px;
 	border-left-width: 3px;
 	border-left: red;
@@ -35,16 +35,16 @@
 	text-align: left;
 }
 
-.survey-question-block:nth-child(even) {
+.survey-item:nth-child(even) {
 	background: linear-gradient(0.25turn, #f2f2f2bb, #f2f2f299, white);
 }
 
-.surveyQuestionText {
+.survey-item-label {
 	font-size: 1rem;
 	margin-bottom: 0.5rem;
 }
 
-.surveyQuestion {
+.surveyItem {
 	margin: 3px 0 0 3px;
 }
 
@@ -53,7 +53,7 @@
 	margin-bottom: 3px;
 }
 
-.movieSurvey.surveyQuestion {
+.movieSurvey.surveyItem {
 	margin: 0px 0 0 3px;
 }
 

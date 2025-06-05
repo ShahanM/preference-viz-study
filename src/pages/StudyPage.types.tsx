@@ -4,9 +4,9 @@ import { Participant, StudyStep } from 'rssa-api';
 export interface StudyPageProps {
 	next: string;
 	checkpointUrl: string;
-	participant: Participant;
-	studyStep: StudyStep;
-	updateCallback: (nextStep: StudyStep, referrer: string) => void;
+	// participant: Participant;
+	// studyStep: StudyStep;
+	updateCallback: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
 	sizeWarning: boolean;
 }
 
@@ -14,8 +14,8 @@ export interface StudyPageProps {
 export interface InitStudyPageProps {
 	next: string;
 	checkpointUrl: string;
-	studyStep: StudyStep;
+	// studyStep: StudyStep;
 	setNewParticipant: (newParticipant: Participant) => void;
-	updateCallback: (nextStep: StudyStep, referrer: string) => void;
+	updateCallback: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
 	sizeWarning: boolean;
 }
