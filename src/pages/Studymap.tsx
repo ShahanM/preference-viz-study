@@ -12,7 +12,7 @@ import { StudyPageProps } from "./StudyPage.types";
 const StudyMap: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	updateCallback
+	onStepUpdate
 }) => {
 	const participant: Participant | null = useRecoilValue(participantState);
 	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
@@ -41,7 +41,7 @@ const StudyMap: React.FC<StudyPageProps> = ({
 			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
 				current_step_id: participant.current_step
 			});
-			updateCallback(nextStep, participant, next);
+			onStepUpdate(nextStep, participant, next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error getting next to updating study progress", error);

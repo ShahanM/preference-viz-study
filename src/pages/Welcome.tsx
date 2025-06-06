@@ -19,7 +19,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 	next,
 	checkpointUrl,
 	setNewParticipant,
-	updateCallback }) => {
+	onStepUpdate }) => {
 
 	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 	const [show, setShowInformedConsent] = useState<boolean>(false);
@@ -51,7 +51,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 				const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
 					current_step_id: response.current_step
 				});
-				updateCallback(nextStep, response, next);
+				onStepUpdate(nextStep, response, next);
 				navigate(next);
 			} catch (error) {
 				console.error("Error creating participant or updating step", error);

@@ -15,7 +15,7 @@ import { StudyPageProps } from './StudyPage.types';
 const MovieRatingPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	updateCallback,
+	onStepUpdate,
 	sizeWarning
 }) => {
 	const itemsPerPage = 24;
@@ -58,7 +58,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 				current_step_id: participant.current_step
 			});
 
-			updateCallback(nextRouteStep, participant, next);
+			onStepUpdate(nextRouteStep, participant, next);
 			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
 
 			navigate(next, { state: { ratedMovies: ratedMovies } });
@@ -67,7 +67,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, participant, studyStep, updateCallback, next, ratedMovies, minRatingCount, navigate]);
+	}, [studyApi, participant, studyStep, onStepUpdate, next, ratedMovies, minRatingCount, navigate]);
 
 	useEffect(() => {
 		setButtonDisabled(ratedMovies.length < minRatingCount || !participant || !studyStep);

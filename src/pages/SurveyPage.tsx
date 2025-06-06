@@ -39,7 +39,7 @@ type SurveyPage = {
 const Survey: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	updateCallback
+	onStepUpdate
 }) => {
 
 	const [surveyPage, setSurveyPage] = useState<SurveyPage>();
@@ -67,20 +67,16 @@ const Survey: React.FC<StudyPageProps> = ({
 			console.warn("No survey constructs found in the page contents.");
 			return;
 		}
-		// Initialize surveyResponse with null values for each item in each construct
 		const initialResponse = new Map<string, Map<string, string | null>>();
 		for (const svyConstruct of surveyConstructs) {
 			if (!svyConstruct.items || svyConstruct.items.length === 0) {
 				console.warn(`No items found in construct with content_id: ${svyConstruct.content_id}`);
 				continue;
 			}
-			// Create a new map for the construct
 			const contentMap = new Map<string, string | null>();
-			// Iterate through each item in the construct
 			for (const item of svyConstruct.items) {
 				contentMap.set(item.id, null);
 			}
-			// Set the construct's map in the main surveyResponse map
 			initialResponse.set(svyConstruct.content_id, contentMap);
 		}
 		setSurveyResponse(initialResponse);
@@ -96,7 +92,6 @@ const Survey: React.FC<StudyPageProps> = ({
 			studyApi.get<SurveyPage>(`survey/${studyStep.id}/first`)
 				.then((surveyPage: SurveyPage) => {
 					setSurveyPage(surveyPage);
-					// setSurveyResponse(new Map<string, SurveyItemResponse>());
 					initializeSurveyResponse(surveyPage.page_contents);
 					setValidationFlags(new Map<string, boolean>());
 					console.log("First survey page content loaded:", surveyPage);
@@ -106,13 +101,12 @@ const Survey: React.FC<StudyPageProps> = ({
 				});
 			return;
 		}
-	}, [studyApi, studyStep, participant, updateCallback, navigate, next, surveyPage, initializeSurveyResponse]);
+	}, [studyApi, studyStep, participant, surveyPage, initializeSurveyResponse]);
 
 	const updateResponse = useCallback((constructId: string, itemId: string, responseId: string) => {
 		setSurveyResponse(prevResponses => {
 			const contentMap = prevResponses.get(constructId) || new Map<string, string | null>();
 			contentMap.set(itemId, responseId);
-			// Update the main surveyResponse map with the new contentMap
 			return new Map(prevResponses.set(constructId, contentMap));
 		});
 		setValidationFlags(prevFlags => new Map(prevFlags.set(itemId, true)));
@@ -216,7 +210,7 @@ const Survey: React.FC<StudyPageProps> = ({
 					const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
 						current_step_id: participant.current_step
 					});
-					updateCallback(nextRouteStep, participant, next);
+					onStepUpdate(nextRouteStep, participant, next);
 					navigate(next);
 				} catch (error) {
 					console.error("Error getting next step:", error);
@@ -239,7 +233,7 @@ const Survey: React.FC<StudyPageProps> = ({
 				});
 		}
 		console.log("Survey page", surveyPage);
-	}, [surveyPage, participant, surveyResponse, studyApi, transformedSurveyReponse, validationFlags, initializeSurveyResponse, studyStep, updateCallback, next, navigate]);
+	}, [surveyPage, participant, surveyResponse, studyApi, transformedSurveyReponse, validationFlags, initializeSurveyResponse, studyStep, onStepUpdate, next, navigate]);
 
 	const handleSurveyNext = useCallback(() => {
 		submitResponse();

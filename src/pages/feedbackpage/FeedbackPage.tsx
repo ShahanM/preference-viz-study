@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
-import { CurrentStep, Feedback, Participant, StudyStep, useStudy } from "rssa-api";
+import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
@@ -10,12 +10,19 @@ import { participantState, studyStepState } from "../../state/studyState";
 import { StudyPageProps } from "../StudyPage.types";
 import "./FeedbackPage.css";
 
+
+export type Feedback = {
+	participant_id: string;
+	feedback_text: string;
+	feedback_type: string;
+	feedback_category: string;
+};
+
+
 const FeedbackPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	// participant,
-	// studyStep,
-	updateCallback
+	onStepUpdate
 }) => {
 
 	const participant: Participant | null = useRecoilValue(participantState);
@@ -25,70 +32,79 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	// Convenient states to ensure state update and when to show the loader
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [loading, setLoading] = useState<boolean>(false);
-	const [btnDisabled, setBtnDisabled] = useState<boolean>(true);
-	const [feedback, setFeedback] = useState<string>('');
+	const [submitButtonDisabled, setSubmitButtonDisabled] = useState<boolean>(false);
+	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
 	const [showWarning, setShowWarning] = useState<boolean>(false);
+	const feedbackRef = useRef<HTMLTextAreaElement>(null);
 
-	// Allowing for some simple checkpoint saving so the participant
-	// can return to the page in case of a browser/system crash
+
 	useEffect(() => {
 		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
 			navigate(checkpointUrl);
 		}
 	}, [checkpointUrl, location.pathname, navigate]);
 
-	const submitFeedback = (evt: React.MouseEvent<HTMLElement>) => {
+	const submitFeedback = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
 		if (!participant || !studyStep) {
-			console.warn("SurveyPage or participant is undefined in transformedSurveyReponse.");
+			console.warn("SurveyPage or participant is undefined in submitFeedback.");
 			return null;
 		}
-		if (feedback.length === 0) {
-			setShowWarning(true);
-			return;
-		} else {
-			setShowWarning(false);
-			setLoading(true);
-			setBtnDisabled(true);
-			studyApi.post<Feedback, boolean>(`participant/${participant.id}/feedback/`, {
-				participant_id: participant.id,
-				feedback: feedback,
-				feedback_type: 'study',
-				feedback_category: 'participant general feedback'
-			}).then((success: boolean) => {
-				if (success) {
+		event.preventDefault();
+		if (feedbackRef.current) {
+			const feedbackText = feedbackRef.current.value;
+			if (feedbackText.length === 0) {
+				setShowWarning(true);
+				return;
+			} else {
+				setShowWarning(false);
+				setLoading(true);
+				console.log("Submitting feedback:", feedbackText);
+				try {
+					await studyApi.post<Feedback, null>(`feedback/`, {
+						participant_id: participant.id,
+						feedback_text: feedbackText,
+						feedback_type: 'study',
+						feedback_category: 'participant general feedback'
+					});
+					setSubmitButtonDisabled(true);
+					setNextButtonDisabled(false);
+
+				} catch (error) {
+					console.error("Error submitting feedback:", error);
+					setSubmitButtonDisabled(false);
+					setNextButtonDisabled(true);
+				} finally {
 					setLoading(false);
-					setBtnDisabled(false);
 				}
-			});
+			}
 		}
-	}
+	}, [studyApi, participant, studyStep]);
 
 	const handleWarningConfirm = () => {
 		setShowWarning(false);
-		setBtnDisabled(false);
+		setSubmitButtonDisabled(true);
+		setNextButtonDisabled(false);
 	}
 
-	const handleNextBtn = () => {
+	const handleNextBtn = useCallback(async () => {
 		if (!participant || !studyStep) {
 			console.error("Participant or study step is not defined.");
 			return;
 		}
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, participant, next)
-			setIsUpdated(true);
-		});
-	}
-
-	useEffect(() => {
-		if (isUpdated) {
+		try {
+			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+				current_step_id: participant.current_step
+			});
+			onStepUpdate(nextRouteStep, participant, next);
 			navigate(next);
+		} catch (error) {
+			console.error("Error fetching next step:", error);
+			// Handle error, e.g., show a message to the user
+		} finally {
+			setLoading(false);
 		}
-	}, [isUpdated, navigate, next]);
+	}, [studyApi, participant, onStepUpdate, next, navigate, studyStep]);
 
 
 	return (
@@ -112,19 +128,18 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 								appreciated.
 							</p>
 						</Form.Label>
-						<Form.Control as="textarea" rows={4} value={feedback} onChange={(evt) => setFeedback(evt.target.value)} />
+						<Form.Control as="textarea" rows={4} ref={feedbackRef} disabled={submitButtonDisabled} />
 					</Form.Group>
-					<Button variant="ers" onClick={submitFeedback}>
+					<Button variant="ers" onClick={submitFeedback} disabled={submitButtonDisabled || loading}>
 						Submit
 					</Button>
 				</Form>
 			</Row>
 			<Row>
-				<Footer callback={handleNextBtn} disabled={btnDisabled} />
+				<Footer callback={handleNextBtn} disabled={nextButtonDisabled} />
 			</Row>
 		</Container>
 	);
 }
 
 export default FeedbackPage;
-// https://m.media-amazon.com/images/M/MV5BMjE4NTA1NzExN15BMl5BanBnXkFtZTYwNjc3MjM3._V1_.jpg

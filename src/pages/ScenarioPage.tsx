@@ -13,7 +13,7 @@ import { StudyPageProps } from "./StudyPage.types";
 const ScenarioPage: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	updateCallback
+	onStepUpdate
 }) => {
 
 	const participant: Participant | null = useRecoilValue(participantState);
@@ -39,12 +39,12 @@ const ScenarioPage: React.FC<StudyPageProps> = ({
 			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
 				current_step_id: participant.current_step
 			});
-			updateCallback(nextRouteStep, participant, next);
+			onStepUpdate(nextRouteStep, participant, next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		}
-	}, [studyApi, participant, updateCallback, next, navigate, studyStep]);
+	}, [studyApi, participant, onStepUpdate, next, navigate, studyStep]);
 
 	return (
 		<Container>

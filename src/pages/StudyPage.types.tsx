@@ -1,21 +1,25 @@
 import { Participant, StudyStep } from 'rssa-api';
 
-
-export interface StudyPageProps {
+interface BaseStudyPageProps {
 	next: string;
 	checkpointUrl: string;
-	// participant: Participant;
-	// studyStep: StudyStep;
-	updateCallback: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
 	sizeWarning: boolean;
 }
 
+export interface StudyPageProps extends BaseStudyPageProps {
+	onStepUpdate: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
+}
 
-export interface InitStudyPageProps {
-	next: string;
-	checkpointUrl: string;
-	// studyStep: StudyStep;
+
+export interface InitStudyPageProps extends BaseStudyPageProps {
+	// next: string;
+	// checkpointUrl: string;
 	setNewParticipant: (newParticipant: Participant) => void;
-	updateCallback: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
-	sizeWarning: boolean;
+	onStepUpdate: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
+	// sizeWarning: boolean;
+}
+
+
+export interface FinalStudyPageProps extends BaseStudyPageProps {
+	onStudyDone: () => void;
 }

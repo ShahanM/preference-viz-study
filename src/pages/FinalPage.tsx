@@ -1,31 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRecoilValue } from "recoil";
-import { Participant, StudyStep, useStudy } from "rssa-api";
+import { useRecoilValue, useResetRecoilState } from "recoil";
+import { StudyStep } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { participantState, studyStepState } from "../state/studyState";
-import { StudyPageProps } from "./StudyPage.types";
+import { FinalStudyPageProps } from "./StudyPage.types";
 
 
-const FinalPage: React.FC<StudyPageProps> = ({
+const FinalPage: React.FC<FinalStudyPageProps> = ({
 	next,
 	checkpointUrl,
-	// participant,
-	// studyStep,
-	updateCallback
+	onStudyDone
 }) => {
-
-	const participant: Participant | null = useRecoilValue(participantState);
 	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
-	const { studyApi } = useStudy();
+	const resetParticipant = useResetRecoilState(participantState);
+	const resetStudyStep = useResetRecoilState(studyStepState);
+
 	const navigate = useNavigate();
 	const location = useLocation();
-
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
-	const [loading, setLoading] = useState<boolean>(false);
 
 	// Allowing for some simple checkpoint saving so the participant
 	// can return to the page in case of a browser/system crash
@@ -37,15 +32,11 @@ const FinalPage: React.FC<StudyPageProps> = ({
 
 	const handleNextBtn = () => {
 		localStorage.clear();
-		console.log("Local storage cleared");
-		setIsUpdated(true);
-	}
+		resetParticipant();
+		resetStudyStep();
+		navigate(next);
 
-	useEffect(() => {
-		if (isUpdated) {
-			navigate(next);
-		}
-	}, [isUpdated, navigate, next]);
+	}
 
 	return (
 		<Container>

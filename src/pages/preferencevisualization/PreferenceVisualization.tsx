@@ -31,7 +31,7 @@ interface LocationState {
 const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	next,
 	checkpointUrl,
-	updateCallback,
+	onStepUpdate,
 	sizeWarning
 }) => {
 	const participant: Participant | null = useRecoilValue(participantState);
@@ -52,7 +52,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 	// NOTE: Condition 5 is Baseline in the test study, so we will get TopN
 	const [searchParams, setSearchParams] = useSearchParams();
 
-	// State to hold the recommendations
 	const [prefItemDetails, setPrefItemDetails] =
 		useState<Map<string, PrefVizRecItemDetail>>(
 			new Map<string, PrefVizRecItemDetail>());
@@ -75,7 +74,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		console.log("Getting recommendations for participant", participant.id);
 		try {
 			const responseItems: PrefVizRecItemDetail[] = await studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
-				"prefviz/recommendation/", {
+				"recommendation/prefviz/", {
 				user_id: participant.id,
 				user_condition: participant.condition_id,
 				// FIXME: Remember this should be based on the participant condition, not searchParams for production
@@ -117,7 +116,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 					try {
 						const ratedMovieCache: { [key: string]: MovieRating } = JSON.parse(storedRatedMovies);
 						const ratedMovieData = new Map<string, MovieRating>();
-						// Keys from localStorage are strings, parse to number
 						for (let key in ratedMovieCache) {
 							const movie = ratedMovieCache[key];
 							ratedMovieData.set(movie.id, ratedMovieCache[key]);
@@ -159,7 +157,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
 				current_step_id: participant.current_step
 			});
-			updateCallback(nextRouteStep, participant, next);
+			onStepUpdate(nextRouteStep, participant, next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error submitting responses:", error);
@@ -167,10 +165,10 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [studyStep, participant, studyApi, updateCallback, next, navigate]);
+	}, [studyStep, participant, studyApi, onStepUpdate, next, navigate]);
 
 	if (!participant || !studyStep) {
-		return <LoadingScreen loading={true} message="Initializing study data..." />; // Or a more specific error message
+		return <LoadingScreen loading={true} message="Initializing study data..." />;
 	}
 
 	return (
