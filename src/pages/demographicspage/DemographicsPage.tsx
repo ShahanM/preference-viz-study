@@ -160,7 +160,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 		} else {
 			try {
 				await studyApi.post<Demographic, null>(
-					`participant/demographics/`, {
+					`participant/demographics`, {
 					participant_id: participant.id,
 					age_range: age,
 					gender: gender,
