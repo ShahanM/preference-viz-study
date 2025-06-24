@@ -3,7 +3,7 @@ import {
 	useEffect,
 	useState
 } from 'react';
-import { ThemeProvider } from 'react-bootstrap';
+import { ThemeProvider, Toast, ToastContainer } from 'react-bootstrap';
 import {
 	Navigate,
 	redirect,
@@ -41,6 +41,8 @@ const customBreakpoints = {
 	xl4: 2000
 };
 
+const RETRY_DELAYS_MS = [5000, 10000, 30000, 60000];
+
 function App() {
 
 	const { studyApi } = useStudy();
@@ -50,6 +52,10 @@ function App() {
 	const [checkpointUrl, setCheckpointUrl] = useState<string>('/');
 	const [studyError, setStudyError] = useState<boolean>(false);
 	const [isLoading, setIsLoaiding] = useState<boolean>(true);
+
+	const [fetchError, setFetchError] = useState<boolean>(false);
+	const [retryAttempt, setRetryAttempt] = useState<number>(0);
+	const [currentFetchTrigger, setCurrentFetchTrigger] = useState<number>(0);
 
 	const handleStepUpdate = (step: StudyStep, currentParticipant: Participant, referrer: string) => {
 		const newParticipant: Participant = {
@@ -68,9 +74,28 @@ function App() {
 			studyApi.setParticipantId(newParticipant.id);
 		} catch (error) {
 			console.error("Error updating participant", error);
+			setFetchError(true);
 			setStudyError(true);
 		}
 	}
+
+	useEffect(() => {
+		if (fetchError && !isLoading) {
+			const nextDelay = RETRY_DELAYS_MS[retryAttempt];
+
+			if (nextDelay !== undefined) {
+				console.log(`Retrying fetch in ${nextDelay / 1000} seconds... (Attempt ${retryAttempt + 1})`);
+				const timerId = setTimeout(() => {
+					setRetryAttempt(prev => prev + 1);
+					setCurrentFetchTrigger(prev => prev + 1);
+				}, nextDelay);
+
+				return () => clearTimeout(timerId);
+			} else {
+				console.warn("Max retry attempts reached. Please refresh to try again.");
+			}
+		}
+	}, [fetchError, isLoading, retryAttempt]);
 
 
 	useEffect(() => {
@@ -93,6 +118,7 @@ function App() {
 					return true;
 				} catch (error) {
 					console.error("Error parsing cached data", error);
+					setFetchError(true);
 
 					localStorage.removeItem('participant');
 					localStorage.removeItem('studyStep');
@@ -113,6 +139,7 @@ function App() {
 			} catch (error) {
 				console.error("Error fetching initial study data:", error);
 				setStudyError(true);
+				setFetchError(true);
 			} finally {
 				setIsLoaiding(false);
 			}
@@ -127,7 +154,7 @@ function App() {
 		} else {
 			setIsLoaiding(false);
 		}
-	}, [studyApi, setParticipant, setStudyStep, participant, studyStep, isLoading, studyError]);
+	}, [studyApi, setParticipant, setStudyStep, participant, studyStep, isLoading, studyError, currentFetchTrigger]);
 
 	useEffect(() => {
 		const handleResize = () => { setShowWarning(window.innerWidth < 1200); }
@@ -147,11 +174,21 @@ function App() {
 						message={STRINGS.WINDOW_TOO_SMALL}
 						disableHide={true} />
 				}
-				{studyError &&
+				{studyError && (RETRY_DELAYS_MS[retryAttempt] === undefined ?
 					<WarningDialog
 						show={studyError}
 						title="Error"
 						message={STRINGS.STUDY_ERROR} />
+					:
+					<ToastContainer position="top-center" className="p-3">
+						<Toast bg="danger" autohide={true} delay={RETRY_DELAYS_MS[retryAttempt]}>
+							<Toast.Body className={"text-white"}>
+								There was an error registering this study.
+								Retrying in {RETRY_DELAYS_MS[retryAttempt] / 1000} seconds...
+							</Toast.Body>
+						</Toast>
+					</ToastContainer>
+				)
 				}
 				<Router basename='/preference-visualization'>
 					<Suspense fallback={<div>Loading...</div>}>
@@ -236,7 +273,7 @@ function App() {
 									next="/"
 									checkpointUrl={checkpointUrl}
 									sizeWarning={showWarning}
-									onStudyDone={() => {redirect('/');}}
+									onStudyDone={() => { redirect('/'); }}
 								/>
 							} />
 						</Routes>

@@ -87,6 +87,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 			}
 		}
 	}, [fetchError, isLoadingMovies, retryAttempt]);
+	
 	const renderPrev = useCallback(() => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1);
