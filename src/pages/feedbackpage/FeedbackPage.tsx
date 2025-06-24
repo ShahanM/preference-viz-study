@@ -61,7 +61,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 				setLoading(true);
 				console.log("Submitting feedback:", feedbackText);
 				try {
-					await studyApi.post<Feedback, null>(`feedback/`, {
+					await studyApi.post<Feedback, null>(`feedback`, {
 						participant_id: participant.id,
 						feedback_text: feedbackText,
 						feedback_type: 'study',
