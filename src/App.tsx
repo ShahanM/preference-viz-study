@@ -56,7 +56,6 @@ function App() {
 			...currentParticipant,
 			current_step: step.id,
 		};
-		console.log("Updating participant with new step:", newParticipant, currentParticipant);
 		try {
 			studyApi.put('participant/', newParticipant).then(() => {
 				localStorage.setItem('participant', JSON.stringify(newParticipant));

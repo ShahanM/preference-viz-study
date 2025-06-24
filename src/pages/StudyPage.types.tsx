@@ -12,11 +12,8 @@ export interface StudyPageProps extends BaseStudyPageProps {
 
 
 export interface InitStudyPageProps extends BaseStudyPageProps {
-	// next: string;
-	// checkpointUrl: string;
 	setNewParticipant: (newParticipant: Participant) => void;
 	onStepUpdate: (nextStep: StudyStep, UpdatedParticipant: Participant, referrer: string) => void;
-	// sizeWarning: boolean;
 }
 
 

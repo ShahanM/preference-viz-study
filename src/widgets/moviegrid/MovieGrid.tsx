@@ -29,17 +29,16 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	const [movieMap, setMovieMap] = useState<Map<string, Movie>>(new Map<string, Movie>());
 
 	const [isLoadingMovies, setIsLoadingMovies] = useState<boolean>(false);
-	const [fetchError, setFetchError] = useState<boolean>(false); // New: to track if a fetch error occurred
-	const [retryAttempt, setRetryAttempt] = useState<number>(0); // New: count of retry attempts
+	const [fetchError, setFetchError] = useState<boolean>(false);
+	const [retryAttempt, setRetryAttempt] = useState<number>(0);
 	const [currentFetchTrigger, setCurrentFetchTrigger] = useState<number>(0);
 
 	const [prevBtnDisabled, setPrevBtnDisabled] = useState<boolean>(true);
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
 
-	// --- Core movie fetching logic, extracted into a useCallback function ---
 	const fetchMovies = useCallback(async () => {
 		setIsLoadingMovies(true);
-		setFetchError(false); // Reset error state on new fetch attempt
+		setFetchError(false);
 
 		const offset = movieMap.size;
 		const limit = itemsPerPage * 2;
@@ -53,14 +52,14 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 				});
 				return newMovieMap;
 			});
-			setRetryAttempt(0); // Reset retry count on successful fetch
+			setRetryAttempt(0);
 		} catch (error: any) {
 			console.error("Error fetching movies:", error);
-			setFetchError(true); // Set error state if fetch fails
+			setFetchError(true);
 		} finally {
-			setIsLoadingMovies(false); // Always set loading to false after fetch attempt
+			setIsLoadingMovies(false);
 		}
-	}, [movieMap, itemsPerPage, studyApi]); // movieMap is a dependency because offset depends on its size
+	}, [movieMap, itemsPerPage, studyApi]);
 
 
 	useEffect(() => {
@@ -71,28 +70,23 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	}, [movieMap, itemsPerPage, currentPage, isLoadingMovies, fetchError, fetchMovies, currentFetchTrigger]);
 
-	// --- Effect 2: Handles retry logic when a fetch error occurs ---
 	useEffect(() => {
-		// This effect runs when an error occurs and no fetch is currently in progress
 		if (fetchError && !isLoadingMovies) {
-			const nextDelay = RETRY_DELAYS_MS[retryAttempt]; // Get the delay for the current retry attempt
+			const nextDelay = RETRY_DELAYS_MS[retryAttempt];
 
-			if (nextDelay !== undefined) { // Check if there's another retry attempt scheduled
+			if (nextDelay !== undefined) {
 				console.log(`Retrying fetch in ${nextDelay / 1000} seconds... (Attempt ${retryAttempt + 1})`);
 				const timerId = setTimeout(() => {
-					setRetryAttempt(prev => prev + 1); // Increment attempt count for the *next* retry sequence
-					setCurrentFetchTrigger(prev => prev + 1); // Manually trigger the main fetch useEffect
+					setRetryAttempt(prev => prev + 1);
+					setCurrentFetchTrigger(prev => prev + 1);
 				}, nextDelay);
 
-				// Cleanup function: Clear the timer if the component unmounts or the effect re-runs
 				return () => clearTimeout(timerId);
 			} else {
 				console.warn("Max retry attempts reached. Please refresh to try again.");
-				// At this point, you might want to display a persistent error message to the user
-				// The UI will reflect this via the `fetchError` state.
 			}
 		}
-	}, [fetchError, isLoadingMovies, retryAttempt]); // Dependencies for this effect
+	}, [fetchError, isLoadingMovies, retryAttempt]);
 	const renderPrev = useCallback(() => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1);
@@ -106,15 +100,13 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	}, [currentPage]);
 
 	useEffect(() => {
-		// Determine if there are potentially more movies to load beyond what's currently in movieMap
 		const hasMoreMoviesToLoad = movieMap.size < (currentPage + 1) * itemsPerPage;
-		// Determine if max retries have been reached for the current error
 		const maxRetriesReached = fetchError && RETRY_DELAYS_MS[retryAttempt] === undefined;
 
 		setNextBtnDisabled(
-			(isLoadingMovies && hasMoreMoviesToLoad) || // Still loading, and more content is needed for next page
-			(currentPage * itemsPerPage >= movieMap.size && !isLoadingMovies && !fetchError) || // No more movies in map and not loading (implies end of data)
-			maxRetriesReached // Max retries reached for an error
+			(isLoadingMovies && hasMoreMoviesToLoad) || 
+			(currentPage * itemsPerPage >= movieMap.size && !isLoadingMovies && !fetchError) ||
+			maxRetriesReached
 		);
 		setPrevBtnDisabled(currentPage === 1);
 	}, [currentPage, itemsPerPage, movieMap.size, isLoadingMovies, fetchError, retryAttempt]);

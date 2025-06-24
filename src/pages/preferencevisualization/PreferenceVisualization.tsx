@@ -71,7 +71,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 			console.warn("SurveyPage or participant is undefined in getRecommendations.");
 			return null;
 		}
-		console.log("Getting recommendations for participant", participant.id);
+		setLoading(true);
 		try {
 			const responseItems: PrefVizRecItemDetail[] = await studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
 				"recommendation/prefviz/", {
