@@ -61,7 +61,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 				setLoading(true);
 				console.log("Submitting feedback:", feedbackText);
 				try {
-					await studyApi.post<Feedback, null>(`feedback`, {
+					await studyApi.post<Feedback, null>(`feedbacks`, {
 						participant_id: participant.id,
 						feedback_text: feedbackText,
 						feedback_type: 'study',
@@ -93,7 +93,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 			return;
 		}
 		try {
-			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
 			onStepUpdate(nextRouteStep, participant, next);

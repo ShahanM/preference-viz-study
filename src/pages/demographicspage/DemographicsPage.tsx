@@ -160,7 +160,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 		} else {
 			try {
 				await studyApi.post<Demographic, null>(
-					`participant/demographics`, {
+					`participants/demographics`, {
 					participant_id: participant.id,
 					age_range: age,
 					gender: gender,
@@ -187,7 +187,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 			return;
 		}
 		try {
-			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
 			onStepUpdate(nextRouteStep, participant, next);

@@ -44,7 +44,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		const limit = itemsPerPage * 2;
 
 		try {
-			const movies: Movie[] = await studyApi.get<Movie[]>(`movie/ers?offset=${offset}&limit=${limit}`);
+			const movies: Movie[] = await studyApi.get<Movie[]>(`movies/ers?offset=${offset}&limit=${limit}`);
 			setMovieMap(prevMovieMap => {
 				const newMovieMap = new Map<string, Movie>(prevMovieMap);
 				movies.forEach(item => {

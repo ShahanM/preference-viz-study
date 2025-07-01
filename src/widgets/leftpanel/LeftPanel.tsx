@@ -78,7 +78,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 		}
 
 		try {
-			await studyApi.post<FreeFormTextResponseRequest, boolean>('response/text',
+			await studyApi.post<FreeFormTextResponseRequest, boolean>('responses/text',
 				{
 					participant_id: participant.id,
 					step_id: studyStep.id,

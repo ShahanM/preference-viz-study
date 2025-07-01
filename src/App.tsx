@@ -63,7 +63,7 @@ function App() {
 			current_step: step.id,
 		};
 		try {
-			studyApi.put('participant/', newParticipant).then(() => {
+			studyApi.put('participants/', newParticipant).then(() => {
 				localStorage.setItem('participant', JSON.stringify(newParticipant));
 				localStorage.setItem('studyStep', JSON.stringify(step));
 				localStorage.setItem('lastUrl', referrer);
@@ -133,7 +133,7 @@ function App() {
 		const fetchInitialData = async () => {
 			setIsLoaiding(true);
 			try {
-				const studyStep = await studyApi.get<StudyStep>('study/step/first');
+				const studyStep = await studyApi.get<StudyStep>('studies/steps/first');
 				setStudyStep(studyStep);
 				setStudyError(false);
 			} catch (error) {

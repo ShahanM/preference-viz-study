@@ -38,7 +38,7 @@ const StudyMap: React.FC<StudyPageProps> = ({
 			return;
 		}
 		try {
-			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
 			onStepUpdate(nextStep, participant, next);

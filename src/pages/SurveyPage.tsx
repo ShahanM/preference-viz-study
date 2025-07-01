@@ -89,7 +89,7 @@ const Survey: React.FC<StudyPageProps> = ({
 		}
 
 		if (!surveyPage) {
-			studyApi.get<SurveyPage>(`survey/${studyStep.id}/first`)
+			studyApi.get<SurveyPage>(`surveys/${studyStep.id}/first`)
 				.then((surveyPage: SurveyPage) => {
 					setSurveyPage(surveyPage);
 					initializeSurveyResponse(surveyPage.page_contents);
@@ -197,7 +197,7 @@ const Survey: React.FC<StudyPageProps> = ({
 
 			try {
 				console.log("Submitting survey response:", responseData);
-				await studyApi.post<SurveyResponse, boolean>(`response/survey`, responseData);
+				await studyApi.post<SurveyResponse, boolean>(`responses/survey`, responseData);
 			} catch (error) {
 				console.error("Error submitting survey response:", error);
 				// TODO: Handle network or other errors during submission
@@ -207,7 +207,7 @@ const Survey: React.FC<StudyPageProps> = ({
 		if (surveyPage.last_page) {
 			if (participant) {
 				try {
-					const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+					const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 						current_step_id: participant.current_step
 					});
 					onStepUpdate(nextRouteStep, participant, next);
@@ -220,7 +220,7 @@ const Survey: React.FC<StudyPageProps> = ({
 			}
 		} else {
 			// If not the last page, fetch the next page
-			studyApi.get<SurveyPage>(`survey/${studyStep.id}/page/${surveyPage?.id}/next`)
+			studyApi.get<SurveyPage>(`surveys/${studyStep.id}/pages/${surveyPage?.id}/next`)
 				.then((surveyPage: SurveyPage) => {
 					setSurveyPage(surveyPage);
 					// setSurveyResponse(new Map<string, SurveyItemResponse>());

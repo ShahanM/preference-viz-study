@@ -39,7 +39,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 	const consentCallbackHandler = async (consent: boolean) => {
 		if (consent && studyStep) {
 			try {
-				const response = await studyApi.post<NewParticipant, Participant>('participant/', {
+				const response = await studyApi.post<NewParticipant, Participant>('participants/', {
 					study_id: studyStep.study_id,
 					external_id: 'test_user', // FIXME: change to actual platform id
 					participant_type: '149078d0-cece-4b2c-81cd-a7df4f76d15a', // FIXME: use this as part of the environment variables and apiConfig
@@ -48,7 +48,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 				});
 				console.log("Participant created successfully:", response);
 				setNewParticipant(response);
-				const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+				const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 					current_step_id: response.current_step
 				});
 				onStepUpdate(nextStep, response, next);

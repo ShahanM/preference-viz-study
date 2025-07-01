@@ -36,7 +36,7 @@ const ScenarioPage: React.FC<StudyPageProps> = ({
 		}
 
 		try {
-			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('study/step/next', {
+			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
 			onStepUpdate(nextRouteStep, participant, next);
