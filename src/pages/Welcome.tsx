@@ -100,8 +100,11 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 				</Card>
 			</Row>
 
-			<InformedConsentModal show={show}
-				consentCallback={consentCallbackHandler} />
+			<InformedConsentModal
+				show={show}
+				consentCallback={consentCallbackHandler}
+				onClose={setShowInformedConsent}
+			/>
 			<Row>
 				<Footer callback={showInformedConsent} text={"Get Started"}
 					disabled={!studyStep} />

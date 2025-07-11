@@ -1,8 +1,4 @@
-import {
-	Suspense,
-	useEffect,
-	useState
-} from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { ThemeProvider, Toast, ToastContainer } from 'react-bootstrap';
 import {
 	Navigate,
@@ -51,7 +47,7 @@ function App() {
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 	const [checkpointUrl, setCheckpointUrl] = useState<string>('/');
 	const [studyError, setStudyError] = useState<boolean>(false);
-	const [isLoading, setIsLoaiding] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	const [fetchError, setFetchError] = useState<boolean>(false);
 	const [retryAttempt, setRetryAttempt] = useState<number>(0);
@@ -124,14 +120,13 @@ function App() {
 					localStorage.removeItem('studyStep');
 					localStorage.removeItem('lastUrl');
 					return false;
-
 				}
 			}
 			return false;
 		};
 
 		const fetchInitialData = async () => {
-			setIsLoaiding(true);
+			setIsLoading(true);
 			try {
 				const studyStep = await studyApi.get<StudyStep>('studies/steps/first');
 				setStudyStep(studyStep);
@@ -141,7 +136,7 @@ function App() {
 				setStudyError(true);
 				setFetchError(true);
 			} finally {
-				setIsLoaiding(false);
+				setIsLoading(false);
 			}
 		};
 
@@ -149,10 +144,10 @@ function App() {
 			if (!loadCachedData()) {
 				fetchInitialData();
 			} else {
-				setIsLoaiding(false);
+				setIsLoading(false);
 			}
 		} else {
-			setIsLoaiding(false);
+			setIsLoading(false);
 		}
 	}, [studyApi, setParticipant, setStudyStep, participant, studyStep, isLoading, studyError, currentFetchTrigger]);
 
