@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import {
 	Navigate,
 	redirect,
@@ -7,20 +7,18 @@ import {
 	useLocation,
 	useNavigate
 } from 'react-router-dom';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import {
 	Participant,
 	StudyStep,
 	useStudy
 } from 'rssa-api';
-import { retryAttemptState, studyErrorState } from '../states/errorState';
 import { participantState } from '../states/participantState';
 import { studyStepState } from '../states/studyState';
 import { urlCacheState } from '../states/urlCacheState';
 import '../styles/_custom-bootstrap.scss';
 import '../styles/App.css';
 import '../styles/components.css';
-import { RETRY_DELAYS_MS } from '../utils/constants';
 import DemographicsPage from './demographicspage/DemographicsPage';
 import FeedbackPage from './feedbackpage/FeedbackPage';
 import FinalPage from './FinalPage';
@@ -39,70 +37,32 @@ const RouteWrapper: React.FC = () => {
 	const { studyApi } = useStudy();
 
 	const participant: Participant | null = useRecoilValue(participantState);
-	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setStudyError = useSetRecoilState(studyErrorState);
-	const [retryAttempt, setRetryAttempt] = useRecoilState(retryAttemptState);
-
+	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 	const currentUrl: string = useRecoilValue(urlCacheState);
 
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [fetchError, setFetchError] = useState<boolean>(false);
-	const [currentFetchTrigger, setCurrentFetchTrigger] = useState<number>(0);
-
-	useEffect(() => {
-		if (fetchError && !isLoading) {
-			const nextDelay = RETRY_DELAYS_MS[retryAttempt];
-
-			if (nextDelay !== undefined) {
-				console.log(`Retrying fetch in ${nextDelay / 1000} seconds... (Attempt ${retryAttempt + 1})`);
-				const timerId = setTimeout(() => {
-					setRetryAttempt(prev => prev + 1);
-					setCurrentFetchTrigger(prev => prev + 1);
-				}, nextDelay);
-
-				return () => clearTimeout(timerId);
-			} else {
-				console.warn("Max retry attempts reached. Please refresh to try again.");
-			}
-		}
-	}, [fetchError, isLoading, retryAttempt, setRetryAttempt]);
-
-	useEffect(() => {
-		const fetchInitialData = async () => {
-			try {
-				setIsLoading(true);
-				const studyStep = await studyApi.get<StudyStep>('studies/steps/first');
-				setStudyStep(studyStep);
-				setStudyError(false);
-			} catch (error) {
-				console.error("Error fetching initial study data:", error);
-				setStudyError(true);
-				setFetchError(true);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		if (!studyStep) {
-			fetchInitialData();
-		} else {
-			setIsLoading(false);
-		}
-	}, [studyApi, setStudyStep, studyStep, currentFetchTrigger, setStudyError]);
-
+	/*
+	 * UseEffect to set the participant ID in the study API.
+	 * Trigger conditions:
+	 *  - When the first participant is created upon accepting the informed consent.
+	 */
 	useEffect(() => {
 		if (participant && !studyApi.getParticipantId()) {
 			studyApi.setParticipantId(participant.id);
 		}
 	}, [participant, studyApi]);
 
+	/*
+	 * UseEffect to redirect to the current URL if it is not the root path.
+	 * Trigger conditions:
+	 *  - When the current URL on the browser does not match the current URL in the cached state.
+	 */
 	useEffect(() => {
 		if (currentUrl !== '/' && currentUrl !== location.pathname) {
 			navigate(currentUrl);
 		}
 	}, [currentUrl, location.pathname, navigate]);
 
-	if (isLoading) { return <div>Loading...</div> } // FIXME: Make this a proper loader
+
 
 	return (
 		<Suspense fallback={<div>Loading...</div>}> {/* FIXME: Make this a proper loader */}

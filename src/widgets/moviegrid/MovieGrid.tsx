@@ -4,8 +4,11 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
+import { useRecoilState } from 'recoil';
 import { useStudy } from 'rssa-api';
 import LoadingText from '../../components/LoadingText';
+import { movieCacheState } from '../../states/movieCacheState';
+import { RETRY_DELAYS_MS } from '../../utils/constants';
 import './MovieGrid.css';
 import MovieGridItem from './moviegriditem/MovieGridItem';
 import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
@@ -14,8 +17,6 @@ interface MovieGridProps {
 	itemsPerPage: number;
 	dataCallback: (data: any) => void;
 }
-
-const RETRY_DELAYS_MS = [5000, 10000, 30000, 60000];
 
 const MovieGrid: React.FC<MovieGridProps> = ({
 	itemsPerPage,
@@ -26,7 +27,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>(new Map());
-	const [movieMap, setMovieMap] = useState<Map<string, Movie>>(new Map<string, Movie>());
+	const [movieMap, setMovieMap] = useRecoilState(movieCacheState);
 
 	const [isLoadingMovies, setIsLoadingMovies] = useState<boolean>(false);
 	const [fetchError, setFetchError] = useState<boolean>(false);
@@ -37,6 +38,11 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	const [nextBtnDisabled, setNextBtnDisabled] = useState<boolean>(true);
 
 	const fetchMovies = useCallback(async () => {
+		if (!studyApi.getParticipantId()) {
+			console.error("Participant ID is not available in studyApi.");
+			return;
+		}
+
 		setIsLoadingMovies(true);
 		setFetchError(false);
 
@@ -59,7 +65,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		} finally {
 			setIsLoadingMovies(false);
 		}
-	}, [movieMap, itemsPerPage, studyApi]);
+	}, [movieMap, itemsPerPage, studyApi, setMovieMap]);
 
 
 	useEffect(() => {
@@ -87,7 +93,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 			}
 		}
 	}, [fetchError, isLoadingMovies, retryAttempt]);
-	
+
 	const renderPrev = useCallback(() => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1);
@@ -105,7 +111,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 		const maxRetriesReached = fetchError && RETRY_DELAYS_MS[retryAttempt] === undefined;
 
 		setNextBtnDisabled(
-			(isLoadingMovies && hasMoreMoviesToLoad) || 
+			(isLoadingMovies && hasMoreMoviesToLoad) ||
 			(currentPage * itemsPerPage >= movieMap.size && !isLoadingMovies && !fetchError) ||
 			maxRetriesReached
 		);
@@ -124,19 +130,26 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 			return newGalleryMovies;
 		});
 
+		const movieObj = movieMap.get(movieid);
+		if (!movieObj) {
+			console.warn(`Movie with id ${movieid} not found in movieMap.`);
+			return;
+		}
+
+		const newRatingObj = {
+			id: movieObj.id,
+			movielens_id: movieObj.movielens_id,
+			rating: newRating
+		}
+
 		setMovieRatingsLookup(prevRatedMovies => {
 			const newRatedMovies = new Map<string, MovieRating>(prevRatedMovies);
-			const movie = movieMap.get(movieid);
-			if (movie) {
-				newRatedMovies.set(movieid, {
-					id: movie.id,
-					movielens_id: movie.movielens_id,
-					rating: newRating
-				});
-			}
+			newRatedMovies.set(movieid, newRatingObj);
 			return newRatedMovies;
 		});
-	}, [movieMap]);
+
+		dataCallback(newRatingObj);
+	}, [movieMap, dataCallback, setMovieMap]);
 
 	useEffect(() => {
 		dataCallback([...movieRatingsLookup.values()]);

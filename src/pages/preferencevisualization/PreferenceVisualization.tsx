@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep,
 	Participant,
@@ -22,6 +22,7 @@ import { StudyPageProps } from "../StudyPage.types";
 import ConditionView from "./ConditionView";
 import "./PreferenceVisualization.css";
 import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
+import { ratedMoviesState } from "../../states/ratedMovieState";
 
 
 interface LocationState {
@@ -36,10 +37,11 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
+	// const location = useLocation();
 
-	const stateData = location.state as LocationState;
-	const [ratedMovies, setRatedMovies] = useState(new Map<string, MovieRating>());
+	// const stateData = location.state as LocationState;
+	// const [ratedMovies, setRatedMovies] = useState(new Map<string, MovieRating>());
+	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
@@ -63,7 +65,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	const getRecommendations = useCallback(async (ratings: Map<string, MovieRating>) => {
+	const getRecommendations = useCallback(async () => {
 		if (!participant || !studyStep) {
 			console.warn("SurveyPage or participant is undefined in getRecommendations.");
 			return null;
@@ -76,7 +78,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 				user_condition: participant.condition_id,
 				// FIXME: Remember this should be based on the participant condition, not searchParams for production
 				is_baseline: parseInt(searchParams.get('cond') || '1') === 5,
-				ratings: [...ratings.values()].map(rating => {
+				ratings: [...ratedMovies.values()].map(rating => {
 					return { item_id: rating.movielens_id, rating: rating.rating };
 				})
 			});
@@ -89,54 +91,55 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, searchParams, participant, studyStep]);
+	}, [studyApi, searchParams, participant, studyStep, setPrefItemDetails, ratedMovies]);
 
 
-	useEffect(() => {
-		if (!participant || !studyStep) {
-			console.error("Participant or study step is not defined or empty.");
-			// 	// Optionally, redirect or show an error
-			return;
-		}
-		if (ratedMovies.size === 0) {
-			if (stateData && stateData.ratedMovies) {
-				const ratedMoviesData = new Map<string, MovieRating>();
-				for (let key in stateData.ratedMovies) {
-					const moviedata = stateData.ratedMovies[key];
-					ratedMoviesData.set(moviedata.id, moviedata);
-				}
-				console.log("Loaded rated movies from stateData:", ratedMoviesData);
-				setRatedMovies(ratedMoviesData);
-			} else {
-				const storedRatedMovies = localStorage.getItem('ratedMoviesData');
-				if (storedRatedMovies) {
-					try {
-						const ratedMovieCache: { [key: string]: MovieRating } = JSON.parse(storedRatedMovies);
-						const ratedMovieData = new Map<string, MovieRating>();
-						for (let key in ratedMovieCache) {
-							const movie = ratedMovieCache[key];
-							ratedMovieData.set(movie.id, ratedMovieCache[key]);
-						}
-						setRatedMovies(ratedMovieData);
-					} catch (e) {
-						console.error("Error parsing stored rated movies:", e);
-						// TODO: Clear stored local data and redirect to start of study
-						// localStorage.removeItem('ratedMoviesData');
-						// navigate('/'); // Example redirection
-					}
-				} else {
-					console.error("No rated movies found in state or local storage.");
-					// TODO: Clear stored local data and redirect to start of study
-					// localStorage.removeItem('ratedMoviesData');
-					// navigate('/'); // Example redirection
-				}
-			}
-		}
+	// useEffect(() => {
+	// 	if (!participant || !studyStep) {
+	// 		console.error("Participant or study step is not defined or empty.");
+	// 		// 	// Optionally, redirect or show an error
+	// 		return;
+	// 	}
+	// 	if (ratedMovies.size === 0) {
+	// 		if (stateData && stateData.ratedMovies) {
+	// 			const ratedMoviesData = new Map<string, MovieRating>();
+	// 			for (let key in stateData.ratedMovies) {
+	// 				const moviedata = stateData.ratedMovies[key];
+	// 				ratedMoviesData.set(moviedata.id, moviedata);
+	// 			}
+	// 			console.log("Loaded rated movies from stateData:", ratedMoviesData);
+	// 			setRatedMovies(ratedMoviesData);
+	// 		} else {
+	// 			const storedRatedMovies = localStorage.getItem('ratedMoviesData');
+	// 			if (storedRatedMovies) {
+	// 				try {
+	// 					const ratedMovieCache: { [key: string]: MovieRating } = JSON.parse(storedRatedMovies);
+	// 					const ratedMovieData = new Map<string, MovieRating>();
+	// 					for (let key in ratedMovieCache) {
+	// 						const movie = ratedMovieCache[key];
+	// 						ratedMovieData.set(movie.id, ratedMovieCache[key]);
+	// 					}
+	// 					setRatedMovies(ratedMovieData);
+	// 				} catch (e) {
+	// 					console.error("Error parsing stored rated movies:", e);
+	// 					// TODO: Clear stored local data and redirect to start of study
+	// 					// localStorage.removeItem('ratedMoviesData');
+	// 					// navigate('/'); // Example redirection
+	// 				}
+	// 			} else {
+	// 				console.error("No rated movies found in state or local storage.");
+	// 				// TODO: Clear stored local data and redirect to start of study
+	// 				// localStorage.removeItem('ratedMoviesData');
+	// 				// navigate('/'); // Example redirection
+	// 			}
+	// 		}
+	// 	}
 
-		if (ratedMovies.size > 0) {
-			getRecommendations(ratedMovies);
-		}
-	}, [ratedMovies, stateData, getRecommendations, participant, studyStep]);
+	// 	if (ratedMovies.size > 0) {
+	// 		getRecommendations(ratedMovies);
+	// 	}
+	// }, [ratedMovies, stateData, getRecommendations, participant, studyStep]);
+	useEffect(() => { getRecommendations(); }, [getRecommendations]);
 
 	const handleNextBtn = useCallback(async () => {
 		if (!studyStep || !participant) {
