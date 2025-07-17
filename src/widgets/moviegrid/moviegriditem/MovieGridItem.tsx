@@ -4,6 +4,9 @@ import './MovieGridItem.css';
 import { MovieGridItemProps } from './MovieGridItem.types';
 import React, { memo } from 'react';
 
+
+const defaultPoster = require('../../../res/default_movie_icon.svg') as string;
+
 const MovieGridItem = memo(({
 	movieItem,
 	ratingCallback
@@ -21,7 +24,7 @@ const MovieGridItem = memo(({
 				src={movieItem.poster}
 				alt={movieItem.title}
 				onError={(evt) => {
-					evt.currentTarget.src = "https://commons.wikimedia.org/wiki/Category:SVG_film_reel_icons#/media/File:Filmreel-icon.svg";
+					evt.currentTarget.src = defaultPoster;
 				}} />
 			<div className={movieItem.rating > 0 ? "rated overlay" : "overlay"}>
 				<div className={movieItem.rating > 0 ? 'star-div-rated' : 'star-div'}>

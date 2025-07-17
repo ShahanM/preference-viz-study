@@ -1,52 +1,52 @@
-import { useEffect, useState } from "react";
 import { Card, Col, Container, Image, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, StudyStep, useStudy } from "rssa-api";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { participantState } from "../states/participantState";
+import { studyStepState } from "../states/studyState";
+import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
-const StudyMap: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	participant,
-	studyStep,
-	updateCallback
-}) => {
-
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
+const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
 	const rspref = require("../res/rate-prefs.png");
 	const presurvey = require("../res/pre-survey.png");
 	const rsinteract = require("../res/interact.png");
 	const postsurvey = require("../res/post-survey.png")
 
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
+
+	const handleNextBtn = async () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
 		}
-	}, [checkpointUrl, location.pathname, navigate]);
+		try {
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+				current_step_id: participant.current_step
+			});
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
 
-	const handleNextBtn = () => {
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
-	}
-
-	useEffect(() => {
-		if (isUpdated) {
 			navigate(next);
+		} catch (error) {
+			console.error("Error getting next to updating study progress", error);
 		}
-	}, [isUpdated, navigate, next]);
-
+	}
 
 	return (
 		<Container>

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { FormLabel } from "react-bootstrap";
 import { ScaleLevel } from "rssa-api";
-
+import { SurveyConstructScaleLevel } from "../layouts/templates/SurveyTemplate";
 
 
 
 interface LikertBarProps {
 	itemId: string
-	scaleLevels: ScaleLevel[];
+	scaleLevels: SurveyConstructScaleLevel[];
 	changeCallback: (itemdid: string, scalestr: string) => void;
 }
 
@@ -53,7 +53,7 @@ const LikertBar: React.FC<LikertBarProps> = ({
 							value={scaleLevel.level}
 							id={inputId}
 							checked={selectedValue === scaleLevel.level}
-							onChange={(evt) => handleRadioChange(parseInt(evt.target.value), scaleLevel.label)}
+							onChange={(evt) => handleRadioChange(parseInt(evt.target.value), scaleLevel.id)}
 							title={scaleLevel.label}
 						/>
 					</FormLabel>

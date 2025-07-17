@@ -5,7 +5,7 @@ import Container from "react-bootstrap/Container";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { post } from "../middleware/requests";
+import { post } from "../marked_for_deletion/requests";
 
 const vizTypes = {
 	"explicit": "Explicit Visualization",

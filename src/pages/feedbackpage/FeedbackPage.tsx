@@ -1,81 +1,106 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, Feedback, StudyStep, useStudy } from "rssa-api";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
+import { participantState } from "../../states/participantState";
+import { studyStepState } from "../../states/studyState";
+import { urlCacheState } from "../../states/urlCacheState";
 import { StudyPageProps } from "../StudyPage.types";
 import "./FeedbackPage.css";
 
-const FeedbackPage: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	participant,
-	studyStep,
-	updateCallback
-}) => {
+
+export type Feedback = {
+	participant_id: string;
+	feedback_text: string;
+	feedback_type: string;
+	feedback_category: string;
+};
+
+
+const FeedbackPage: React.FC<StudyPageProps> = ({next,}) => {
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
-	// Convenient states to ensure state update and when to show the loader
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
 	const [loading, setLoading] = useState<boolean>(false);
-	const [btnDisabled, setBtnDisabled] = useState<boolean>(true);
-	const [feedback, setFeedback] = useState<string>('');
+	const [submitButtonDisabled, setSubmitButtonDisabled] = useState<boolean>(false);
+	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
 	const [showWarning, setShowWarning] = useState<boolean>(false);
+	const feedbackRef = useRef<HTMLTextAreaElement>(null);
 
-	// Allowing for some simple checkpoint saving so the participant
-	// can return to the page in case of a browser/system crash
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
+	const submitFeedback = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
+		if (!participant || !studyStep) {
+			console.warn("SurveyPage or participant is undefined in submitFeedback.");
+			return null;
 		}
-	}, [checkpointUrl, location.pathname, navigate]);
+		event.preventDefault();
+		if (feedbackRef.current) {
+			const feedbackText = feedbackRef.current.value;
+			if (feedbackText.length === 0) {
+				setShowWarning(true);
+				return;
+			} else {
+				setShowWarning(false);
+				setLoading(true);
+				try {
+					await studyApi.post<Feedback, null>(`feedbacks`, {
+						participant_id: participant.id,
+						feedback_text: feedbackText,
+						feedback_type: 'study',
+						feedback_category: 'participant general feedback'
+					});
+					setSubmitButtonDisabled(true);
+					setNextButtonDisabled(false);
 
-	const submitFeedback = (evt: React.MouseEvent<HTMLElement>) => {
-		if (feedback.length === 0) {
-			setShowWarning(true);
-			return;
-		} else {
-			setShowWarning(false);
-			setLoading(true);
-			setBtnDisabled(true);
-			studyApi.post<Feedback, boolean>(`participant/${participant.id}/feedback/`, {
-				participant_id: participant.id,
-				feedback: feedback,
-				feedback_type: 'study',
-				feedback_category: 'participant general feedback'
-			}).then((success: boolean) => {
-				if (success) {
+				} catch (error) {
+					console.error("Error submitting feedback:", error);
+					setSubmitButtonDisabled(false);
+					setNextButtonDisabled(true);
+				} finally {
 					setLoading(false);
-					setBtnDisabled(false);
 				}
-			});
+			}
 		}
-	}
+	}, [studyApi, participant, studyStep]);
 
 	const handleWarningConfirm = () => {
 		setShowWarning(false);
-		setBtnDisabled(false);
+		setSubmitButtonDisabled(true);
+		setNextButtonDisabled(false);
 	}
 
-	const handleNextBtn = () => {
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
-	}
-
-	useEffect(() => {
-		if (isUpdated) {
-			navigate(next);
+	const handleNextBtn = useCallback(async () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
 		}
-	}, [isUpdated, navigate, next]);
+		try {
+			const nextStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+				current_step_id: participant.current_step
+			});
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
+			navigate(next);
+		} catch (error) {
+			console.error("Error fetching next step:", error);
+			// Handle error, e.g., show a message to the user
+		} finally {
+			setLoading(false);
+		}
+	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
 
 
 	return (
@@ -99,19 +124,18 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 								appreciated.
 							</p>
 						</Form.Label>
-						<Form.Control as="textarea" rows={4} value={feedback} onChange={(evt) => setFeedback(evt.target.value)} />
+						<Form.Control as="textarea" rows={4} ref={feedbackRef} disabled={submitButtonDisabled} />
 					</Form.Group>
-					<Button variant="ers" onClick={submitFeedback}>
+					<Button variant="ers" onClick={submitFeedback} disabled={submitButtonDisabled || loading}>
 						Submit
 					</Button>
 				</Form>
 			</Row>
 			<Row>
-				<Footer callback={handleNextBtn} disabled={btnDisabled} />
+				<Footer callback={handleNextBtn} disabled={nextButtonDisabled} />
 			</Row>
 		</Container>
 	);
 }
 
 export default FeedbackPage;
-// https://m.media-amazon.com/images/M/MV5BMjE4NTA1NzExN15BMl5BanBnXkFtZTYwNjc3MjM3._V1_.jpg

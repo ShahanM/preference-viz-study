@@ -1,57 +1,52 @@
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Container, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
-import { CurrentStep, StudyStep, useStudy } from "rssa-api";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { participantState } from "../states/participantState";
+import { studyStepState } from "../states/studyState";
+import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
 
-const ScenarioPage: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	participant,
-	studyStep,
-	updateCallback
-}) => {
+const ScenarioPage: React.FC<StudyPageProps> = ({ next, }) => {
+
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
-	const [isUpdated, setIsUpdated] = useState<boolean>(false);
-
-	// Allowing for some simple checkpoint saving so the participant
-	// can return to the page in case of a browser/system crash
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
+	const handleNextBtn = useCallback(async () => {
+		if (!participant || !studyStep) {
+			console.error("Participant or study step is not defined.");
+			return;
 		}
-	}, [checkpointUrl, location.pathname, navigate]);
 
-	const handleNextBtn = () => {
-		studyApi.post<CurrentStep, StudyStep>('studystep/next', {
-			current_step_id: participant.current_step
-		}).then((nextStep: StudyStep) => {
-			updateCallback(nextStep, next)
-			setIsUpdated(true);
-		});
-	}
-
-	useEffect(() => {
-		if (isUpdated) {
+		try {
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+				current_step_id: participant.current_step
+			});
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
 			navigate(next);
+		} catch (error) {
+			console.error("Error getting next step:", error);
 		}
-	}, [isUpdated, navigate, next]);
-
+	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
 
 	return (
 		<Container>
-			{/* {showWarning && <WarningDialog show={showWarning} confirmCallback={handleWarningConfirm}
-				title="Empty feedback" message="<p>You hardly wrote anything.</p><p>Are you sure you are done?</p>"
-				confirmText="Yes, I'm done"
-			/>} */}
 			<Row>
 				<Header title={studyStep?.name} content={studyStep?.description} />
 			</Row>
