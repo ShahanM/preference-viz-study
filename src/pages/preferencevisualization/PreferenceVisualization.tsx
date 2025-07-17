@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useRecoilValue } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep,
 	Participant,
@@ -11,7 +11,9 @@ import {
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import { participantState, studyStepState } from "../../state/studyState";
+import { participantState } from "../../states/participantState";
+import { studyStepState } from "../../states/studyState";
+import { urlCacheState } from "../../states/urlCacheState";
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
 import { MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
@@ -22,20 +24,15 @@ import "./PreferenceVisualization.css";
 import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
 
 
-
 interface LocationState {
 	ratedMovies?: { [key: number]: MovieRating };
 }
 
 
-const PreferenceVisualization: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	onStepUpdate,
-	sizeWarning
-}) => {
-	const participant: Participant | null = useRecoilValue(participantState);
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
@@ -141,12 +138,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 	}, [ratedMovies, stateData, getRecommendations, participant, studyStep]);
 
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
-
 	const handleNextBtn = useCallback(async () => {
 		if (!studyStep || !participant) {
 			console.error("Study step or participant is not defined.");
@@ -154,10 +145,17 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		}
 
 		try {
-			const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
-			onStepUpdate(nextRouteStep, participant, next);
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error submitting responses:", error);
@@ -165,12 +163,11 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [studyStep, participant, studyApi, onStepUpdate, next, navigate]);
+	}, [studyStep, participant, studyApi, next, navigate, setStudyStep, setParticipant, setNextUrl]);
 
 	if (!participant || !studyStep) {
 		return <LoadingScreen loading={true} message="Initializing study data..." />;
 	}
-
 	return (
 		<Container className="prefviz" fluid={width < 2000}>
 			<Row>
@@ -178,34 +175,27 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({
 					content={studyStep?.description} />
 			</Row>
 
-			{sizeWarning ? <Row className="size-error-overlay">
-				Nothing to display
-			</Row> :
-				<Row>
-					<Col xxxl={2} xxl={3} xl={2} md={3} className="me-0 pe-0">
+			<Row>
+				<Col xxxl={2} xxl={3} xl={2} md={3} className="me-0 pe-0">
+					<LeftPanel
+						nextButtonDisabledCallback={setNextButtonDisabled} />
+				</Col>
+				<Col xxxl={8} xxl={6} xl={8} md={6} className="m-0 p-0">
+					{!loading && prefItemDetails !== undefined
+						&& !(prefItemDetails.size > 0) ?
+						<LoadingScreen loading={loading}
+							message="Loading Recommendations" />
+						: <ConditionView
+							condition={parseInt(searchParams.get('cond') || '1')}
+							prefItemDetails={prefItemDetails} />
+					}
+				</Col>
+				<Col xxxl={2} xxl={3} xl={2} md={3} className="ms-0 ps-0">
+					<RightPanel likeCuttoff={LIKE_CUTOFF}
+						dislikeCuttoff={DISLIKE_CUTOFF} />
+				</Col>
+			</Row>
 
-						<LeftPanel
-							nextButtonDisabledCallback={setNextButtonDisabled} />
-
-
-					</Col>
-					<Col xxxl={8} xxl={6} xl={8} md={6} className="m-0 p-0">
-						{!loading && prefItemDetails !== undefined
-							&& !(prefItemDetails.size > 0) ?
-							<LoadingScreen loading={loading}
-								message="Loading Recommendations" />
-							: <ConditionView
-								condition={parseInt(searchParams.get('cond') || '1')}
-								prefItemDetails={prefItemDetails} />
-
-						}
-					</Col>
-					<Col xxxl={2} xxl={3} xl={2} md={3} className="ms-0 ps-0">
-						<RightPanel likeCuttoff={LIKE_CUTOFF}
-							dislikeCuttoff={DISLIKE_CUTOFF} />
-					</Col>
-				</Row>
-			}
 			<Row>
 				<Footer callback={handleNextBtn}
 					disabled={nextButtonDisabled}

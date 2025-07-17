@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import { WarningDialog } from "../../components/dialogs/warningDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { participantState, studyStepState } from "../../state/studyState";
+import { participantState } from "../../states/participantState";
+import { studyStepState } from "../../states/studyState";
+import { urlCacheState } from "../../states/urlCacheState";
 import { StudyPageProps } from "../StudyPage.types";
 import "./FeedbackPage.css";
 
@@ -19,31 +21,19 @@ export type Feedback = {
 };
 
 
-const FeedbackPage: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	onStepUpdate
-}) => {
-
-	const participant: Participant | null = useRecoilValue(participantState);
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+const FeedbackPage: React.FC<StudyPageProps> = ({next,}) => {
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [submitButtonDisabled, setSubmitButtonDisabled] = useState<boolean>(false);
 	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
 	const [showWarning, setShowWarning] = useState<boolean>(false);
 	const feedbackRef = useRef<HTMLTextAreaElement>(null);
-
-
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
 
 	const submitFeedback = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
 		if (!participant || !studyStep) {
@@ -59,7 +49,6 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 			} else {
 				setShowWarning(false);
 				setLoading(true);
-				console.log("Submitting feedback:", feedbackText);
 				try {
 					await studyApi.post<Feedback, null>(`feedbacks`, {
 						participant_id: participant.id,
@@ -93,10 +82,17 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 			return;
 		}
 		try {
-			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+			const nextStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
-			onStepUpdate(nextRouteStep, participant, next);
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error fetching next step:", error);
@@ -104,7 +100,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, participant, onStepUpdate, next, navigate, studyStep]);
+	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
 
 
 	return (

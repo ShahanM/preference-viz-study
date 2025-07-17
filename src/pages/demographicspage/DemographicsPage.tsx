@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Container, Form, Row } from "react-bootstrap";
 import { CountryDropdown, RegionDropdown } from "react-country-region-selector";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { participantState, studyStepState } from "../../state/studyState";
+import { participantState } from "../../states/participantState";
+import { studyStepState } from "../../states/studyState";
+import { urlCacheState } from "../../states/urlCacheState";
 import { StudyPageProps } from "../StudyPage.types";
 import './DemographicsPage.css';
 
@@ -68,18 +70,14 @@ export type Demographic = {
 	state_region: string;
 };
 
-const DemographicsPage: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	onStepUpdate
-}) => {
+const DemographicsPage: React.FC<StudyPageProps> = ({ next, }) => {
 
-	const participant: Participant | null = useRecoilValue(participantState);
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [submitButtonDisabled, setSubmitButtonDisabled] = useState<boolean>(false);
@@ -120,12 +118,6 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 
 	const [hiddenGender, setHiddenGender] = useState<string>('hidden');
 	const [hiddenRace, setHiddenRace] = useState<string>('hidden');
-
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
 
 	useEffect(() => {
 		if (gender === 'Prefer to self-describe') {
@@ -187,16 +179,23 @@ const DemographicsPage: React.FC<StudyPageProps> = ({
 			return;
 		}
 		try {
-			const nextRouteStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+			const nextStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
-			onStepUpdate(nextRouteStep, participant, next);
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
 			navigate(next);
 		} catch (error) {
 			console.error("Error fetching next step:", error);
 			// Handle error, e.g., show a message to the user
 		}
-	}, [onStepUpdate, studyApi, participant, next, navigate, studyStep]);
+	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
 
 	return (
 		<Container>

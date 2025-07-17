@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import SurveyTemplate, { SurveyConstruct } from "../layouts/templates/SurveyTemplate";
-import { participantState, studyStepState } from "../state/studyState";
+import { participantState } from "../states/participantState";
+import { studyStepState } from "../states/studyState";
+import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
@@ -36,11 +38,7 @@ type SurveyPage = {
 	last_page: boolean;
 }
 
-const Survey: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	onStepUpdate
-}) => {
+const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const [surveyPage, setSurveyPage] = useState<SurveyPage>();
 	const [validationFlags, setValidationFlags] = useState<Map<string, boolean>>(new Map<string, boolean>());
@@ -49,18 +47,12 @@ const Survey: React.FC<StudyPageProps> = ({
 
 	const [isLoading, setIsLoading] = useState(false);
 
-	const participant: Participant | null = useRecoilValue(participantState);
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
-
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
 
 	const initializeSurveyResponse = useCallback((surveyConstructs: SurveyConstruct[]) => {
 		if (!surveyConstructs || surveyConstructs.length === 0) {
@@ -94,7 +86,6 @@ const Survey: React.FC<StudyPageProps> = ({
 					setSurveyPage(surveyPage);
 					initializeSurveyResponse(surveyPage.page_contents);
 					setValidationFlags(new Map<string, boolean>());
-					console.log("First survey page content loaded:", surveyPage);
 				})
 				.catch(error => {
 					console.error("Error fetching first survey page content:", error);
@@ -146,15 +137,16 @@ const Survey: React.FC<StudyPageProps> = ({
 		};
 	}, [surveyResponse, surveyPage, participant, studyStep]);
 
-	const submitResponse = useCallback(async () => {
-		if (!surveyPage || !participant || !studyStep) {
-			console.log("SurveyPage submitResponse: pageContent or participant is undefined");
-			return;
+	const validateSurveyResponse = useCallback(() => {
+		if (!surveyPage) {
+			console.warn("SurveyPage is undefined in validateSurveyResponse.");
+			return false;
 		}
+
 		if (surveyResponse.size === 0) {
 			console.warn("No responses recorded for the survey page.");
 			setValidationFlags(new Map<string, boolean>());
-			return;
+			return false;
 		}
 
 		if (surveyResponse.size !== surveyPage.page_contents.length) {
@@ -169,7 +161,7 @@ const Survey: React.FC<StudyPageProps> = ({
 				});
 			});
 			setValidationFlags(newFlags);
-			return;
+			return false;
 		}
 
 		if ([...surveyResponse.values()].some((response: Map<string, string | null>) => {
@@ -186,58 +178,93 @@ const Survey: React.FC<StudyPageProps> = ({
 				});
 			});
 			setValidationFlags(newFlags);
+			return false;
+		}
+		return true;
+	}, [surveyResponse, surveyPage, validationFlags, setValidationFlags]);
+
+	const fetchNextSurveyPage = useCallback(async () => {
+		if (!studyStep) {
+			console.warn("Study step is undefined in fetchNextSurveyPage.");
 			return;
 		}
 
+		studyApi.get<SurveyPage>(`surveys/${studyStep.id}/pages/${surveyPage?.id}/next`)
+			.then((surveyPage: SurveyPage) => {
+				setSurveyPage(surveyPage);
+				// setSurveyResponse(new Map<string, SurveyItemResponse>());
+				initializeSurveyResponse(surveyPage.page_contents);
+				setValidationFlags(new Map<string, boolean>());
+			})
+			.catch(error => {
+				console.error("Error fetching survey page content:", error);
+				// TODO: Handle error appropriately, maybe show a message to the user
+			});
+	}, [initializeSurveyResponse, studyApi, studyStep, surveyPage]);
+
+	const navigateToNextStep = useCallback(async () => {
+		if (!participant || !studyStep) {
+			console.warn("Participant or study step is undefined in navigateToNextStep.");
+			return;
+		}
+
+		try {
+			setIsLoading(true);
+			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
+				current_step_id: participant.current_step
+			});
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
+
+			navigate(next);
+		} catch (error) {
+			console.error("Error getting next step:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [studyApi, participant, next, navigate, setStudyStep, setParticipant, setNextUrl, studyStep]);
+
+
+	const dispatchSurveyResponseRequest = useCallback(async () => {
 		const responseData = transformedSurveyReponse();
 		if (responseData === null) {
 			console.warn("Transformed survey response is null, cannot submit.");
 			return;
 		} else {
-
 			try {
-				console.log("Submitting survey response:", responseData);
+				setIsLoading(true);
 				await studyApi.post<SurveyResponse, boolean>(`responses/survey`, responseData);
 			} catch (error) {
 				console.error("Error submitting survey response:", error);
 				// TODO: Handle network or other errors during submission
+			} finally {
+				setIsLoading(false);
 			}
 		}
+	}, [studyApi, setIsLoading, transformedSurveyReponse]);
 
-		if (surveyPage.last_page) {
-			if (participant) {
-				try {
-					const nextRouteStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
-						current_step_id: participant.current_step
-					});
-					onStepUpdate(nextRouteStep, participant, next);
-					navigate(next);
-				} catch (error) {
-					console.error("Error getting next step:", error);
-				}
-			} else {
-				console.warn("Participant not available for final survey step update.");
-			}
-		} else {
-			// If not the last page, fetch the next page
-			studyApi.get<SurveyPage>(`surveys/${studyStep.id}/pages/${surveyPage?.id}/next`)
-				.then((surveyPage: SurveyPage) => {
-					setSurveyPage(surveyPage);
-					// setSurveyResponse(new Map<string, SurveyItemResponse>());
-					initializeSurveyResponse(surveyPage.page_contents);
-					setValidationFlags(new Map<string, boolean>());
-				})
-				.catch(error => {
-					console.error("Error fetching survey page content:", error);
-					// TODO: Handle error appropriately, maybe show a message to the user
-				});
+	const submitResponse = useCallback(async () => {
+		if (!surveyPage) {
+			console.log("SurveyPage submitResponse: pageContent or participant is undefined");
+			return;
 		}
-		console.log("Survey page", surveyPage);
-	}, [surveyPage, participant, surveyResponse, studyApi, transformedSurveyReponse, validationFlags, initializeSurveyResponse, studyStep, onStepUpdate, next, navigate]);
 
-	const handleSurveyNext = useCallback(() => {
-		submitResponse();
-	}, [submitResponse]);
+		if (!validateSurveyResponse()) {
+			console.warn("Survey response validation failed. Cannot submit.");
+			return;
+		}
+
+		dispatchSurveyResponseRequest();
+		surveyPage.last_page ? navigateToNextStep() : fetchNextSurveyPage();
+	}, [surveyPage, fetchNextSurveyPage, validateSurveyResponse, navigateToNextStep, dispatchSurveyResponseRequest]);
+
+	const handleSurveyNext = useCallback(() => { submitResponse(); }, [submitResponse]);
 
 	if (!studyStep || !participant || isLoading) {
 		return <div>Loading Survey...</div>;

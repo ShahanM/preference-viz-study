@@ -1,36 +1,28 @@
-import { useEffect } from "react";
 import { Card, Col, Container, Image, Row } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { participantState, studyStepState } from "../state/studyState";
+import { participantState } from "../states/participantState";
+import { studyStepState } from "../states/studyState";
+import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
-const StudyMap: React.FC<StudyPageProps> = ({
-	next,
-	checkpointUrl,
-	onStepUpdate
-}) => {
-	const participant: Participant | null = useRecoilValue(participantState);
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
+const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
 
 	const rspref = require("../res/rate-prefs.png");
 	const presurvey = require("../res/pre-survey.png");
 	const rsinteract = require("../res/interact.png");
 	const postsurvey = require("../res/post-survey.png")
 
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
+	const [participant, setParticipant] = useRecoilState(participantState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const handleNextBtn = async () => {
 		if (!participant || !studyStep) {
@@ -41,7 +33,15 @@ const StudyMap: React.FC<StudyPageProps> = ({
 			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 				current_step_id: participant.current_step
 			});
-			onStepUpdate(nextStep, participant, next);
+			setStudyStep(nextStep);
+			const updatedParticipant: Participant = {
+				...participant,
+				current_step: nextStep.id,
+			};
+			await studyApi.put('participants/', updatedParticipant);
+			setParticipant(updatedParticipant);
+			setNextUrl(next);
+
 			navigate(next);
 		} catch (error) {
 			console.error("Error getting next to updating study progress", error);

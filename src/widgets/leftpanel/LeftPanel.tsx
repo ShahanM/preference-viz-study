@@ -1,13 +1,14 @@
 import Parse from 'html-react-parser';
+import { useCallback, useState } from 'react';
 import { Button, Container, Form, Row } from 'react-bootstrap';
-import './LeftPanel.css';
-import { participantState, studyStepState } from '../../state/studyState';
 import { useRecoilValue } from 'recoil';
 import { Participant, StudyStep, useStudy } from 'rssa-api';
-import { useCallback, useState } from 'react';
 import LoadingText from '../../components/LoadingText';
-import { WarningDialog } from '../../components/dialogs/warningDialog';
 import ConfirmationDialog from '../../components/dialogs/ConfirmationDialog';
+import { WarningDialog } from '../../components/dialogs/warningDialog';
+import { participantState } from '../../states/participantState';
+import { studyStepState } from '../../states/studyState';
+import './LeftPanel.css';
 
 
 type CustomFreeFormText = {

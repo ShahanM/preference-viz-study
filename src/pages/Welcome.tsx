@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
+import { useNavigate } from 'react-router-dom';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep, NewParticipant, Participant, StudyStep,
 	useStudy
@@ -11,30 +11,24 @@ import {
 import InformedConsentModal from '../components/dialogs/InformedConsent';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
-import { studyStepState } from '../state/studyState';
+import { participantState } from '../states/participantState';
+import { studyStepState } from '../states/studyState';
+import { urlCacheState } from '../states/urlCacheState';
 import { InitStudyPageProps } from './StudyPage.types';
 
 
-const Welcome: React.FC<InitStudyPageProps> = ({
-	next,
-	checkpointUrl,
-	setNewParticipant,
-	onStepUpdate }) => {
-
-	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
-	const [show, setShowInformedConsent] = useState<boolean>(false);
+const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	const location = useLocation();
+
+	const setParticipant = useSetRecoilState(participantState);
+	const setNextUrl = useSetRecoilState(urlCacheState);
+	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+
+	const [show, setShowInformedConsent] = useState<boolean>(false);
 
 	const showInformedConsent = () => { setShowInformedConsent(!show); }
-
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
 
 	const consentCallbackHandler = async (consent: boolean) => {
 		if (consent && studyStep) {
@@ -46,13 +40,24 @@ const Welcome: React.FC<InitStudyPageProps> = ({
 					current_step: studyStep.id,
 					current_page: null
 				});
-				console.log("Participant created successfully:", response);
-				setNewParticipant(response);
+				setParticipant(response);
+
 				const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
 					current_step_id: response.current_step
 				});
-				onStepUpdate(nextStep, response, next);
+
+				const newParticipant: Participant = {
+					...response,
+					current_step: nextStep.id,
+				};
+				await studyApi.put('participants/', newParticipant);
+
+				setParticipant(newParticipant);
+				setStudyStep(nextStep);
+				setNextUrl(next);
+
 				navigate(next);
+
 			} catch (error) {
 				console.error("Error creating participant or updating step", error);
 			}

@@ -8,7 +8,7 @@ import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
 import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
 import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
 import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
-import { movieSelectionState } from '../../state/ItemState';
+import { movieSelectionState } from '../../states/ItemState';
 import { PrefVizRecItemDetail } from './VisualizationTypes.types';
 // import { MySimDatum } from '../../components/visualiations/DiscreteDecoupled';
 

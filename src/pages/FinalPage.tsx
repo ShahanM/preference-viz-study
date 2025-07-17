@@ -5,13 +5,14 @@ import { useRecoilValue, useResetRecoilState } from "recoil";
 import { StudyStep } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { participantState, studyStepState } from "../state/studyState";
+import { participantState } from "../states/participantState";
+import { studyStepState } from "../states/studyState";
 import { FinalStudyPageProps } from "./StudyPage.types";
 
 
 const FinalPage: React.FC<FinalStudyPageProps> = ({
 	next,
-	checkpointUrl,
+	// checkpointUrl,
 	onStudyDone
 }) => {
 	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
@@ -24,11 +25,11 @@ const FinalPage: React.FC<FinalStudyPageProps> = ({
 
 	// Allowing for some simple checkpoint saving so the participant
 	// can return to the page in case of a browser/system crash
-	useEffect(() => {
-		if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-			navigate(checkpointUrl);
-		}
-	}, [checkpointUrl, location.pathname, navigate]);
+	// useEffect(() => {
+	// 	if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
+	// 		navigate(checkpointUrl);
+	// 	}
+	// }, [checkpointUrl, location.pathname, navigate]);
 
 	const handleNextBtn = () => {
 		localStorage.clear();

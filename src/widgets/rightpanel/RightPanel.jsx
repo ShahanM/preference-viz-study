@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import { useRecoilValue } from "recoil";
-import { movieSelectionState } from "../../state/ItemState";
+import { movieSelectionState } from "../../states/ItemState";
 import "./RightPanel.css";
 
 export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
