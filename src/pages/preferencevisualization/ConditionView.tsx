@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 import Baseline from '../../components/visualiations/Baseline';
 import ContinuousCoupled from '../../components/visualiations/ContinuousCoupled';
 import ContinuousDecoupled from '../../components/visualiations/ContinuousDecoupled';
 import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
-import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
 import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
 import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
 import { movieSelectionState } from '../../states/ItemState';
 import { PrefVizRecItemDetail } from './VisualizationTypes.types';
-// import { MySimDatum } from '../../components/visualiations/DiscreteDecoupled';
 
 
 type ConditionViewProps = {
@@ -26,7 +24,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 	const [width, setWidth] = useState(800);
 	const [height, setHeight] = useState(900);
 
-	const [selectedMovie, setSelectedMovie] = useRecoilState(movieSelectionState)
+	const setSelectedMovie = useSetRecoilState(movieSelectionState);
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -36,13 +34,17 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 				setHeight(900);
 			}
 			else if (windowWidth < 1800) {
-				setWidth(800 - (1800 - windowWidth) / 2);
+				setWidth(800 - (1600 - windowWidth) / 2);
 				setHeight(900);
+			} else if (windowWidth < 2000) {
+				setWidth(1000 - (1900 - windowWidth) / 2);
+				setHeight(1000);
 			}
 			else {
-				setWidth(1200);
-				setHeight(1200);
+				setWidth(1000);
+				setHeight(1000);
 			}
+			console.log("window width", windowWidth);
 		}
 		window.addEventListener('resize', handleResize);
 		handleResize();
@@ -57,36 +59,31 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 	if (prefItemDetails && prefItemDetails.size > 0) {
 		switch (condition) {
 			case 1:
+			case 11:
 				return <ContinuousCoupled
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />;
+					onHover={handleHover} />
 			case 2:
+			case 21:
 				return <ContinuousDecoupled
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />;
+					onHover={handleHover} />
 			case 3:
-				return <DiscreteCoupled
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover}
-				/>;
-			case 4:
+			case 31:
 				return <DiscreteDecoupled
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover}
-				/>;
-			case 5:
+				/>
+			case 4:
 				return <Baseline
 					width={width}
 					height={height}
@@ -94,20 +91,22 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 					xCol={"community_score"} yCol={"user_score"}
 					onHover={handleHover}
 				/>
-			case 6:
+			case 5:
+			case 51:
 				return <ContinuousSelf
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />;
-			case 7:
+					onHover={handleHover} />
+			case 6:
+			case 61:
 				return <DiscreteSelf
 					width={width}
 					height={height}
 					data={prefItemDetails}
 					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />;
+					onHover={handleHover} />
 			default: return <LoadingScreen loading={true} message="Loading Recommendations" />;
 		}
 	} else {

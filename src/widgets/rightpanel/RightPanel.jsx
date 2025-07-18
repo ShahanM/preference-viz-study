@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import { useRecoilValue } from "recoil";
 import { movieSelectionState } from "../../states/ItemState";
 import "./RightPanel.css";
 
-export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
+export default function RightPanel({ likeCuttoff, dislikeCuttoff, showLikeDislikeByLine }) {
 
     const [ratingSummary, setRatingSummary] = useState("");
     const selectedMovie = useRecoilValue(movieSelectionState);
@@ -43,25 +43,29 @@ export default function RightPanel({ likeCuttoff, dislikeCuttoff }) {
                             src={selectedMovie.poster}
                             alt={selectedMovie.title} />
                     </Row>
-                    <Row>
+                    <Row className="ms-2">
                         <h3 className="movie-title">
                             {selectedMovie.title} ({selectedMovie.year})
                         </h3>
                     </Row>
-                    <Row style={{ textAlign: "left", fontWeight: "bold" }}>
-                        <p>{ratingSummary}</p>
-                    </Row>
-                    <Row className="details">
+                    {showLikeDislikeByLine ?
+                        <Row className="ms-3" style={{ textAlign: "left", fontWeight: "400" }}>
+                            <p>{ratingSummary}</p>
+                        </Row>
+                        :
+                        <></>
+                    }
+                    <Row className="details ms-3">
                         <p>
                             <strong>Cast: </strong>{`${selectedMovie.cast.split("|").slice(0, 3).join(", ")}`}
-                            <span className="more"> [more]</span>
+                            <span className="more"> [...]</span>
                         </p>
                         <p>
                             <strong>Director: </strong>{selectedMovie.director}
                         </p>
                         <p>
                             {selectedMovie.description.split(" ").slice(0, 25).join(" ")}
-                            <span className="more"> [more]</span>
+                            <span className="more"> [...]</span>
                         </p>
                     </Row>
                 </>

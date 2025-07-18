@@ -70,9 +70,10 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
 			setNextUrl(next);
-			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
+			// localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
 
-			navigate(next, { state: { ratedMovies: ratedMovies } });
+			// navigate(next, { state: { ratedMovies: ratedMovies } });
+			navigate(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		} finally {

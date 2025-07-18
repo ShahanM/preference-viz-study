@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep,
 	Participant,
-	PrefVizRequestObject, StudyStep,
-	useStudy
+	StudyStep,
+	useStudy,
 } from "rssa-api";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
 import { participantState } from "../../states/participantState";
+import { ratedMoviesState } from "../../states/ratedMovieState";
 import { studyStepState } from "../../states/studyState";
 import { urlCacheState } from "../../states/urlCacheState";
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
@@ -22,12 +23,14 @@ import { StudyPageProps } from "../StudyPage.types";
 import ConditionView from "./ConditionView";
 import "./PreferenceVisualization.css";
 import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
-import { ratedMoviesState } from "../../states/ratedMovieState";
 
 
-interface LocationState {
-	ratedMovies?: { [key: number]: MovieRating };
-}
+type PrefVizRequestObject = {
+	user_id: string;
+	user_condition: string;
+	rec_type: 'baseline' | 'diverse' | 'reference';
+	ratings: { item_id: number, rating: number }[];
+};
 
 
 const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
@@ -37,10 +40,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const { studyApi } = useStudy();
 	const navigate = useNavigate();
-	// const location = useLocation();
-
-	// const stateData = location.state as LocationState;
-	// const [ratedMovies, setRatedMovies] = useState(new Map<string, MovieRating>());
 	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);
 
 	const [loading, setLoading] = useState<boolean>(false);
@@ -71,13 +70,36 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 			return null;
 		}
 		setLoading(true);
+		let recType: 'baseline' | 'diverse' | 'reference' = "baseline";
+		switch (parseInt(searchParams.get('cond') || '1')) {
+			case 4:
+				recType = "baseline";
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 5:
+			case 6:
+				recType = "diverse";
+				break;
+			case 11:
+			case 21:
+			case 31:
+			case 51:
+			case 61:
+				recType = "reference";
+				break;
+			default:
+				recType = "baseline";
+				break
+		}
 		try {
 			const responseItems: PrefVizRecItemDetail[] = await studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
 				"recommendation/prefviz/", {
 				user_id: participant.id,
 				user_condition: participant.condition_id,
 				// FIXME: Remember this should be based on the participant condition, not searchParams for production
-				is_baseline: parseInt(searchParams.get('cond') || '1') === 5,
+				rec_type: recType,
 				ratings: [...ratedMovies.values()].map(rating => {
 					return { item_id: rating.movielens_id, rating: rating.rating };
 				})
@@ -93,52 +115,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 		}
 	}, [studyApi, searchParams, participant, studyStep, setPrefItemDetails, ratedMovies]);
 
-
-	// useEffect(() => {
-	// 	if (!participant || !studyStep) {
-	// 		console.error("Participant or study step is not defined or empty.");
-	// 		// 	// Optionally, redirect or show an error
-	// 		return;
-	// 	}
-	// 	if (ratedMovies.size === 0) {
-	// 		if (stateData && stateData.ratedMovies) {
-	// 			const ratedMoviesData = new Map<string, MovieRating>();
-	// 			for (let key in stateData.ratedMovies) {
-	// 				const moviedata = stateData.ratedMovies[key];
-	// 				ratedMoviesData.set(moviedata.id, moviedata);
-	// 			}
-	// 			console.log("Loaded rated movies from stateData:", ratedMoviesData);
-	// 			setRatedMovies(ratedMoviesData);
-	// 		} else {
-	// 			const storedRatedMovies = localStorage.getItem('ratedMoviesData');
-	// 			if (storedRatedMovies) {
-	// 				try {
-	// 					const ratedMovieCache: { [key: string]: MovieRating } = JSON.parse(storedRatedMovies);
-	// 					const ratedMovieData = new Map<string, MovieRating>();
-	// 					for (let key in ratedMovieCache) {
-	// 						const movie = ratedMovieCache[key];
-	// 						ratedMovieData.set(movie.id, ratedMovieCache[key]);
-	// 					}
-	// 					setRatedMovies(ratedMovieData);
-	// 				} catch (e) {
-	// 					console.error("Error parsing stored rated movies:", e);
-	// 					// TODO: Clear stored local data and redirect to start of study
-	// 					// localStorage.removeItem('ratedMoviesData');
-	// 					// navigate('/'); // Example redirection
-	// 				}
-	// 			} else {
-	// 				console.error("No rated movies found in state or local storage.");
-	// 				// TODO: Clear stored local data and redirect to start of study
-	// 				// localStorage.removeItem('ratedMoviesData');
-	// 				// navigate('/'); // Example redirection
-	// 			}
-	// 		}
-	// 	}
-
-	// 	if (ratedMovies.size > 0) {
-	// 		getRecommendations(ratedMovies);
-	// 	}
-	// }, [ratedMovies, stateData, getRecommendations, participant, studyStep]);
 	useEffect(() => { getRecommendations(); }, [getRecommendations]);
 
 	const handleNextBtn = useCallback(async () => {
@@ -179,11 +155,10 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 			</Row>
 
 			<Row>
-				<Col xxxl={2} xxl={3} xl={2} md={3} className="me-0 pe-0">
-					<LeftPanel
-						nextButtonDisabledCallback={setNextButtonDisabled} />
+				<Col xxxl={3} xxl={3} xl={2} md={3} className="me-0 pe-0">
+					<LeftPanel nextButtonDisabledCallback={setNextButtonDisabled} />
 				</Col>
-				<Col xxxl={8} xxl={6} xl={8} md={6} className="m-0 p-0">
+				<Col xxxl={6} xxl={6} xl={8} md={6} className="m-0 p-0">
 					{!loading && prefItemDetails !== undefined
 						&& !(prefItemDetails.size > 0) ?
 						<LoadingScreen loading={loading}
@@ -193,8 +168,9 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 							prefItemDetails={prefItemDetails} />
 					}
 				</Col>
-				<Col xxxl={2} xxl={3} xl={2} md={3} className="ms-0 ps-0">
+				<Col xxxl={3} xxl={3} xl={2} md={3} className="ms-0 ps-0">
 					<RightPanel likeCuttoff={LIKE_CUTOFF}
+						showLikeDislikeByLine={[4, 5, 6].indexOf(parseInt(searchParams.get('cond') || '1')) === -1}
 						dislikeCuttoff={DISLIKE_CUTOFF} />
 				</Col>
 			</Row>

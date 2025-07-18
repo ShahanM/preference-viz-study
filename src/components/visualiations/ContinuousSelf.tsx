@@ -6,8 +6,10 @@ import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
 const posterWidth = 54;
 const posterHeight = 81;
 
-const margin = { top: 20, right: 20, bottom: 40, left: 40 }; // Define margins
+const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
+
+const X_AXIS_LABEL = "The system's predicted movie rating for you";
 
 const ContinuousSelf: React.FC<VisualizationProps> = ({
 	width,
@@ -20,7 +22,7 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 	const svgHeight = height / 4;
 	const innerWidth = width - margin.left - margin.right;
 	const innerHeight = svgHeight - margin.top - margin.bottom;
-
+	
 	const svgRef = useRef<SVGSVGElement>();
 	const simNodeData = useMemo(() => {
 		const myPrefOrder: VizDataProps[] = [];
@@ -142,7 +144,7 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 
 		if(currentSvgRef) {
 			const ctxData = simNodeData
-			const label = "My Ratings";
+			const label = X_AXIS_LABEL;
 			renderViz(currentSvgRef, ctxData, label);
 		}
 	}, [simNodeData, svgRef, innerWidth, innerHeight, xCol, yCol, onHover, width, svgHeight]);
@@ -153,7 +155,7 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 
 	return (
 		<div style={{marginTop: "9vh"}}>
-			<svg ref={setSvgRef()} width={width} height={height / 4}></svg>
+			<svg ref={setSvgRef()} width={width} height={height / 2}></svg>
 		</div>
 	);
 }

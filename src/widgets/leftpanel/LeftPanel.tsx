@@ -35,23 +35,29 @@ type FreeFormTextResponseRequest = {
 const PROMPTS: CustomFreeFormText[] = [
 	{
 		context_tag: "1",
-		text: "<p><strong>Which one of the movies on the visualization is unfamiliar to you?</strong></p>",
+		text: "<p>Which of the movies on the visualization are you unfamiliar with?</p>",
 	},
 	{
 		context_tag: "2",
-		text: `<p><strong>Please tell us how you think you could use this visualization to:</strong>
-				<ul style="margin: 0.5rem">
-					<li style="list-style: none; margin: 0 1em 1em 1em;">Expand your preference/Explore new interests. 
-						For example, I have watched most popular movies in a genre but I haven't gone into the
-						depth/haven't gone into the niche.</li>
-					<li style="list-style: none; margin: 0 1em 1em 1em;">Widening an existing interest: Expanding beyond your niche.</li>
-					<li style="list-style: none; margin: 0 1em 1em 1em;">Deepening an interest: Going down the niche rabbit hole.</li>
-				</ul>
+		text: `<p>Which of the movies in the visualization may help you:
+				<ol type="a" style="margin: 0.5rem">
+					<li style="margin: 0 1em 1em 1em;">
+						explore a new interest (e.g. an unfamiliar genre, or pick up a new hobby)?
+					</li>
+					<li style="margin: 0 1em 1em 1em;">
+						widen an existing interest (e.g. an unfamiliar direction within a familiar genre)?
+					</li>
+					<li style="margin: 0 1em 0.5em 1em;">
+						deepen an existing interest (e.g. a specialization of a familiar genre)?
+					</li>
+				</ol>
 			</p>`,
 	},
 	{
 		context_tag: "3",
-		text: `<p><strong>What are your action plan to extend preferences?</strong></p>`,
+		text: `<p style="font-weight: 500">
+			Use your answers above to explain the concrete steps you would take to expand your movie preferences.
+		</p>`,
 	}
 ]
 
@@ -113,30 +119,31 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 
 	return (
 		<Container className="leftpanel">
-						<WarningDialog show={dataSubmitted} title="Success"
-							message={`Your responses have been submitted. 
+			<WarningDialog show={dataSubmitted} title="Success"
+				message={`Your responses have been submitted. 
 								You may now click the next button to proceed.`} />
-						<ConfirmationDialog show={showConfirmation} title="Confirmation"
-							message={`Are you sure you want to submit your responses?`}
-							onConfirm={handleSubmit}
-							onCancel={() => setShowConfirmation(false)} />
+			<ConfirmationDialog show={showConfirmation} title="Confirmation"
+				message={`Are you sure you want to submit your responses?`}
+				onConfirm={handleSubmit}
+				onCancel={() => setShowConfirmation(false)} />
 			<Row>
-				<h3>
-					Please answer the following questions.
-				</h3>
-				<p>Answers must be 50 words or more.</p>
+				<p className="mt-3" style={{fontWeight: "500"}}>
+					Please use this page to collect some notes for the essay that you will write
+					in the next step of the study. To help you write the essay, here are some guiding
+					prompts, and questions.
+				</p>
 			</Row>
 			<hr />
 			{PROMPTS && PROMPTS.length > 0 ? PROMPTS.map((prompt, idx) => (
-				<Row key={`prompt-row-${idx}`} style={{ textAlign: "left", padding: "0.5rem" }}>
+				<Row key={`prompt-row-${idx}`} style={{ textAlign: "left", padding: "0 0.5rem" }}>
 					{Parse(prompt.text)}
 					{/* <p>
 						Hint: Movie(s) you like that others dislike or you
 						dislike that others like.
 					</p> */}
 					<Form>
-						<Form.Group className="mb-3" controlId="uniquePreferences">
-							<Form.Control as="textarea" rows={4}
+						<Form.Group className="mb-1" controlId="uniquePreferences">
+							<Form.Control as="textarea" rows={idx === 2? 9 : 3}
 								disabled={dataSubmitted}
 								onChange={(e) =>
 									updateTextResponse(prompt.context_tag, e.target.value)}
@@ -147,7 +154,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 			))
 				: <></>
 			}
-			<Row>
+			<Row className="mt-1 p-3">
 				<Button variant={'ers'} size="lg" className="layout-footer-btn"
 					onClick={handleSubmit} disabled={submitButtonDisabled || loading || dataSubmitted}>
 					{!loading ? "Submit" : <LoadingText text={"Loading..."} />}
