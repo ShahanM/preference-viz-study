@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
+import { Row } from "react-bootstrap";
 
 export default function Header(props) {
 
@@ -7,11 +8,11 @@ export default function Header(props) {
 	const parsed = parse(clean);
 
 	return (
-		<div className="layout-header">
+		<Row className="layout-header">
 			<h1>{props.title}</h1>
 			<div className="layout-header-text">
 				{parsed}
 			</div>
-		</div>
+		</Row>
 	)
 }

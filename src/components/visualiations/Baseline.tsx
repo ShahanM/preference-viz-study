@@ -23,7 +23,7 @@ const Baseline: React.FC<VisualizationProps> = ({
 
 	console.log("Baseline data: ", data);
 	return (
-		<Row className="m-3 gap-1" style={{ maxHeight: "900px", overflowX: "scroll" }}>
+		<Row className="m-3 gap-1 overflow-x-auto" style={{ maxHeight: "900px"}}>
 			{[...data].map(([k, item]) =>
 				<div key={`{rec}-movies-${k}`} className="baseline-item-div d-flex shadow-sm p-1" onMouseOver={() => onHover(item.id)}>
 					<Image

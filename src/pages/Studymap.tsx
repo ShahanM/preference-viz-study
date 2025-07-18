@@ -50,9 +50,7 @@ const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row>
 				<Col>
 					<Card className="overviewCard">
@@ -87,9 +85,7 @@ const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 					</Card>
 				</Col>
 			</Row>
-			<Row>
-				<Footer callback={handleNextBtn} />
-			</Row>
+			<Footer callback={handleNextBtn} />
 		</Container>
 	)
 }

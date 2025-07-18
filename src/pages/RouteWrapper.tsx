@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import {
 	Navigate,
 	redirect,
@@ -13,12 +13,14 @@ import {
 	StudyStep,
 	useStudy
 } from 'rssa-api';
+import ConfirmationDialog from '../components/dialogs/ConfirmationDialog';
 import { participantState } from '../states/participantState';
 import { studyStepState } from '../states/studyState';
 import { urlCacheState } from '../states/urlCacheState';
 import '../styles/_custom-bootstrap.scss';
 import '../styles/App.css';
 import '../styles/components.css';
+import { clearStorage, isItemExists } from '../utils/localStorageUtils';
 import DemographicsPage from './demographicspage/DemographicsPage';
 import FeedbackPage from './feedbackpage/FeedbackPage';
 import FinalPage from './FinalPage';
@@ -40,6 +42,8 @@ const RouteWrapper: React.FC = () => {
 	const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 	const currentUrl: string = useRecoilValue(urlCacheState);
 
+	const [showStudyRestartDialog, setShowStudyRestartDialog] = useState<boolean>(false);
+
 	/*
 	 * UseEffect to set the participant ID in the study API.
 	 * Trigger conditions:
@@ -57,15 +61,33 @@ const RouteWrapper: React.FC = () => {
 	 *  - When the current URL on the browser does not match the current URL in the cached state.
 	 */
 	useEffect(() => {
-		if (currentUrl !== '/' && currentUrl !== location.pathname) {
+		if (isItemExists('lastUrl') && currentUrl !== '/' && location.pathname === '/') {
+			setShowStudyRestartDialog(true);
+		} else if (currentUrl !== '/' && currentUrl !== location.pathname) {
 			navigate(currentUrl);
 		}
 	}, [currentUrl, location.pathname, navigate]);
 
-
-
 	return (
 		<Suspense fallback={<div>Loading...</div>}> {/* FIXME: Make this a proper loader */}
+			{showStudyRestartDialog &&
+				<ConfirmationDialog
+					show={showStudyRestartDialog}
+					title="Study in progress"
+					message={"You already have a study in progress. Are you sure you want to restart?"}
+					cancelText={"Go back to my current progress"}
+					confirmText={"Restart study"}
+					onConfirm={() => {
+						setShowStudyRestartDialog(false);
+						clearStorage();
+						redirect('/');
+					}}
+					onCancel={() => {
+						setShowStudyRestartDialog(false);
+						navigate(currentUrl);
+					}}
+				/>
+			}
 			<Routes>
 				{(!studyStep) && <Route path="*" element={<Navigate to="/" replace />} />}
 				<Route path="/" element={<Welcome next="/studyoverview" />} />

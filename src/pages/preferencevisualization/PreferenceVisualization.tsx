@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+import { Col, Container, FormGroup, FormLabel, FormSelect, InputGroup, Row } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
@@ -48,7 +48,8 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 	// FIXME:
 	// Temporary state to get condition from URL for development testing
 	// NOTE: Condition 5 is Baseline in the test study, so we will get TopN
-	const [searchParams, setSearchParams] = useSearchParams();
+	// const [searchParams, setSearchParams] = useSearchParams();
+	const [selectedCondition, setSelectedCondition] = useState<number>(1);
 
 	const [prefItemDetails, setPrefItemDetails] =
 		useState<Map<string, PrefVizRecItemDetail>>(
@@ -71,8 +72,10 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 		}
 		setLoading(true);
 		let recType: 'baseline' | 'diverse' | 'reference' = "baseline";
-		switch (parseInt(searchParams.get('cond') || '1')) {
+		switch (selectedCondition) {
 			case 4:
+			case 52:
+			case 62:
 				recType = "baseline";
 				break;
 			case 1:
@@ -113,7 +116,7 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, searchParams, participant, studyStep, setPrefItemDetails, ratedMovies]);
+	}, [studyApi, selectedCondition, participant, studyStep, setPrefItemDetails, ratedMovies]);
 
 	useEffect(() => { getRecommendations(); }, [getRecommendations]);
 
@@ -149,11 +152,38 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 	}
 	return (
 		<Container className="prefviz" fluid={width < 2000}>
-			<Row>
-				<Header title={studyStep?.name}
-					content={studyStep?.description} />
+			<Header title={studyStep?.name} content={studyStep?.description} />
+			<Row className="mt-3 mb-3 ms-1 rounded w-25 p-3 bg-dark-subtle">
+				<InputGroup>
+					<InputGroup.Text id="experiment-condition-select">Experiment condition: </InputGroup.Text>
+					<FormSelect aria-label="Select a experiment condition to view"
+						aria-describedby="experiment-condition-select"
+						value={selectedCondition}
+						defaultValue={1}
+						onChange={(e) => { setSelectedCondition(parseInt(e.target.value)) }}
+					>
+						<optgroup label="Diverse N Recommendations">
+							<option value="1">Continuous Coupled</option>
+							<option value="2">Continuous Decoupled</option>
+							<option value="3">Discrete Decoupled</option>
+							<option value="5">Continuous Decoupled - Self</option>
+							<option value="6">Discrete Decoupled - Self</option>
+						</optgroup>
+						<optgroup label="Top N Recommendations">
+							<option value="4">Baseline</option>
+							<option value="52">Continuous Decoupled - Self</option>
+							<option value="62">Discrete Decoupled - Self</option>
+						</optgroup>
+						<optgroup label="Referenced N Recommendations">
+							<option value="11">Continuous Coupled</option>
+							<option value="21">Continuous Decoupled</option>
+							<option value="31">Discrete Decoupled</option>
+							<option value="51">Continuous Decoupled - Self</option>
+							<option value="61">Discrete Decoupled - Self</option>
+						</optgroup>
+					</FormSelect>
+				</InputGroup>
 			</Row>
-
 			<Row>
 				<Col xxxl={3} xxl={3} xl={2} md={3} className="me-0 pe-0">
 					<LeftPanel nextButtonDisabledCallback={setNextButtonDisabled} />
@@ -164,23 +194,17 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 						<LoadingScreen loading={loading}
 							message="Loading Recommendations" />
 						: <ConditionView
-							condition={parseInt(searchParams.get('cond') || '1')}
+							condition={selectedCondition}
 							prefItemDetails={prefItemDetails} />
 					}
 				</Col>
 				<Col xxxl={3} xxl={3} xl={2} md={3} className="ms-0 ps-0">
 					<RightPanel likeCuttoff={LIKE_CUTOFF}
-						showLikeDislikeByLine={[4, 5, 6].indexOf(parseInt(searchParams.get('cond') || '1')) === -1}
+						showLikeDislikeByLine={[4, 5, 6, 41, 51, 61].indexOf(selectedCondition) === -1}
 						dislikeCuttoff={DISLIKE_CUTOFF} />
 				</Col>
 			</Row>
-
-			<Row>
-				<Footer callback={handleNextBtn}
-					disabled={nextButtonDisabled}
-					text={"Next"}
-				/>
-			</Row>
+			<Footer callback={handleNextBtn} disabled={nextButtonDisabled} text={"Next"} />
 		</Container>
 	);
 }

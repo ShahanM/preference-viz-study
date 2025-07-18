@@ -93,6 +93,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 				/>
 			case 5:
 			case 51:
+			case 52:
 				return <ContinuousSelf
 					width={width}
 					height={height}
@@ -101,6 +102,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 					onHover={handleHover} />
 			case 6:
 			case 61:
+			case 62:
 				return <DiscreteSelf
 					width={width}
 					height={height}

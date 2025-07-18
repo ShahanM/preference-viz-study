@@ -41,9 +41,7 @@ const FinalPage: React.FC<FinalStudyPageProps> = ({
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row style={{ textAlign: "left" }}>
 				<p>
 					You should be automatically redirected back to the Prolific
@@ -60,9 +58,7 @@ const FinalPage: React.FC<FinalStudyPageProps> = ({
 					browser data/cache.
 				</p>
 			</Row>
-			<Row>
-				<Footer callback={handleNextBtn} text={"Done"} />
-			</Row>
+			<Footer callback={handleNextBtn} text={"Done"} />
 		</Container>
 	)
 }

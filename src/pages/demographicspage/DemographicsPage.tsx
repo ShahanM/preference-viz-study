@@ -199,10 +199,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({ next, }) => {
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name}
-					content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row className="demo-form">
 				<Form.Group className="mb-3" style={{ textAlign: "left" }}>
 					<Form.Label>What is your age?</Form.Label>
@@ -289,9 +286,7 @@ const DemographicsPage: React.FC<StudyPageProps> = ({ next, }) => {
 					</Button>
 				</Form.Group>
 			</Row>
-			<Row>
-				<Footer callback={handleNextBtn} loading={loading} disabled={nextButtonDisabled} />
-			</Row>
+			<Footer callback={handleNextBtn} loading={loading} disabled={nextButtonDisabled} />
 		</Container>
 	)
 }

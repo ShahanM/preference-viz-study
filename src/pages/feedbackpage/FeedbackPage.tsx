@@ -21,7 +21,7 @@ export type Feedback = {
 };
 
 
-const FeedbackPage: React.FC<StudyPageProps> = ({next,}) => {
+const FeedbackPage: React.FC<StudyPageProps> = ({ next, }) => {
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 	const setNextUrl = useSetRecoilState(urlCacheState);
@@ -109,9 +109,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({next,}) => {
 				title="Empty feedback" message="<p>You hardly wrote anything.</p><p>Are you sure you are done?</p>"
 				confirmText="Yes, I'm done"
 			/>}
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row className="feedback-body">
 				<Form>
 					<Form.Group className="mb-3" controlId="feedback">
@@ -131,9 +129,7 @@ const FeedbackPage: React.FC<StudyPageProps> = ({next,}) => {
 					</Button>
 				</Form>
 			</Row>
-			<Row>
-				<Footer callback={handleNextBtn} disabled={nextButtonDisabled} />
-			</Row>
+			<Footer callback={handleNextBtn} disabled={nextButtonDisabled} />
 		</Container>
 	);
 }

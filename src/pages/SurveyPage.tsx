@@ -276,9 +276,7 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row>
 				{surveyPage !== undefined &&
 					<SurveyTemplate
@@ -287,10 +285,7 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 						updateResponse={updateResponse} />
 				}
 			</Row>
-			<Row>
-				<Footer callback={handleSurveyNext}
-					text="Next" loading={isLoading} />
-			</Row>
+			<Footer callback={handleSurveyNext} text="Next" loading={isLoading} />
 		</Container>
 	)
 
