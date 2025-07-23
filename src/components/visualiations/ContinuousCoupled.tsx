@@ -5,6 +5,9 @@ import { VizDataProps, VisualizationProps } from "./VisualizationTypes.types";
 const posterWidth = 54;
 const posterHeight = 81;
 
+const X_AXIS_LABEL = "The system's predicted movie rating for you";
+const Y_AXIS_LABEL = "Ratings from everyone else in the system"
+
 const ContinuousCoupled: React.FC<VisualizationProps> = ({
 	width,
 	height,
@@ -61,7 +64,7 @@ const ContinuousCoupled: React.FC<VisualizationProps> = ({
 				.attr("transform", `translate(${innerWidth / 2}, ${innerHeight + margin.bottom - 10})`)
 				.style("text-anchor", "middle")
 				.style("font-weight", "bold")
-				.text("Everyone else's ratings");
+				.text(Y_AXIS_LABEL);
 
 			// Y-axis label
 			g.append("text")
@@ -71,7 +74,7 @@ const ContinuousCoupled: React.FC<VisualizationProps> = ({
 				.attr("dy", "1em")
 				.style("text-anchor", "middle")
 				.style("font-weight", "bold")
-				.text("My ratings");
+				.text(X_AXIS_LABEL);
 
 			// CSS for grid lines (add this to your CSS file or a <style> tag)
 			svg.append("style").text(`

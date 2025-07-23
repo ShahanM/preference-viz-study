@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { useEffect, useMemo, useRef } from "react";
-import { Row } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
 
@@ -54,11 +54,12 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 			myLikes: simNodeData.filter((d) =>
 				d.user_score >= likeCuttoff),
 			myDislikes: simNodeData.filter((d) =>
-				d.user_score < dislikeCuttoff),
-			commLikes: simNodeData.filter((d) =>
-				d.community_score >= likeCuttoff),
-			commDisikes: simNodeData.filter((d) =>
-				d.community_score < dislikeCuttoff)
+				d.user_score < dislikeCuttoff)
+			// ,
+			// commLikes: simNodeData.filter((d) =>
+			// 	d.community_score >= likeCuttoff),
+			// commDisikes: simNodeData.filter((d) =>
+			// 	d.community_score < dislikeCuttoff)
 		}
 	}, [simNodeData]);
 
@@ -171,32 +172,31 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 	};
 
 	return (
-		<Row style={{ margin: "2em", padding: "0.5em" }}>
-			<div className="discrete-viz-container"> {/* 2x3 Grid */}
-				<div className="row-2-col-1 discrete-viz-label-container">
-					Me
-				</div>
-				<div className="row-1-col-2 discrete-viz-label-container">
-					Likes
-				</div>
-				<div className="row-1-col-3 discrete-viz-label-container">
-					Dislikes
-				</div>
-				{/* Content Boxes */}
-				<div className="row-2-col-2 discrete-viz-content-box">
-					{/* Canvas 1: My Likes */}
-					<svg ref={setSvgRef(0)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-				<div className="row-2-col-3 discrete-viz-content-box">
-					{/* Canvas 2: My Dislikes */}
-					<svg ref={setSvgRef(1)}
-						width={width / 2}
-						height={height / 2}></svg>
-				</div>
-			</div>
-		</Row>
+			<Row className="mt-3 centered-content p-3">
+				<Row className="gap-3">
+					<Col className="border rounded">
+						<svg ref={setSvgRef(1)}
+							width={width / 2}
+							height={height / 2}></svg>
+					</Col>
+					<Col className="border rounded">
+						<svg ref={setSvgRef(0)}
+							width={width / 2}
+							height={height / 2}></svg>
+					</Col>
+				</Row>
+				<Row className="mt-lg-3">
+					<Col>
+						Dislikes
+					</Col>
+					<Col>
+						Likes
+					</Col>
+				</Row>
+				<Row>
+					<p className="fw-medium">The system's predicted movie rating for you</p>
+				</Row>
+			</Row>
 	);
 }
 

@@ -6,8 +6,11 @@ import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
 const posterWidth = 54;
 const posterHeight = 81;
 
-const margin = { top: 20, right: 20, bottom: 40, left: 40 }; // Define margins
+const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
+
+const X_AXIS_LABEL_ONE = "The system's predicted movie rating for you";
+const X_AXIS_LABEL_TWO = "Ratings from everyone else in the system"
 
 const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 	width,
@@ -17,8 +20,6 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 	yCol,
 	onHover
 }) => {
-	// const svgRef = useRef<SVGSVGElement>(null);
-
 	const svgHeight = height / 4;
 	const innerWidth = width - margin.left - margin.right;
 	const innerHeight = svgHeight - margin.top - margin.bottom;
@@ -157,7 +158,7 @@ const ContinuousDecoupled: React.FC<VisualizationProps> = ({
 		if (currentSvgRefs.length === dataArrays.length) {
 			currentSvgRefs.forEach((svgRef, i) => {
 				const ctxData = dataArrays[i];
-				const label = i === 0 ? "My Ratings" : "Everyone else's Ratings";
+				const label = i === 0 ? X_AXIS_LABEL_ONE : X_AXIS_LABEL_TWO;
 				renderViz(svgRef, ctxData, label);
 			});
 

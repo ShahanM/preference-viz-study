@@ -1,4 +1,4 @@
-import { Image } from "react-bootstrap";
+import { Image, Row } from "react-bootstrap";
 import { VisualizationProps } from "./VisualizationTypes.types";
 
 const posterWidth = 81;
@@ -23,24 +23,22 @@ const Baseline: React.FC<VisualizationProps> = ({
 
 	console.log("Baseline data: ", data);
 	return (
-		<div>
-			<p>Baseline</p>
-			<div style={gridStyle}>
-				{[...data].map(([k, item]) =>
-					<div key={`{rec}-movies-${k}`} className="baseline-item-div">
-						<Image
-							className="baseline-image"
-							src={item.poster}
-							alt={item.title}
-							onMouseOver={() => onHover(item.id)}
-						/>
-						<p>{item.title}</p>
-					</div>
+		<Row className="m-3 gap-1 overflow-x-auto" style={{ maxHeight: "900px"}}>
+			{[...data].map(([k, item]) =>
+				<div key={`{rec}-movies-${k}`} className="baseline-item-div d-flex shadow-sm p-1" onMouseOver={() => onHover(item.id)}>
+					<Image
+						className="baseline-image"
+						src={item.poster}
+						height={posterHeight}
+						alt={item.title}
+
+					/>
+					<p className="fw-medium ms-3">{item.title}</p>
+				</div>
 
 
-				)}
-			</div>
-		</div>
+			)}
+		</Row>
 	)
 }
 

@@ -4,8 +4,8 @@
 
 .discrete-viz-container {
 	display: grid;
-	grid-template-columns: repeat(auto, 2, 1fr);
-	grid-template-rows: repeat(auto, 2, 1fr);
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-rows: repeat(1, 2, 1fr);
 }
 
 .discrete-viz-container:first-child:not(last-child) {

@@ -67,10 +67,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
 
 	return (
 		<Container>
-			<Row>
-				<Header title="Welcome"
-					content="Welcome to the study on movie recommendation." />
-			</Row>
+			<Header title="Welcome" content="Welcome to the study on movie recommendation." />
 
 			<Row>
 				<Card bg="light">
@@ -110,10 +107,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
 				consentCallback={consentCallbackHandler}
 				onClose={setShowInformedConsent}
 			/>
-			<Row>
-				<Footer callback={showInformedConsent} text={"Get Started"}
-					disabled={!studyStep} />
-			</Row>
+			<Footer callback={showInformedConsent} text={"Get Started"} disabled={!studyStep} />
 		</Container>
 	)
 }

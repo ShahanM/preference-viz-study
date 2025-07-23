@@ -31,7 +31,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 	const [buttonDisabled, setButtonDisabled] = useState(true);
 	const [loading, setLoading] = useState(false);
 	// const [ratedMovies, setRatedMovies] = useState<MovieRating[]>([]);
-	
+
 	const handleRating = useCallback((movieRating: MovieRating) => {
 		if (!movieRating || !movieRating.id || !movieRating.movielens_id || movieRating.rating === undefined) {
 			console.error("Invalid movie rating data:", movieRating);
@@ -70,9 +70,10 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
 			setNextUrl(next);
-			localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
+			// localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
 
-			navigate(next, { state: { ratedMovies: ratedMovies } });
+			// navigate(next, { state: { ratedMovies: ratedMovies } });
+			navigate(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		} finally {
@@ -90,9 +91,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
+			<Header title={studyStep?.name} content={studyStep?.description} />
 			<Row>
 				<MovieGrid
 					dataCallback={handleRating}
@@ -100,9 +99,8 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 			</Row>
 			<Row>
 				<RankHolder max={minRatingCount} />
-				<Footer callback={handleNextBtn} disabled={buttonDisabled}
-					loading={loading} />
 			</Row>
+			<Footer callback={handleNextBtn} disabled={buttonDisabled} loading={loading} />
 		</Container>
 	);
 }
@@ -114,7 +112,7 @@ interface RankHolderProps {
 
 const RankHolder: React.FC<RankHolderProps> = ({ max }) => {
 	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);
-	
+
 	return (
 		<div className="rankHolder">
 			<span>Rated Movies: </span>
