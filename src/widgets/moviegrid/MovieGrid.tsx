@@ -11,7 +11,7 @@ import { movieCacheState } from '../../states/movieCacheState';
 import { RETRY_DELAYS_MS } from '../../utils/constants';
 import './MovieGrid.css';
 import MovieGridItem from './moviegriditem/MovieGridItem';
-import { Movie, MovieRating } from './moviegriditem/MovieGridItem.types';
+import { Movie } from './moviegriditem/MovieGridItem.types';
 
 interface MovieGridProps {
 	itemsPerPage: number;
@@ -26,7 +26,6 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	const { studyApi } = useStudy();
 
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [movieRatingsLookup, setMovieRatingsLookup] = useState<Map<string, MovieRating>>(new Map());
 	const [movieMap, setMovieMap] = useRecoilState(movieCacheState);
 
 	const [isLoadingMovies, setIsLoadingMovies] = useState<boolean>(false);
@@ -142,18 +141,8 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 			rating: newRating
 		}
 
-		setMovieRatingsLookup(prevRatedMovies => {
-			const newRatedMovies = new Map<string, MovieRating>(prevRatedMovies);
-			newRatedMovies.set(movieid, newRatingObj);
-			return newRatedMovies;
-		});
-
 		dataCallback(newRatingObj);
 	}, [movieMap, dataCallback, setMovieMap]);
-
-	useEffect(() => {
-		dataCallback([...movieRatingsLookup.values()]);
-	}, [movieRatingsLookup, dataCallback]);
 
 	const visibleMovies = useMemo(() => {
 		return [...movieMap.values()].slice(
@@ -163,7 +152,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 	}, [movieMap, currentPage, itemsPerPage]);
 	const hasContentOnCurrentPage = visibleMovies.length > 0;
 	return (
-		<Container className="gallery">
+		<Container className="gallery rounded pt-3 pb-3">
 			<Row>
 				<div className="grid-container">
 					{isLoadingMovies && !hasContentOnCurrentPage ? (
@@ -181,7 +170,7 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 						</div>
 					) : (
 						hasContentOnCurrentPage ? (
-							<ul>
+							<ul className="ps-0">
 								{visibleMovies.map(currentMovie => (
 									<MovieGridItem key={"TN_" + currentMovie.id}
 										movieItem={currentMovie}

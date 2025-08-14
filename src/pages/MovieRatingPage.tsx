@@ -1,36 +1,31 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import { useNavigate } from 'react-router-dom';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { CurrentStep, Participant, StudyStep, useStudy } from 'rssa-api';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import { participantState } from '../states/participantState';
+import { ratedMoviesState } from '../states/ratedMovieState';
 import { studyStepState } from '../states/studyState';
-import { urlCacheState } from '../states/urlCacheState';
 import MovieGrid from '../widgets/moviegrid/MovieGrid';
 import { MovieRating } from '../widgets/moviegrid/moviegriditem/MovieGridItem.types';
 import { StudyPageProps } from './StudyPage.types';
-import { ratedMoviesState } from '../states/ratedMovieState';
 
 
-const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
+const MovieRatingPage: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 	const itemsPerPage = 24;
 	const minRatingCount = 10;
 
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const [ratedMovies, setRatedMovies] = useRecoilState(ratedMoviesState);
 
 	const { studyApi } = useStudy();
-	const navigate = useNavigate();
 
 	const [buttonDisabled, setButtonDisabled] = useState(true);
 	const [loading, setLoading] = useState(false);
-	// const [ratedMovies, setRatedMovies] = useState<MovieRating[]>([]);
 
 	const handleRating = useCallback((movieRating: MovieRating) => {
 		if (!movieRating || !movieRating.id || !movieRating.movielens_id || movieRating.rating === undefined) {
@@ -69,17 +64,13 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
-			// localStorage.setItem('ratedMoviesData', JSON.stringify(ratedMovies));
-
-			// navigate(next, { state: { ratedMovies: ratedMovies } });
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, participant, studyStep, next, ratedMovies, minRatingCount, navigate, setStudyStep, setParticipant, setNextUrl]);
+	}, [studyApi, participant, studyStep, next, ratedMovies, minRatingCount, setStudyStep, setParticipant, navigateToNextStep]);
 
 	useEffect(() => {
 		setButtonDisabled(ratedMovies.size < minRatingCount || !participant || !studyStep);
@@ -105,10 +96,7 @@ const MovieRatingPage: React.FC<StudyPageProps> = ({ next, }) => {
 	);
 }
 
-interface RankHolderProps {
-	max: number;
-}
-
+interface RankHolderProps { max: number; }
 
 const RankHolder: React.FC<RankHolderProps> = ({ max }) => {
 	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);

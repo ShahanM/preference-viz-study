@@ -44,7 +44,6 @@ const ConditionView: React.FC<ConditionViewProps> = ({
 				setWidth(1000);
 				setHeight(1000);
 			}
-			console.log("window width", windowWidth);
 		}
 		window.addEventListener('resize', handleResize);
 		handleResize();

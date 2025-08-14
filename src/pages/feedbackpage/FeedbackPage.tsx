@@ -21,7 +21,7 @@ export type Feedback = {
 };
 
 
-const FeedbackPage: React.FC<StudyPageProps> = ({ next, }) => {
+const FeedbackPage: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 	const setNextUrl = useSetRecoilState(urlCacheState);
@@ -92,15 +92,14 @@ const FeedbackPage: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error fetching next step:", error);
 			// Handle error, e.g., show a message to the user
 		} finally {
 			setLoading(false);
 		}
-	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
+	}, [studyApi, participant, next, studyStep, setStudyStep, navigateToNextStep, setParticipant]);
 
 
 	return (

@@ -1,25 +1,21 @@
 import { useCallback } from "react";
 import { Container, Row } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { participantState } from "../states/participantState";
 import { studyStepState } from "../states/studyState";
-import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
 
-const ScenarioPage: React.FC<StudyPageProps> = ({ next, }) => {
+const ScenarioPage: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
-	const navigate = useNavigate();
 
 	const handleNextBtn = useCallback(async () => {
 		if (!participant || !studyStep) {
@@ -38,19 +34,16 @@ const ScenarioPage: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		}
-	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
+	}, [studyApi, participant, next, studyStep, setStudyStep, setParticipant, navigateToNextStep]);
 
 	return (
 		<Container>
-			<Row>
-				<Header title={studyStep?.name} content={studyStep?.description} />
-			</Row>
-			<Row style={{ textAlign: "left" }}>
+			<Header title={studyStep?.name} content={studyStep?.description} />
+			<Row className="text-start">
 				<h3>Your task</h3>
 				<p>
 					Imagine you are in a movie critiquing class. One of your
@@ -59,12 +52,7 @@ const ScenarioPage: React.FC<StudyPageProps> = ({ next, }) => {
 					learned through reflecting on your movie preferences.
 					The task of this study is to write personal reflection
 					notes to help you write the essay. You will use a
-					<span
-						style={{
-							fontWeight: "bold",
-							marginLeft: "0.3rem",
-							marginRight: "0.3rem"
-						}}>
+					<span className="ms-1 me-1 fw-bold">
 						“preference visualization system”
 					</span>
 					to help you reflect on
@@ -95,10 +83,8 @@ const ScenarioPage: React.FC<StudyPageProps> = ({ next, }) => {
 				</p>
 
 			</Row>
-			<Row>
-				<Footer callback={handleNextBtn} disabled={false}
-					text="I read and understood the scenario." />
-			</Row>
+			<Footer callback={handleNextBtn} disabled={false}
+				text="I read and understood the scenario." />
 		</Container>
 	)
 }

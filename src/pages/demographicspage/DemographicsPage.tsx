@@ -70,7 +70,7 @@ export type Demographic = {
 	state_region: string;
 };
 
-const DemographicsPage: React.FC<StudyPageProps> = ({ next, }) => {
+const DemographicsPage: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
@@ -189,13 +189,12 @@ const DemographicsPage: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error fetching next step:", error);
 			// Handle error, e.g., show a message to the user
 		}
-	}, [studyApi, participant, next, navigate, studyStep, setStudyStep, setParticipant, setNextUrl]);
+	}, [studyApi, participant, next, studyStep, setStudyStep, setParticipant, navigateToNextStep]);
 
 	return (
 		<Container>

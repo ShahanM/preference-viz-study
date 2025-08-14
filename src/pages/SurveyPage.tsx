@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import { useNavigate } from "react-router-dom";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import SurveyTemplate, { SurveyConstruct } from "../layouts/templates/SurveyTemplate";
 import { participantState } from "../states/participantState";
 import { studyStepState } from "../states/studyState";
-import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
@@ -38,7 +36,7 @@ type SurveyPage = {
 	last_page: boolean;
 }
 
-const Survey: React.FC<StudyPageProps> = ({ next, }) => {
+const Survey: React.FC<StudyPageProps> = ({ next, navigateToNextStep}) => {
 
 	const [surveyPage, setSurveyPage] = useState<SurveyPage>();
 	const [validationFlags, setValidationFlags] = useState<Map<string, boolean>>(new Map<string, boolean>());
@@ -49,10 +47,8 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const { studyApi } = useStudy();
-	const navigate = useNavigate();
 
 	const initializeSurveyResponse = useCallback((surveyConstructs: SurveyConstruct[]) => {
 		if (!surveyConstructs || surveyConstructs.length === 0) {
@@ -202,7 +198,7 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 			});
 	}, [initializeSurveyResponse, studyApi, studyStep, surveyPage]);
 
-	const navigateToNextStep = useCallback(async () => {
+	const handleNavigation = useCallback(async () => {
 		if (!participant || !studyStep) {
 			console.warn("Participant or study step is undefined in navigateToNextStep.");
 			return;
@@ -220,15 +216,13 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
-
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error getting next step:", error);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [studyApi, participant, next, navigate, setStudyStep, setParticipant, setNextUrl, studyStep]);
+	}, [studyApi, participant, next, setStudyStep, setParticipant, studyStep, navigateToNextStep]);
 
 
 	const dispatchSurveyResponseRequest = useCallback(async () => {
@@ -261,8 +255,8 @@ const Survey: React.FC<StudyPageProps> = ({ next, }) => {
 		}
 
 		dispatchSurveyResponseRequest();
-		surveyPage.last_page ? navigateToNextStep() : fetchNextSurveyPage();
-	}, [surveyPage, fetchNextSurveyPage, validateSurveyResponse, navigateToNextStep, dispatchSurveyResponseRequest]);
+		surveyPage.last_page ? handleNavigation() : fetchNextSurveyPage();
+	}, [surveyPage, fetchNextSurveyPage, validateSurveyResponse, handleNavigation, dispatchSurveyResponseRequest]);
 
 	const handleSurveyNext = useCallback(() => { submitResponse(); }, [submitResponse]);
 
