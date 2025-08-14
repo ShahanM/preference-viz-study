@@ -12,7 +12,6 @@ export const participantState = atom<Participant | null>({
 			const storedData: Participant | null = getItem('participant');
 			if (storedData) {
 				try {
-					// const parsedData: Participant = JSON.parse(storedData);
 					setSelf(storedData);
 				} catch (e) {
 					console.error("Error parsing participant data from localStorage, clearing data:", e);

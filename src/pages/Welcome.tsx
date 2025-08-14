@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep, NewParticipant, Participant, StudyStep,
@@ -13,17 +12,14 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 import { participantState } from '../states/participantState';
 import { studyStepState } from '../states/studyState';
-import { urlCacheState } from '../states/urlCacheState';
-import { InitStudyPageProps } from './StudyPage.types';
+import { StudyPageProps } from './StudyPage.types';
 
 
-const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
+const Welcome: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 
 	const { studyApi } = useStudy();
-	const navigate = useNavigate();
 
 	const setParticipant = useSetRecoilState(participantState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 
 	const [show, setShowInformedConsent] = useState<boolean>(false);
@@ -54,9 +50,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
 
 				setParticipant(newParticipant);
 				setStudyStep(nextStep);
-				setNextUrl(next);
-
-				navigate(next);
+				navigateToNextStep(next);
 
 			} catch (error) {
 				console.error("Error creating participant or updating step", error);
@@ -67,8 +61,7 @@ const Welcome: React.FC<InitStudyPageProps> = ({ next }) => {
 
 	return (
 		<Container>
-			<Header title="Welcome" content="Welcome to the study on movie recommendation." />
-
+			{/* <Header title="Welcome" content="Welcome to the study on movie recommendation." /> */}
 			<Row>
 				<Card bg="light">
 					<Card.Body className="instructionblurb">

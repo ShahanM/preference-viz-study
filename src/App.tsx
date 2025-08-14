@@ -33,7 +33,13 @@ function App() {
 	 * 	- On component mount but sets a listener on window resize.
 	 */
 	useEffect(() => {
-		const handleResize = () => { setShowWarning(window.innerWidth < 1200); }
+		const handleResize = () => {
+			if (window.innerWidth < 1200) {
+				setShowWarning(true);
+			} else if (window.innerWidth >= 1200) {
+				setShowWarning(false);
+			}
+		}
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);

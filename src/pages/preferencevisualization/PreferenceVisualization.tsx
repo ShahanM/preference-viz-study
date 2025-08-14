@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Col, Container, FormGroup, FormLabel, FormSelect, InputGroup, Row } from "react-bootstrap";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Col, Container, FormSelect, InputGroup, Row } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
 	CurrentStep,
@@ -19,10 +19,10 @@ import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
 import LeftPanel from "../../widgets/leftpanel/LeftPanel";
 import { MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
 import RightPanel from "../../widgets/rightpanel/RightPanel";
-import { StudyPageProps } from "../StudyPage.types";
 import ConditionView from "./ConditionView";
 import "./PreferenceVisualization.css";
 import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
+import { StudyPageProps } from "../StudyPage.types";
 
 
 type PrefVizRequestObject = {
@@ -33,7 +33,7 @@ type PrefVizRequestObject = {
 };
 
 
-const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
+const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, navigateToNextStep}) => {
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
 	const setNextUrl = useSetRecoilState(urlCacheState);
@@ -48,7 +48,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 	// FIXME:
 	// Temporary state to get condition from URL for development testing
 	// NOTE: Condition 5 is Baseline in the test study, so we will get TopN
-	// const [searchParams, setSearchParams] = useSearchParams();
 	const [selectedCondition, setSelectedCondition] = useState<number>(1);
 
 	const [prefItemDetails, setPrefItemDetails] =
@@ -159,7 +158,6 @@ const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, }) => {
 					<FormSelect aria-label="Select a experiment condition to view"
 						aria-describedby="experiment-condition-select"
 						value={selectedCondition}
-						defaultValue={1}
 						onChange={(e) => { setSelectedCondition(parseInt(e.target.value)) }}
 					>
 						<optgroup label="Diverse N Recommendations">

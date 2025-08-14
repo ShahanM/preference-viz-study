@@ -1,8 +1,8 @@
+import { memo } from 'react';
 import { Image } from 'react-bootstrap';
 import StarRatings from 'react-star-ratings';
 import './MovieGridItem.css';
 import { MovieGridItemProps } from './MovieGridItem.types';
-import React, { memo } from 'react';
 
 
 const defaultPoster = require('../../../res/default_movie_icon.svg') as string;
@@ -20,7 +20,7 @@ const MovieGridItem = memo(({
 	return (
 		<li id={"TN_" + movieItem.id}
 			className={"grid-item"}>
-			<Image className="grid-item-image" height="200px" width="140px"
+			<Image className="grid-item-image rounded" height="200px" width="140px"
 				src={movieItem.poster}
 				alt={movieItem.title}
 				onError={(evt) => {

@@ -1,14 +1,14 @@
 import { atom } from 'recoil';
-import { StudyStep } from 'rssa-api';
+import { StudyStepType } from 'rssa-api';
 import { setItem, removeItem, getItem } from '../utils/localStorageUtils';
 
-export const studyStepState = atom<StudyStep | null>({
+export const studyStepState = atom<StudyStepType | null>({
 	key: 'studyStepState',
 	default: null,
 
 	effects: [
 		({ setSelf, onSet }) => {
-			const storedData: StudyStep = getItem('studyStep');
+			const storedData: StudyStepType = getItem('studyStep');
 			if (storedData) {
 				try {
 					// const parsedData: StudyStep = JSON.parse(storedData);

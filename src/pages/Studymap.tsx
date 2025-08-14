@@ -1,19 +1,16 @@
 import { Card, Col, Container, Image, Row } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { CurrentStep, Participant, StudyStep, useStudy } from "rssa-api";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { participantState } from "../states/participantState";
 import { studyStepState } from "../states/studyState";
-import { urlCacheState } from "../states/urlCacheState";
 import { StudyPageProps } from "./StudyPage.types";
 
 
-const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
+const StudyMap: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
 
 	const { studyApi } = useStudy();
-	const navigate = useNavigate();
 
 	const rspref = require("../res/rate-prefs.png");
 	const presurvey = require("../res/pre-survey.png");
@@ -22,7 +19,6 @@ const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 
 	const [participant, setParticipant] = useRecoilState(participantState);
 	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
 
 	const handleNextBtn = async () => {
 		if (!participant || !studyStep) {
@@ -40,9 +36,8 @@ const StudyMap: React.FC<StudyPageProps> = ({ next, }) => {
 			};
 			await studyApi.put('participants/', updatedParticipant);
 			setParticipant(updatedParticipant);
-			setNextUrl(next);
 
-			navigate(next);
+			navigateToNextStep(next);
 		} catch (error) {
 			console.error("Error getting next to updating study progress", error);
 		}

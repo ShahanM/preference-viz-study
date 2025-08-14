@@ -21,7 +21,7 @@
     "react-shepherd": "^4.3.0",
     "react-star-ratings": "^2.3.0",
     "recoil": "^0.7.7",
-    "rssa-api": "github:ShahanM/react-rssa-api",
+    "rssa-api": "github:RSSA-Project/react-rssa-api",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

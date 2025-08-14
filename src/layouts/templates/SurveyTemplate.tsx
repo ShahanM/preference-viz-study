@@ -15,7 +15,8 @@ type SurveyConstructItem = {
 export type SurveyConstructScaleLevel = {
 	id: string;
 	label: string;
-	level: number;
+	value: number;
+	order_position: number;
 }
 
 export type SurveyConstruct = {
