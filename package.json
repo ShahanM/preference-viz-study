@@ -36,7 +36,7 @@
       "react-app/jest"
     ]
   },
-  "homepage": "https://rssa.recsys.dev/preference-visualization",
+  "homepage": "/preference-visualization/",
   "browserslist": {
     "production": [
       ">0.2%",

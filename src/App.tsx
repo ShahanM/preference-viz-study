@@ -124,7 +124,7 @@ function App() {
 						</ToastContainer>
 				)
 				}
-				<Router basename='/preference-visualization'>
+				<Router basename='/preference-visualization/'>
 					<RouteWrapper />
 				</Router>
 			</div>
