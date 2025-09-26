@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { useEffect, useMemo, useRef } from "react";
-import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
+import type { DataAugmentedItem, PreferenceVizComponentProps } from '../../types/preferenceVisualization.types';
 
 
 const posterWidth = 54;
@@ -11,7 +11,7 @@ const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.sv
 
 const X_AXIS_LABEL = "The system's predicted movie rating for you";
 
-const ContinuousSelf: React.FC<VisualizationProps> = ({
+const ContinuousSelf: React.FC<PreferenceVizComponentProps> = ({
 	width,
 	height,
 	data,
@@ -22,27 +22,23 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 	const svgHeight = height / 4;
 	const innerWidth = width - margin.left - margin.right;
 	const innerHeight = svgHeight - margin.top - margin.bottom;
-	
-	const svgRef = useRef<SVGSVGElement>();
-	const simNodeData = useMemo(() => {
-		const myPrefOrder: VizDataProps[] = [];
-		if (data) {
-			for (const d of data.values()) {
-				myPrefOrder.push({
+
+	const svgRef = useRef<SVGSVGElement>(null);
+	const simNodeData = useMemo(
+		() =>
+			data
+				? Object.values(data).map((d) => ({
 					...d,
 					x: d.user_score,
 					y: innerHeight / 2
-				})
-			}
-		}
-		return myPrefOrder;
-	}, [data, innerHeight]);
+				})) : []
+		, [data, innerHeight]);
 
 	useEffect(() => {
 		if (!simNodeData) return;
 		const currentSvgRef = svgRef.current;
 
-		function renderViz(svgRef: SVGSVGElement, ctxData: VizDataProps[], label: string) {
+		function renderViz(svgRef: SVGSVGElement, ctxData: DataAugmentedItem[], label: string) {
 
 			const xScale = d3.scaleLinear().domain([0, 5]).range([0, innerWidth]);
 			const yScale = d3.scaleLinear().domain([0, 5]).range([innerHeight, 0]); // Note: range is inverted for y-axis
@@ -85,12 +81,12 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 			`);
 
 			// Images
-			g.selectAll<SVGImageElement, VizDataProps>("image")
+			g.selectAll<SVGImageElement, DataAugmentedItem>("image")
 				.data(ctxData)
 				.enter().append("image")
 				.attr("data-id", (d) => d.id)
 				.attr("xlink:href", defaultImage)
-				.each(function (d: VizDataProps) { // Use .each for individual element handling
+				.each(function (d: DataAugmentedItem) { // Use .each for individual element handling
 					const image = d3.select(this);
 					const img = new Image();
 					img.src = d.poster;
@@ -102,14 +98,14 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 				.attr("width", posterWidth)
 				.attr("height", posterHeight)
 				.attr("preserveAspectRatio", "xMinYMin slice")
-				.on("mouseover", (event, d: VizDataProps) => {
+				.on("mouseover", (event, d: DataAugmentedItem) => {
 					d3.selectAll("image")
 						.filter(function () {
 							return d3.select(this).attr("data-id") === d.id;
 						})
 						.style("cursor", "pointer")
 						.raise()
-						.attr("x", (d) => xScale((d as VizDataProps).x!) - posterWidth / 2)
+						.attr("x", (d) => xScale((d as DataAugmentedItem).x!) - posterWidth / 2)
 						.attr("y", innerHeight / 2 - posterHeight)
 						.attr("width", posterWidth * 2) // Increase width by 20%
 						.attr("height", posterHeight * 2)
@@ -119,12 +115,12 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 						onHover(d.id); // Call the onHover callback
 					}
 				})
-				.on("mouseout", (event, d: VizDataProps) => {
+				.on("mouseout", (event, d: DataAugmentedItem) => {
 					d3.selectAll("image")
 						.filter(function () {
 							return d3.select(this).attr("data-id") === d.id;
 						})
-						.attr("x", (d) => xScale((d as VizDataProps).x!) - posterWidth / 2)
+						.attr("x", (d) => xScale((d as DataAugmentedItem).x!) - posterWidth / 2)
 						.attr("y", innerHeight / 2)
 						.attr("width", posterWidth) // Reset to original width
 						.attr("height", posterHeight) // Reset to original height
@@ -142,7 +138,7 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 				.text(label);
 		}
 
-		if(currentSvgRef) {
+		if (currentSvgRef) {
 			const ctxData = simNodeData
 			const label = X_AXIS_LABEL;
 			renderViz(currentSvgRef, ctxData, label);
@@ -154,7 +150,7 @@ const ContinuousSelf: React.FC<VisualizationProps> = ({
 	};
 
 	return (
-		<div style={{marginTop: "9vh"}}>
+		<div style={{ marginTop: "9vh" }}>
 			<svg ref={setSvgRef()} width={width} height={height / 2}></svg>
 		</div>
 	);

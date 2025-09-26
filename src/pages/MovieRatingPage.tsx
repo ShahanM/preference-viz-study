@@ -1,113 +1,96 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { CurrentStep, Participant, StudyStep, useStudy } from 'rssa-api';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
-import { participantState } from '../states/participantState';
-import { ratedMoviesState } from '../states/ratedMovieState';
-import { studyStepState } from '../states/studyState';
-import MovieGrid from '../widgets/moviegrid/MovieGrid';
-import { MovieRating } from '../widgets/moviegrid/moviegriditem/MovieGridItem.types';
-import { StudyPageProps } from './StudyPage.types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import clsx from 'clsx';
+import React, { useCallback } from 'react';
+import { useStudy } from 'rssa-api';
+import MovieCard from '../components/moviegallery/MovieCard';
+import PaginatedResourceViewer from '../components/PaginatedDataViewer';
+import { useStepCompletion } from '../hooks/useStepCompletion';
+import type { MovieDetails, RatedItem } from '../types/rssa.types';
 
+const MovieRatingPage: React.FC = () => {
+    const itemsPerPage = 18;
+    const minRatingCount = 10;
 
-const MovieRatingPage: React.FC<StudyPageProps> = ({ next, navigateToNextStep }) => {
-	const itemsPerPage = 24;
-	const minRatingCount = 10;
+    const { studyApi } = useStudy();
+    const { setIsStepComplete } = useStepCompletion();
 
-	const [participant, setParticipant] = useRecoilState(participantState);
-	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
+    const queryClient = useQueryClient();
 
-	const [ratedMovies, setRatedMovies] = useRecoilState(ratedMoviesState);
+    const { data: ratedMovies, isLoading } = useQuery({
+        queryKey: ['movieRatings'],
+        queryFn: async () => await studyApi.get<RatedItem[]>(`responses/ratings`),
+        enabled: !!studyApi,
+    });
 
-	const { studyApi } = useStudy();
+    const handleRating = useCallback(
+        (ratedItem: RatedItem) => {
+            queryClient.setQueryData<RatedItem[]>(['movieRatings'], (oldData: RatedItem[] | undefined) => {
+                const existingRatings = oldData || [];
+                const existingItemIndex = existingRatings.findIndex((item) => item.item_id === ratedItem.item_id);
+                if (existingItemIndex > -1) {
+                    return existingRatings.map((item, index) => (index === existingItemIndex ? ratedItem : item));
+                }
+                return [...existingRatings, ratedItem];
+            });
+        },
+        [queryClient]
+    );
+    const ratedCount = ratedMovies?.length ?? 0;
 
-	const [buttonDisabled, setButtonDisabled] = useState(true);
-	const [loading, setLoading] = useState(false);
+    if (ratedCount >= 10) setIsStepComplete(true);
 
-	const handleRating = useCallback((movieRating: MovieRating) => {
-		if (!movieRating || !movieRating.id || !movieRating.movielens_id || movieRating.rating === undefined) {
-			console.error("Invalid movie rating data:", movieRating);
-			return;
-		}
-		setRatedMovies(prev => {
-			const newRatedMovies = new Map(prev);
-			newRatedMovies.set(movieRating.id, movieRating);
-			return newRatedMovies;
-		});
-	}, [setRatedMovies]);
+    return (
+        <div className="text-gray-900">
+            <div className="md:w-360 mx-auto p-3 bg-gray-300 rounded-3">
+                <PaginatedResourceViewer<MovieDetails> apiResourceTag="movies" limit={itemsPerPage}>
+                    {(movies, _, handleItemClick) => (
+                        <div className={clsx('grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3')}>
+                            {movies.length > 0 ? (
+                                movies.map((movie) => {
+                                    const ratedMovie = ratedMovies?.find(
+                                        (rated: RatedItem) => rated.item_id === movie.id
+                                    );
+                                    return (
+                                        <MovieCard
+                                            key={movie.id}
+                                            movie={movie}
+                                            userRating={ratedMovie ? ratedMovie.rating : 0}
+                                            onClick={() => handleItemClick(movie)}
+                                            onRated={handleRating}
+                                        />
+                                    );
+                                })
+                            ) : (
+                                <p>No movies found for this page.</p>
+                            )}
+                        </div>
+                    )}
+                </PaginatedResourceViewer>
+            </div>
+            <div className="p-3">
+                <RankHolder count={ratedCount} max={minRatingCount} />
+            </div>
+        </div>
+    );
+};
 
-	const handleNextBtn = useCallback(async () => {
-		if (!participant || !studyStep) {
-			console.error("Participant or study step is not defined.");
-			return;
-		}
-		if (ratedMovies.size < minRatingCount) {
-			console.warn(`Please rate at least ${minRatingCount} movies.`);
-			// TODO: Show a toast or alert to inform the user
-			return;
-		}
-
-		setLoading(true);
-		setButtonDisabled(true);
-
-		try {
-			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
-				current_step_id: participant.current_step
-			});
-			setStudyStep(nextStep);
-			const updatedParticipant: Participant = {
-				...participant,
-				current_step: nextStep.id,
-			};
-			await studyApi.put('participants/', updatedParticipant);
-			setParticipant(updatedParticipant);
-			navigateToNextStep(next);
-		} catch (error) {
-			console.error("Error getting next step:", error);
-		} finally {
-			setLoading(false);
-		}
-	}, [studyApi, participant, studyStep, next, ratedMovies, minRatingCount, setStudyStep, setParticipant, navigateToNextStep]);
-
-	useEffect(() => {
-		setButtonDisabled(ratedMovies.size < minRatingCount || !participant || !studyStep);
-	}, [ratedMovies, minRatingCount, participant, studyStep]);
-
-	if (!participant || !studyStep) {
-		return <div>Loading study data...</div>;
-	}
-
-	return (
-		<Container>
-			<Header title={studyStep?.name} content={studyStep?.description} />
-			<Row>
-				<MovieGrid
-					dataCallback={handleRating}
-					itemsPerPage={itemsPerPage} />
-			</Row>
-			<Row>
-				<RankHolder max={minRatingCount} />
-			</Row>
-			<Footer callback={handleNextBtn} disabled={buttonDisabled} loading={loading} />
-		</Container>
-	);
+interface RankHolderProps {
+    count: number;
+    max: number;
 }
 
-interface RankHolderProps { max: number; }
-
-const RankHolder: React.FC<RankHolderProps> = ({ max }) => {
-	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);
-
-	return (
-		<div className="rankHolder">
-			<span>Rated Movies: </span>
-			<span><i>{ratedMovies.size}</i></span>
-			<span><i>of {max}</i></span>
-		</div>
-	)
-}
+const RankHolder: React.FC<RankHolderProps> = ({ count, max }) => {
+    return (
+        <div className="font-medium text-lg">
+            <span>Rated Movies: </span>
+            <span>
+                <i> {count} </i>
+            </span>
+            <span>
+                <i>of {max}</i>
+            </span>
+        </div>
+    );
+};
 
 export default MovieRatingPage;

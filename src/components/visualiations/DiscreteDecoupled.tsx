@@ -1,229 +1,173 @@
 import * as d3 from 'd3';
-import { useEffect, useMemo, useRef } from "react";
-import { Col, Container, Row } from 'react-bootstrap';
-import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
-import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
-
-
+import { useEffect, useMemo, useRef } from 'react';
+import type {
+    DataAugmentedItem,
+    PreferenceVizComponentProps,
+    PreferenceVizRecommendedItem,
+} from '../../types/preferenceVisualization.types';
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 
 const posterWidth = 45;
 const posterHeight = 72;
-
+const DEFAULT_IMAGE = 'https://placehold.co/400x600/000000/FFFFFF?text=No+Image';
 const likeCuttoff = LIKE_CUTOFF;
 const dislikeCuttoff = DISLIKE_CUTOFF;
 const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins
 const rowHeaderWidth = 100;
 const colHeaderHeight = 100;
+const numRows = 2;
+const numCols = 2;
 
-const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
-
-const DiscreteDecoupled: React.FC<VisualizationProps> = ({
-	width,
-	height,
-	data,
-	xCol,
-	yCol,
-	onHover
-}) => {
-	const numRows = 2;
-	const numCols = 2;
-
-	width = width - rowHeaderWidth - margin.left - margin.right;
-	height = height - colHeaderHeight - margin.top - margin.bottom;
-	const svgWidth = width / numCols;
-	const svgHeight = height / numRows;
-	const svgRefs = useRef<SVGSVGElement[]>([]);
-	const simulationRefs = useRef<d3.Simulation<VizDataProps, undefined>[]>([]);
-
-	const simNodeData = useMemo(() => {
-		const NewData: VizDataProps[] = [];
-		if (data) {
-			for (const d of data.values()) {
-				NewData.push({
-					...d,
-					x: svgWidth / 2,
-					y: svgHeight / 2
-				})
-			}
-		}
-		return NewData;
-	}, [data, svgWidth, svgHeight]);
-
-	const filteredData = useMemo(() => {
-		return {
-			myLikes: simNodeData.filter((d) =>
-				d.user_score >= likeCuttoff),
-			myDislikes: simNodeData.filter((d) =>
-				d.user_score < dislikeCuttoff),
-			commLikes: simNodeData.filter((d) =>
-				d.community_score >= likeCuttoff),
-			commDisikes: simNodeData.filter((d) =>
-				d.community_score < dislikeCuttoff)
-		}
-	}, [simNodeData]);
-
-	useEffect(() => {
-		const dataArrays = Object.values(filteredData);
-		const currentSvgRefs = svgRefs.current.slice(); // Copy the refs array
-		const currentSimulationRefs = simulationRefs.current.slice(); // Copy the simulation array
-		if (currentSvgRefs.length === dataArrays.length && filteredData) {
-			const newSimulations: d3.Simulation<VizDataProps, undefined>[] = [];
-			svgRefs.current.forEach((svgRef, i) => {
-				console.log("DiscreteDecoupled useEffect: ", i, dataArrays[i]);
-				const svg = d3.select(svgRef)
-					.attr("width", width / numCols)
-					.attr("height", height / numRows);
-				const g = svg.append<SVGGElement>("g")
-					.attr("transform", `translate(${margin.left},${margin.top})`);
-
-				const ctxData = dataArrays[i];
-				g.selectAll<SVGImageElement, VizDataProps>("image")
-					.data(ctxData, (d: VizDataProps) => d.id)
-					.enter().append("image")
-					.attr("data-id", (d) => d.id)
-					.attr("xlink:href", defaultImage)
-					.each(function (d: VizDataProps) { // Use .each for individual element handling
-						const image = d3.select(this);
-						const img = new Image();
-						img.src = d.poster;
-
-						img.onload = () => {
-							image.attr("href", d.poster);
-						};
-
-						img.onerror = () => {
-							image.attr("href", defaultImage);
-						};
-					})
-					.attr("x", -posterWidth / 2)
-					.attr("y", -posterHeight / 2)
-					.attr("width", posterWidth)
-					.attr("height", posterHeight)
-					.attr("preserveAspectRatio", "xMinYMin slice")
-					.style("cursor", "pointer")
-					.on("mouseover", (event, d: VizDataProps) => {
-						d3.selectAll("image")
-							.filter(function () {
-								return d3.select(this).attr("data-id") === d.id;
-							})
-							.raise()
-							.attr("width", posterWidth * 2) // Increase width by 20%
-							.attr("height", posterHeight * 2)
-							.classed("image-with-border", true);
-						if (onHover) {
-							onHover(d.id);
-						}
-					})
-					.on("mouseout", (event, d: VizDataProps) => {
-						d3.selectAll("image")
-							.filter(function () {
-								return d3.select(this).attr("data-id") === d.id;
-							})
-							.attr("width", posterWidth) // Reset to original width
-							.attr("height", posterHeight) // Reset to original height
-							.classed("image-with-border", false); // Reset to original height
-
-						if (onHover) {
-							onHover("");
-						}
-					});
-
-				const simulation = d3.forceSimulation<VizDataProps>()
-					.force("center", d3.forceCenter<VizDataProps>()
-						.x(svgWidth / 2).y(svgHeight / 2))
-					.force("charge", d3.forceManyBody<VizDataProps>()
-						.strength(0.5))
-					.force("collide", d3.forceCollide<VizDataProps>()
-						.strength(0.01).radius(45).iterations(5));
-
-				simulation.nodes(ctxData);
-
-				simulation.on("tick", function (this: d3.Simulation<VizDataProps, undefined>) {
-					g.selectAll("image")
-						.attr("x", (d) => {
-							return (d as VizDataProps).x! - posterWidth / 2;
-						})
-						.attr("y", (d) => {
-							return (d as VizDataProps).y! - posterHeight / 2;
-						})
-				});
-
-				newSimulations.push(simulation);
-
-			});
-
-			simulationRefs.current = newSimulations;
-
-			return () => {
-				currentSimulationRefs.forEach(simulation => simulation.stop());
-				currentSvgRefs.forEach(svgRef => {
-					if (svgRef) {
-						d3.select(svgRef).selectAll("*").remove();
-					}
-				})
-			};
-
-		}
-	}, [width, height, filteredData, svgWidth, svgHeight, onHover]);
-
-	const setSvgRef = (index: number) => (element: SVGSVGElement | null) => {
-		svgRefs.current[index] = element!;
-	};
-
-	return (
-		<Container>
-			<Row className="mt-3 centered-content p-3">
-				<Row className="gap-3">
-					<Col className="border rounded">
-						<svg ref={setSvgRef(1)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-					<Col className="border rounded">
-						<svg ref={setSvgRef(0)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-				</Row>
-				<Row className="mt-lg-3">
-					<Col>
-						Dislikes
-					</Col>
-					<Col>
-						Likes
-					</Col>
-				</Row>
-				<Row>
-					<p className="fw-medium">The system's predicted movie rating for you</p>
-				</Row>
-			</Row>
-			<Row className="mt-3 centered-content p-3">
-				<Row className="gap-3 ">
-					<Col className="border rounded">
-						<svg ref={setSvgRef(3)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-					<Col className="border rounded">
-						<svg ref={setSvgRef(2)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-				</Row>
-				<Row className="mt-3">
-					<Col>
-						Dislikes
-					</Col>
-					<Col>
-						Likes
-					</Col>
-				</Row>
-				<Row>
-					<p className="fw-medium">Ratings from everyone else in the system</p>
-				</Row>
-			</Row>
-		</Container>
-	);
+interface DiscreteData {
+    myLikes: PreferenceVizRecommendedItem[];
+    myDislikes: PreferenceVizRecommendedItem[];
+    commLikes: PreferenceVizRecommendedItem[];
+    commDislikes: PreferenceVizRecommendedItem[];
 }
+
+const DiscreteDecoupled: React.FC<PreferenceVizComponentProps> = ({ width, height, data, onHover }) => {
+    const svgRefs = useRef<Map<keyof DiscreteData, SVGSVGElement>>(new Map());
+
+    const simulationRefs = useRef<Map<keyof DiscreteData, d3.Simulation<DataAugmentedItem, undefined>>>(new Map());
+
+    const filteredData = useMemo(() => {
+        if (!data) return data;
+        const dataArr = Object.values(data);
+        return {
+            myLikes: dataArr.filter((d) => d.user_score >= likeCuttoff),
+            myDislikes: dataArr.filter((d) => d.user_score < dislikeCuttoff),
+            commLikes: dataArr.filter((d) => d.community_score >= likeCuttoff),
+            commDislikes: dataArr.filter((d) => d.community_score < dislikeCuttoff),
+        } as DiscreteData;
+    }, [data]);
+
+    useEffect(() => {
+        if (!filteredData || width === 0 || height === 0) return;
+
+        const innerWidth = width - rowHeaderWidth - margin.left - margin.right;
+        const innerHeight = height - colHeaderHeight - margin.top - margin.bottom;
+        const svgWidth = innerWidth / numCols;
+        const svgHeight = innerHeight / numRows;
+
+        const newSimulations: Map<keyof DiscreteData, d3.Simulation<DataAugmentedItem, undefined>> = new Map();
+
+        svgRefs.current.forEach((svgRef, svgKey) => {
+            if (!svgRef) return;
+
+            const svg = d3.select(svgRef).attr('width', svgWidth).attr('height', svgHeight);
+            svg.selectAll('*').remove();
+
+            const g = svg.append<SVGGElement>('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const ctxData = filteredData[svgKey];
+
+            g.selectAll<SVGImageElement, DataAugmentedItem>('image')
+                .data(ctxData, (d: DataAugmentedItem) => d.id)
+                .join('image')
+                .attr('class', (d) => `poster-image poster-id-${d.id}`)
+                .attr('data-id', (d) => d.id)
+                .attr('xlink:href', (d) => d.tmdb_poster)
+                .attr('width', posterWidth)
+                .attr('height', posterHeight)
+                .attr('preserveAspectRatio', 'xMinYMin slice')
+                .attr('x', posterWidth / 2)
+                .attr('y', posterHeight / 2)
+                .style('cursor', 'pointer')
+                .on('mouseenter', function (_, d) {
+                    d3.select(this).raise();
+                    d3.selectAll(`.poster-id-${d.id}`)
+                        .transition()
+                        .duration(150)
+                        .attr('width', posterWidth * 2)
+                        .attr('height', posterHeight * 2);
+                    if (onHover) onHover(d.id);
+                })
+                .on('mouseleave', function (_, d: DataAugmentedItem) {
+                    d3.selectAll(`.poster-id-${d.id}`)
+                        .transition()
+                        .duration(150)
+                        .attr('width', posterWidth)
+                        .attr('height', posterHeight);
+
+                    if (onHover) onHover('');
+                });
+
+            const simulation = d3
+                .forceSimulation<DataAugmentedItem>()
+                .force(
+                    'center',
+                    d3
+                        .forceCenter<DataAugmentedItem>()
+                        .x(svgWidth / 2)
+                        .y(svgHeight / 2)
+                )
+                .force('charge', d3.forceManyBody<DataAugmentedItem>().strength(0.5))
+                .force('collide', d3.forceCollide<DataAugmentedItem>().strength(0.01).radius(45).iterations(5));
+
+            simulation.nodes(ctxData);
+
+            simulation.on('tick', function (this: d3.Simulation<DataAugmentedItem, undefined>) {
+                g.selectAll('image')
+                    .attr('x', (d) => {
+                        return (d as DataAugmentedItem).x! - posterWidth / 2;
+                    })
+                    .attr('y', (d) => {
+                        return (d as DataAugmentedItem).y! - posterHeight / 2;
+                    });
+            });
+
+            newSimulations.set(svgKey, simulation);
+        });
+
+        simulationRefs.current = newSimulations;
+        const currentSvgRefs = svgRefs.current;
+
+        return () => {
+            simulationRefs.current.forEach((simulation) => simulation.stop());
+            currentSvgRefs.forEach((svgRef) => {
+                if (svgRef) {
+                    d3.select(svgRef).selectAll('*').remove();
+                }
+            });
+        };
+        // }
+    }, [width, height, filteredData, onHover]);
+
+    const setSvgRef = (key: keyof DiscreteData) => (element: SVGSVGElement | null) => {
+        svgRefs.current.set(key, element!);
+    };
+
+    return (
+        <div className="grid grid-rows-2 gap-5 font-medium">
+            <div>
+                <div className="grid grid-cols-2 gap-0">
+                    <div className="border rounded-tl-md border-amber-300">
+                        <svg ref={setSvgRef('myDislikes')} width={width / 2} height={height / 2}></svg>
+                        <div className="mt-3 bg-gray-300">Dislikes</div>
+                    </div>
+                    <div className="border rounded-tr-md border-amber-300">
+                        <svg ref={setSvgRef('myLikes')} width={width / 2} height={height / 2}></svg>
+                        <div className="mt-3 bg-gray-300">Likes</div>
+                    </div>
+                </div>
+                <p className="pt-3 bg-amber-300 rounded-b-md">The system's predicted movie rating for you</p>
+            </div>
+
+            <div>
+                <div className="grid grid-cols-2 gap-0">
+                    <div className="border rounded-tl-md border-amber-300">
+                        <svg ref={setSvgRef('commDislikes')} width={width / 2} height={height / 2}></svg>
+                        <div className="mt-3 bg-gray-300">Dislikes</div>
+                    </div>
+                    <div className="border rounded-tr-md border-amber-300">
+                        <svg ref={setSvgRef('commLikes')} width={width / 2} height={height / 2}></svg>
+                        <div className="mt-3 bg-gray-300">Likes</div>
+                    </div>
+                </div>
+                <p className="pt-3 bg-amber-300 rounded-b-md">Ratings from everyone else in the system</p>
+            </div>
+        </div>
+    );
+};
 
 export default DiscreteDecoupled;

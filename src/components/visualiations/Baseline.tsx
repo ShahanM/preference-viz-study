@@ -1,10 +1,10 @@
 import { Image, Row } from "react-bootstrap";
-import { VisualizationProps } from "./VisualizationTypes.types";
+import type { PreferenceVizComponentProps, PreferenceVizRecommendedItem } from "../../types/preferenceVisualization.types";
 
 const posterWidth = 81;
 const posterHeight = 81;
 
-const Baseline: React.FC<VisualizationProps> = ({
+const Baseline: React.FC<PreferenceVizComponentProps> = ({
 	width,
 	height,
 	data,
@@ -13,7 +13,7 @@ const Baseline: React.FC<VisualizationProps> = ({
 	onHover
 }) => {
 
-	const numColumns = Math.min(data.size, 10); // Example: max 4 columns
+	const numColumns = Math.min(Object.keys(data).length, 10); // Example: max 4 columns
 	const gridStyle = {
 		display: 'grid',
 		margin: '0 auto',
@@ -23,8 +23,8 @@ const Baseline: React.FC<VisualizationProps> = ({
 
 	console.log("Baseline data: ", data);
 	return (
-		<Row className="m-3 gap-1 overflow-x-auto" style={{ maxHeight: "900px"}}>
-			{[...data].map(([k, item]) =>
+		<Row className="m-3 gap-1 overflow-x-auto" style={{ maxHeight: "900px" }}>
+			{Object(data).map((k: string, item: PreferenceVizRecommendedItem) =>
 				<div key={`{rec}-movies-${k}`} className="baseline-item-div d-flex shadow-sm p-1" onMouseOver={() => onHover(item.id)}>
 					<Image
 						className="baseline-image"

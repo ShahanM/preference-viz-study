@@ -1,8 +1,8 @@
 import * as d3 from 'd3';
 import { useEffect, useMemo, useRef } from "react";
 import { Col, Row } from 'react-bootstrap';
+import type { DataAugmentedItem, PreferenceVizComponentProps } from '../../types/preferenceVisualization.types';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
-import { VisualizationProps, VizDataProps } from "./VisualizationTypes.types";
 
 
 
@@ -17,7 +17,7 @@ const colHeaderHeight = 100;
 
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
 
-const DiscreteSelf: React.FC<VisualizationProps> = ({
+const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({
 	width,
 	height,
 	data,
@@ -33,21 +33,16 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 	const svgWidth = width / numCols;
 	const svgHeight = height / numRows;
 	const svgRefs = useRef<SVGSVGElement[]>([]);
-	const simulationRefs = useRef<d3.Simulation<VizDataProps, undefined>[]>([]);
+	const simulationRefs = useRef<d3.Simulation<DataAugmentedItem, undefined>[]>([]);
 
-	const simNodeData = useMemo(() => {
-		const NewData: VizDataProps[] = [];
-		if (data) {
-			for (const d of data.values()) {
-				NewData.push({
-					...d,
-					x: svgWidth / 2,
-					y: svgHeight / 2
-				})
-			}
-		}
-		return NewData;
-	}, [data, svgWidth, svgHeight]);
+	const simNodeData = useMemo(() => data
+		?
+		Object.values(data).map((d) => ({
+			...d,
+			x: svgWidth / 2,
+			y: svgHeight / 2
+		})) : []
+		, [data, svgWidth, svgHeight]);
 
 	const filteredData = useMemo(() => {
 		return {
@@ -68,7 +63,7 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 		const currentSvgRefs = svgRefs.current.slice(); // Copy the refs array
 		const currentSimulationRefs = simulationRefs.current.slice(); // Copy the simulation array
 		if (currentSvgRefs.length === dataArrays.length && filteredData) {
-			const newSimulations: d3.Simulation<VizDataProps, undefined>[] = [];
+			const newSimulations: d3.Simulation<DataAugmentedItem, undefined>[] = [];
 			svgRefs.current.forEach((svgRef, i) => {
 				console.log("DiscreteDecoupled useEffect: ", i, dataArrays[i]);
 				const svg = d3.select(svgRef)
@@ -78,12 +73,12 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 					.attr("transform", `translate(${margin.left},${margin.top})`);
 
 				const ctxData = dataArrays[i];
-				g.selectAll<SVGImageElement, VizDataProps>("image")
-					.data(ctxData, (d: VizDataProps) => d.id)
+				g.selectAll<SVGImageElement, DataAugmentedItem>("image")
+					.data(ctxData, (d: DataAugmentedItem) => d.id)
 					.enter().append("image")
 					.attr("data-id", (d) => d.id)
 					.attr("xlink:href", defaultImage)
-					.each(function (d: VizDataProps) { // Use .each for individual element handling
+					.each(function (d: DataAugmentedItem) { // Use .each for individual element handling
 						const image = d3.select(this);
 						const img = new Image();
 						img.src = d.poster;
@@ -102,7 +97,7 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 					.attr("height", posterHeight)
 					.attr("preserveAspectRatio", "xMinYMin slice")
 					.style("cursor", "pointer")
-					.on("mouseover", (event, d: VizDataProps) => {
+					.on("mouseover", (event, d: DataAugmentedItem) => {
 						d3.selectAll("image")
 							.filter(function () {
 								return d3.select(this).attr("data-id") === d.id;
@@ -115,7 +110,7 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 							onHover(d.id);
 						}
 					})
-					.on("mouseout", (event, d: VizDataProps) => {
+					.on("mouseout", (event, d: DataAugmentedItem) => {
 						d3.selectAll("image")
 							.filter(function () {
 								return d3.select(this).attr("data-id") === d.id;
@@ -129,23 +124,23 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 						}
 					});
 
-				const simulation = d3.forceSimulation<VizDataProps>()
-					.force("center", d3.forceCenter<VizDataProps>()
+				const simulation = d3.forceSimulation<DataAugmentedItem>()
+					.force("center", d3.forceCenter<DataAugmentedItem>()
 						.x(svgWidth / 2).y(svgHeight / 2))
-					.force("charge", d3.forceManyBody<VizDataProps>()
+					.force("charge", d3.forceManyBody<DataAugmentedItem>()
 						.strength(0.5))
-					.force("collide", d3.forceCollide<VizDataProps>()
+					.force("collide", d3.forceCollide<DataAugmentedItem>()
 						.strength(0.01).radius(45).iterations(5));
 
 				simulation.nodes(ctxData);
 
-				simulation.on("tick", function (this: d3.Simulation<VizDataProps, undefined>) {
+				simulation.on("tick", function (this: d3.Simulation<DataAugmentedItem, undefined>) {
 					g.selectAll("image")
 						.attr("x", (d) => {
-							return (d as VizDataProps).x! - posterWidth / 2;
+							return (d as DataAugmentedItem).x! - posterWidth / 2;
 						})
 						.attr("y", (d) => {
-							return (d as VizDataProps).y! - posterHeight / 2;
+							return (d as DataAugmentedItem).y! - posterHeight / 2;
 						})
 				});
 
@@ -172,31 +167,31 @@ const DiscreteSelf: React.FC<VisualizationProps> = ({
 	};
 
 	return (
-			<Row className="mt-3 centered-content p-3">
-				<Row className="gap-3">
-					<Col className="border rounded">
-						<svg ref={setSvgRef(1)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-					<Col className="border rounded">
-						<svg ref={setSvgRef(0)}
-							width={width / 2}
-							height={height / 2}></svg>
-					</Col>
-				</Row>
-				<Row className="mt-lg-3">
-					<Col>
-						Dislikes
-					</Col>
-					<Col>
-						Likes
-					</Col>
-				</Row>
-				<Row>
-					<p className="fw-medium">The system's predicted movie rating for you</p>
-				</Row>
+		<Row className="mt-3 centered-content p-3">
+			<Row className="gap-3">
+				<Col className="border rounded">
+					<svg ref={setSvgRef(1)}
+						width={width / 2}
+						height={height / 2}></svg>
+				</Col>
+				<Col className="border rounded">
+					<svg ref={setSvgRef(0)}
+						width={width / 2}
+						height={height / 2}></svg>
+				</Col>
 			</Row>
+			<Row className="mt-lg-3">
+				<Col>
+					Dislikes
+				</Col>
+				<Col>
+					Likes
+				</Col>
+			</Row>
+			<Row>
+				<p className="fw-medium">The system's predicted movie rating for you</p>
+			</Row>
+		</Row>
 	);
 }
 

@@ -1,212 +1,194 @@
-import { useCallback, useEffect, useState } from "react";
-import { Col, Container, FormSelect, InputGroup, Row } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import {
-	CurrentStep,
-	Participant,
-	StudyStep,
-	useStudy,
-} from "rssa-api";
-import Footer from "../../components/Footer";
-import Header from "../../components/Header";
-import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import { participantState } from "../../states/participantState";
-import { ratedMoviesState } from "../../states/ratedMovieState";
-import { studyStepState } from "../../states/studyState";
-import { urlCacheState } from "../../states/urlCacheState";
-import { DISLIKE_CUTOFF, LIKE_CUTOFF } from "../../utils/constants";
-import LeftPanel from "../../widgets/leftpanel/LeftPanel";
-import { MovieRating } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
-import RightPanel from "../../widgets/rightpanel/RightPanel";
-import ConditionView from "./ConditionView";
-import "./PreferenceVisualization.css";
-import { PrefVizRecItemDetail } from "./VisualizationTypes.types";
-import { StudyPageProps } from "../StudyPage.types";
-
+import { Label, Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid';
+import { useQuery } from '@tanstack/react-query';
+import clsx from 'clsx';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useStudy } from 'rssa-api';
+import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
+import { MovieSelectionProvider } from '../../contexts/movieSelectionContext';
+import type { RatedItem } from '../../types/rssa.types';
+import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
+import ConditionView from './ConditionView';
+import LeftFormPanel from './LeftFormPanel';
+import RightInfoPanel from './RightInfoPanel';
 
 type PrefVizRequestObject = {
-	user_id: string;
-	user_condition: string;
-	rec_type: 'baseline' | 'diverse' | 'reference';
-	ratings: { item_id: number, rating: number }[];
+    user_id: string;
+    user_condition: string;
+    rec_type: 'baseline' | 'diverse' | 'reference';
+    ratings: { item_id: number; rating: number }[];
+};
+const conditions = [
+    {
+        label: 'Diverse N Recommendations',
+        options: [
+            { id: 1, name: 'Continuous Coupled' },
+            { id: 2, name: 'Continuous Decoupled' },
+            { id: 3, name: 'Discrete Decoupled' },
+            { id: 5, name: 'Continuous Decoupled - Self' },
+            { id: 6, name: 'Discrete Decoupled - Self' },
+        ],
+    },
+    {
+        label: 'Top N Recommendations',
+        options: [
+            { id: 4, name: 'Baseline' },
+            { id: 52, name: 'Continuous Decoupled - Self' },
+            { id: 62, name: 'Discrete Decoupled - Self' },
+        ],
+    },
+    {
+        label: 'Referenced N Recommendations',
+        options: [
+            { id: 11, name: 'Continuous Coupled' },
+            { id: 21, name: 'Continuous Decoupled' },
+            { id: 31, name: 'Discrete Decoupled' },
+            { id: 51, name: 'Continuous Decoupled - Self' },
+            { id: 61, name: 'Discrete Decoupled - Self' },
+        ],
+    },
+];
+const PreferenceVisualizationContent: React.FC = () => {
+    const { studyApi } = useStudy();
+    const [loading, setLoading] = useState<boolean>(false);
+
+    // FIXME:
+    // Temporary state to get condition from URL for development testing
+    // NOTE: Condition 5 is Baseline in the test study, so we will get TopN
+    const [selectedCondition, setSelectedCondition] = useState(conditions[0].options[0]);
+
+    const [width, setWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setWidth(window.innerWidth);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const { data: ratedMovies, isLoading: ratedMoviesLoading } = useQuery({
+        queryKey: ['movieRatings'],
+        queryFn: async () => await studyApi.get<RatedItem[]>(`responses/ratings`),
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const recommendationType = useMemo(() => {
+        switch (selectedCondition.id) {
+            case 4:
+            case 52:
+            case 62:
+                return 'baseline';
+            case 1:
+            case 2:
+            case 3:
+            case 5:
+            case 6:
+                return 'diverse';
+            case 11:
+            case 21:
+            case 31:
+            case 51:
+            case 61:
+                return 'reference';
+            default:
+                return 'baseline';
+        }
+    }, [selectedCondition.id]);
+
+
+
+    return (
+        <div className="">
+            <div className="">
+                <Listbox value={selectedCondition} onChange={setSelectedCondition}>
+                    <div className="flex flex-between relative mt-1 p-3">
+                        <Label className="block text-md font-medium text-gray-700 me-3 content-center">Experiment condition:</Label>
+                        <div>
+                            <ListboxButton className={clsx("relative cursor-default rounded-lg bg-white py-2 pl-3 pr-10",
+                                "text-left shadow-md sm:text-sm rounded-3",
+                                "focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2",
+                                "focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-300")}>
+                                <span className="block truncate">{selectedCondition.name}</span>
+                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                </span>
+                            </ListboxButton>
+                            <Transition
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                            >
+                                <ListboxOptions className={clsx(
+                                    "absolute mt-1 max-h-60 overflow-auto rounded-md",
+                                    "bg-white py-1 text-base shadow-lg ring-1 ring-black/5",
+                                    "focus:outline-none sm:text-sm"
+                                )}
+                                >
+                                    {conditions.map((group) => (
+                                        <div key={group.label}>
+                                            <h3 className="text-sm font-bold p-2 text-gray-500">{group.label}</h3>
+                                            {group.options.map((option) => (
+                                                <ListboxOption
+                                                    key={option.id}
+                                                    className={clsx(
+                                                        "relative cursor-default select-none py-2 pl-10 pr-4",
+                                                        "hover:bg-amber-100 text-amber-900 text-gray-900 cursor-pointer"
+                                                    )
+                                                    }
+                                                    value={option}
+                                                >
+                                                    {({ selected }) => (
+                                                        <>
+                                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                {option.name}
+                                                            </span>
+                                                            {selected ? (
+                                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                </span>
+                                                            ) : null}
+                                                        </>
+                                                    )}
+                                                </ListboxOption>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </ListboxOptions>
+                            </Transition>
+                        </div>
+                    </div>
+                </Listbox>
+            </div>
+            <div className="w-full flex flex-between gap-3">
+                <div className="w-1/5">
+                    <LeftFormPanel />
+                </div>
+                <div className="w-3/5">
+                    {!ratedMoviesLoading ?
+                        <ConditionView condition={selectedCondition.id} ratedItems={ratedMovies!} recommendationType={recommendationType} />
+                        : <LoadingScreen loading={loading} message="Gathering your rated movies" />
+                    }
+                </div>
+                <div className="w-1/5">
+                    <RightInfoPanel
+                        likeCutoff={LIKE_CUTOFF}
+                        showLikeDislikeByLine={[4, 5, 6, 41, 51, 61].indexOf(selectedCondition.id) === -1}
+                        dislikeCutoff={DISLIKE_CUTOFF}
+                    />
+                </div>
+            </div>
+        </div>
+    );
 };
 
-
-const PreferenceVisualization: React.FC<StudyPageProps> = ({ next, navigateToNextStep}) => {
-	const [participant, setParticipant] = useRecoilState(participantState);
-	const [studyStep, setStudyStep] = useRecoilState(studyStepState);
-	const setNextUrl = useSetRecoilState(urlCacheState);
-
-	const { studyApi } = useStudy();
-	const navigate = useNavigate();
-	const ratedMovies: Map<string, MovieRating> = useRecoilValue(ratedMoviesState);
-
-	const [loading, setLoading] = useState<boolean>(false);
-	const [nextButtonDisabled, setNextButtonDisabled] = useState<boolean>(true);
-
-	// FIXME:
-	// Temporary state to get condition from URL for development testing
-	// NOTE: Condition 5 is Baseline in the test study, so we will get TopN
-	const [selectedCondition, setSelectedCondition] = useState<number>(1);
-
-	const [prefItemDetails, setPrefItemDetails] =
-		useState<Map<string, PrefVizRecItemDetail>>(
-			new Map<string, PrefVizRecItemDetail>());
-
-	const [width, setWidth] = useState(window.innerWidth);
-
-	useEffect(() => {
-		const handleResize = () => {
-			setWidth(window.innerWidth);
-		}
-		window.addEventListener('resize', handleResize);
-		return () => window.removeEventListener('resize', handleResize);
-	}, []);
-
-	const getRecommendations = useCallback(async () => {
-		if (!participant || !studyStep) {
-			console.warn("SurveyPage or participant is undefined in getRecommendations.");
-			return null;
-		}
-		setLoading(true);
-		let recType: 'baseline' | 'diverse' | 'reference' = "baseline";
-		switch (selectedCondition) {
-			case 4:
-			case 52:
-			case 62:
-				recType = "baseline";
-				break;
-			case 1:
-			case 2:
-			case 3:
-			case 5:
-			case 6:
-				recType = "diverse";
-				break;
-			case 11:
-			case 21:
-			case 31:
-			case 51:
-			case 61:
-				recType = "reference";
-				break;
-			default:
-				recType = "baseline";
-				break
-		}
-		try {
-			const responseItems: PrefVizRecItemDetail[] = await studyApi.post<PrefVizRequestObject, PrefVizRecItemDetail[]>(
-				"recommendation/prefviz/", {
-				user_id: participant.id,
-				user_condition: participant.condition_id,
-				// FIXME: Remember this should be based on the participant condition, not searchParams for production
-				rec_type: recType,
-				ratings: [...ratedMovies.values()].map(rating => {
-					return { item_id: rating.movielens_id, rating: rating.rating };
-				})
-			});
-			let itemMap = new Map<string, PrefVizRecItemDetail>();
-			for (let item of responseItems) { itemMap.set(item.id, item); }
-			setPrefItemDetails(itemMap);
-		} catch (err: any) {
-			console.error("VisualizationLayout Error", err);
-			// Handle error state, e.g., show an error message to the user
-		} finally {
-			setLoading(false);
-		}
-	}, [studyApi, selectedCondition, participant, studyStep, setPrefItemDetails, ratedMovies]);
-
-	useEffect(() => { getRecommendations(); }, [getRecommendations]);
-
-	const handleNextBtn = useCallback(async () => {
-		if (!studyStep || !participant) {
-			console.error("Study step or participant is not defined.");
-			return;
-		}
-
-		try {
-			const nextStep: StudyStep = await studyApi.post<CurrentStep, StudyStep>('studies/steps/next', {
-				current_step_id: participant.current_step
-			});
-			setStudyStep(nextStep);
-			const updatedParticipant: Participant = {
-				...participant,
-				current_step: nextStep.id,
-			};
-			await studyApi.put('participants/', updatedParticipant);
-			setParticipant(updatedParticipant);
-			setNextUrl(next);
-			navigate(next);
-		} catch (error) {
-			console.error("Error submitting responses:", error);
-			// Handle submission error, e.g., show a message
-		} finally {
-			setLoading(false);
-		}
-	}, [studyStep, participant, studyApi, next, navigate, setStudyStep, setParticipant, setNextUrl]);
-
-	if (!participant || !studyStep) {
-		return <LoadingScreen loading={true} message="Initializing study data..." />;
-	}
-	return (
-		<Container className="prefviz" fluid={width < 2000}>
-			<Header title={studyStep?.name} content={studyStep?.description} />
-			<Row className="mt-3 mb-3 ms-1 rounded w-25 p-3 bg-dark-subtle">
-				<InputGroup>
-					<InputGroup.Text id="experiment-condition-select">Experiment condition: </InputGroup.Text>
-					<FormSelect aria-label="Select a experiment condition to view"
-						aria-describedby="experiment-condition-select"
-						value={selectedCondition}
-						onChange={(e) => { setSelectedCondition(parseInt(e.target.value)) }}
-					>
-						<optgroup label="Diverse N Recommendations">
-							<option value="1">Continuous Coupled</option>
-							<option value="2">Continuous Decoupled</option>
-							<option value="3">Discrete Decoupled</option>
-							<option value="5">Continuous Decoupled - Self</option>
-							<option value="6">Discrete Decoupled - Self</option>
-						</optgroup>
-						<optgroup label="Top N Recommendations">
-							<option value="4">Baseline</option>
-							<option value="52">Continuous Decoupled - Self</option>
-							<option value="62">Discrete Decoupled - Self</option>
-						</optgroup>
-						<optgroup label="Referenced N Recommendations">
-							<option value="11">Continuous Coupled</option>
-							<option value="21">Continuous Decoupled</option>
-							<option value="31">Discrete Decoupled</option>
-							<option value="51">Continuous Decoupled - Self</option>
-							<option value="61">Discrete Decoupled - Self</option>
-						</optgroup>
-					</FormSelect>
-				</InputGroup>
-			</Row>
-			<Row>
-				<Col xxxl={3} xxl={3} xl={2} md={3} className="me-0 pe-0">
-					<LeftPanel nextButtonDisabledCallback={setNextButtonDisabled} />
-				</Col>
-				<Col xxxl={6} xxl={6} xl={8} md={6} className="m-0 p-0">
-					{!loading && prefItemDetails !== undefined
-						&& !(prefItemDetails.size > 0) ?
-						<LoadingScreen loading={loading}
-							message="Loading Recommendations" />
-						: <ConditionView
-							condition={selectedCondition}
-							prefItemDetails={prefItemDetails} />
-					}
-				</Col>
-				<Col xxxl={3} xxl={3} xl={2} md={3} className="ms-0 ps-0">
-					<RightPanel likeCuttoff={LIKE_CUTOFF}
-						showLikeDislikeByLine={[4, 5, 6, 41, 51, 61].indexOf(selectedCondition) === -1}
-						dislikeCuttoff={DISLIKE_CUTOFF} />
-				</Col>
-			</Row>
-			<Footer callback={handleNextBtn} disabled={nextButtonDisabled} text={"Next"} />
-		</Container>
-	);
-}
-
-
+const PreferenceVisualization = () => {
+    return (
+        <MovieSelectionProvider>
+            <PreferenceVisualizationContent />
+        </MovieSelectionProvider>
+    );
+};
 
 export default PreferenceVisualization;
