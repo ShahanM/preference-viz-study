@@ -9,7 +9,7 @@ import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 
 const posterWidth = 45;
 const posterHeight = 72;
-const DEFAULT_IMAGE = 'https://placehold.co/400x600/000000/FFFFFF?text=No+Image';
+
 const likeCuttoff = LIKE_CUTOFF;
 const dislikeCuttoff = DISLIKE_CUTOFF;
 const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins

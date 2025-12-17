@@ -1,16 +1,14 @@
-// import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
-import { ThemeProvider, Toast, ToastContainer } from 'react-bootstrap';
+
 import { BrowserRouter as Router } from 'react-router-dom';
-import './App.css';
+import { RouteWrapper } from 'rssa-study-template';
 import { WarningDialog } from './components/dialogs/warningDialog';
-import RouteWrapper from './pages/RouteWrapper';
-// import './styles/App.css';
-import { customBreakpoints, RETRY_DELAYS_MS, STRINGS } from './utils/constants';
+import { componentMap } from './pages/componentMap';
+import WelcomePage from './pages/WelcomePage';
+import { STRINGS } from './utils/constants';
+import './styles/App.css';
 
 function App() {
-    const [retryAttempt, setRetryAttempt] = useState<number>(0);
-    const [studyError, setStudyError] = useState<boolean>(false);
     const [showWarning, setShowWarning] = useState<boolean>(false);
 
     /*
@@ -31,40 +29,21 @@ function App() {
     }, []);
 
     return (
-        <ThemeProvider breakpoints={Object.keys(customBreakpoints)}>
-            <div className="App">
-                {showWarning && (
-                    <WarningDialog
-                        show={showWarning}
-                        onClose={setShowWarning}
-                        title="Warning"
-                        message={STRINGS.WINDOW_TOO_SMALL}
-                        disableHide={true}
-                    />
-                )}
-                {studyError &&
-                    (RETRY_DELAYS_MS[retryAttempt] === undefined ? (
-                        <WarningDialog
-                            show={studyError}
-                            title="Error"
-                            message={STRINGS.STUDY_ERROR}
-                            onClose={setStudyError}
-                        />
-                    ) : (
-                        <ToastContainer position="top-center" className="p-3">
-                            <Toast bg="danger" autohide={true} delay={RETRY_DELAYS_MS[retryAttempt]}>
-                                <Toast.Body className={'text-white'}>
-                                    There was an error registering this study. Retrying in{' '}
-                                    {RETRY_DELAYS_MS[retryAttempt] / 1000} seconds...
-                                </Toast.Body>
-                            </Toast>
-                        </ToastContainer>
-                    ))}
-                <Router basename="/preference-visualization/">{<RouteWrapper />}</Router>
-            </div>
-        </ThemeProvider>
+        <div className="text-center text-base font-light">
+            {showWarning && (
+                <WarningDialog
+                    show={showWarning}
+                    onClose={setShowWarning}
+                    title="Warning"
+                    message={STRINGS.WINDOW_TOO_SMALL}
+                    disableHide={true}
+                />
+            )}
+            <Router basename="/preference-visualization/">
+                <RouteWrapper componentMap={componentMap} WelcomePage={WelcomePage} />
+            </Router>
+        </div>
     );
 }
 
-App.whyDidYouRender = true;
 export default App;

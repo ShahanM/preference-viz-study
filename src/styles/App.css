@@ -1,305 +1,91 @@
-.App {
-  text-align: center;
-  /* min-width: 1200px; */
-  /* overflow-x: scroll; */
-  font-size: 1em;
-  font-weight: 300;
-}
-
-/* .App p {
-  font-size: 14px;
-} */
-
-.App h1 {
-  font-size: 1.6rem !important;
-}
-
-.App h2 {
-  font-size: 1.5rem;
-}
-
-.App h3 {
-  font-size: 1.4rem;
-}
-
-.App h4 {
-  font-size: 1.3rem;
-}
-
-.App h5 {
-  font-size: 1.25rem !important;
-}
-
-/* .App-header {
-  background-color: #282c34;
-  height: 3vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-} */
-
-.instructionblurb {
-  text-align: left;
-}
-
-.modal-80w {
-  max-width: 80%;
-  margin: 1.75rem auto;
-}
-
-.nextButton {
-  height: fit-content;
-  margin-top: 1em;
-}
+@import 'tailwindcss';
+@source "../../../../libraries/rssa-study-template/src";
+@source "../../node_modules/rssa-study-template/src";
+@plugin "@tailwindcss/forms";
+@plugin "tailwind-scrollbar";
 
 /* Button loader */
 .dot-pulse {
-  position: relative;
-  left: -9999px;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: #9880ff;
-  color: #9880ff;
-  box-shadow: 9999px 0 0 -5px;
-  animation: dot-pulse 1.5s infinite linear;
-  animation-delay: 0.25s;
+    position: relative;
+    left: -9999px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #9880ff;
+    color: #9880ff;
+    box-shadow: 9999px 0 0 -5px;
+    animation: dot-pulse 1.5s infinite linear;
+    animation-delay: 0.25s;
 }
 
 .dot-pulse::before,
 .dot-pulse::after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: #9880ff;
-  color: #9880ff;
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #9880ff;
+    color: #9880ff;
 }
 
 .dot-pulse::before {
-  box-shadow: 9984px 0 0 -5px;
-  animation: dot-pulse-before 1.5s infinite linear;
-  animation-delay: 0s;
+    box-shadow: 9984px 0 0 -5px;
+    animation: dot-pulse-before 1.5s infinite linear;
+    animation-delay: 0s;
 }
 
 .dot-pulse::after {
-  box-shadow: 10014px 0 0 -5px;
-  animation: dot-pulse-after 1.5s infinite linear;
-  animation-delay: 0.5s;
+    box-shadow: 10014px 0 0 -5px;
+    animation: dot-pulse-after 1.5s infinite linear;
+    animation-delay: 0.5s;
 }
 
 @keyframes dot-pulse-before {
-  0% {
-    box-shadow: 9984px 0 0 -5px;
-  }
+    0% {
+        box-shadow: 9984px 0 0 -5px;
+    }
 
-  30% {
-    box-shadow: 9984px 0 0 2px;
-  }
+    30% {
+        box-shadow: 9984px 0 0 2px;
+    }
 
-  60%,
-  100% {
-    box-shadow: 9984px 0 0 -5px;
-  }
+    60%,
+    100% {
+        box-shadow: 9984px 0 0 -5px;
+    }
 }
 
 @keyframes dot-pulse {
-  0% {
-    box-shadow: 9999px 0 0 -5px;
-  }
+    0% {
+        box-shadow: 9999px 0 0 -5px;
+    }
 
-  30% {
-    box-shadow: 9999px 0 0 2px;
-  }
+    30% {
+        box-shadow: 9999px 0 0 2px;
+    }
 
-  60%,
-  100% {
-    box-shadow: 9999px 0 0 -5px;
-  }
+    60%,
+    100% {
+        box-shadow: 9999px 0 0 -5px;
+    }
 }
 
 @keyframes dot-pulse-after {
-  0% {
-    box-shadow: 10014px 0 0 -5px;
-  }
+    0% {
+        box-shadow: 10014px 0 0 -5px;
+    }
 
-  30% {
-    box-shadow: 10014px 0 0 2px;
-  }
+    30% {
+        box-shadow: 10014px 0 0 2px;
+    }
 
-  60%,
-  100% {
-    box-shadow: 10014px 0 0 -5px;
-  }
+    60%,
+    100% {
+        box-shadow: 10014px 0 0 -5px;
+    }
 }
 
 /* End Button loader */
-
-
-/* ers buttons */
-.btn-ers {
-  background-color: #f9b05c;
-  font-weight: 400;
-  color: #4a4b4b;
-}
-
-.btn-ers:hover {
-  background-color: #d9903c;
-  color: #4a4b4b;
-}
-
-.btn-ers:disabled {
-  background-color: #c0c0c0;
-  color: #4a4b4b;
-  border-width: 0;
-}
-
-.btn-ers-disabled {
-  background-color: #c0c0c0ee;
-  color: #4a4b4b;
-  border-width: 0;
-  cursor: default;
-}
-
-.btn-ers-disabled:hover {
-  background-color: #c0c0c0ee;
-  color: #4a4b4b;
-  border-width: 0;
-  cursor: default;
-}
-
-.btn-ers-disabled:active {
-  background-color: #c0c0c0ee !important;
-  color: #4a4b4b !important;
-  border-width: 0 !important;
-  cursor: default !important;
-}
-
-.btn-ers-disabled:focus-visible {
-  background-color: #c0c0c0ee;
-  color: #4a4b4b;
-  border-width: 0;
-  cursor: default;
-}
-
-.btn-lg {
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  font-size: large;
-}
-
-.btn-ersDone {
-  background-color: #39e04c;
-  font-weight: 400;
-  color: #4a4b4b;
-  border: solid #19cf2c 1px;
-}
-
-.btn-ersDone:hover {
-  background-color: #11af11;
-  color: #f0f0f0;
-}
-
-.btn-ersDone:disabled {
-  background-color: #c0c0c0;
-  color: #4a4b4b;
-  border-width: 0;
-}
-
-.btn-ersDone:active {
-  background-color: #5cbf5c ! important;
-  color: #4a4b4b;
-  border-width: 0;
-}
-
-.btn-ersCancel {
-  background-color: #c9ccd5;
-  border-color: #c9ccd5;
-}
-
-.btn-ersCancel:hover {
-  background-color: #8b8b8b;
-  border-color: #8b8b8b;
-}
-
-.btn-ersCancel:disabled {
-  background-color: #c0c0c0;
-  color: #4a4b4b;
-  border-width: 0;
-}
-
-.btn-ersCancel:active {
-  background-color: #8b8b8b ! important;
-  color: #4a4b4b;
-  border-width: 0;
-}
-
-.warning-header-ers {
-  background-color: #f9b05c;
-  font-weight: 400;
-}
-
-/* End ers buttons */
-
-/* Informed Consent */
-.informedConsent {
-  font-family: 'Helvetica Neue', serif;
-}
-
-.informedConsent h2 {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.informedConsent h3 {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.informedConsent h4 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.informedConsent p {
-  font-size: 14px;
-}
-
-.informedConsent .textemph {
-  font-weight: 700;
-  text-decoration: underline;
-}
-
-p.informedConsent-title {
-  margin-bottom: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-p.informedConsent-text {
-  margin-bottom: 0;
-  font-weight: 300;
-}
-
-.informedConsent-bold {
-  margin-bottom: 0;
-  font-weight: 500;
-}
-
-/* End Informed Consent */
-
-
-.size-error-overlay {
-  height: 900px;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  font-weight: 500;
-}

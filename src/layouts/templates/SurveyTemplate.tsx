@@ -1,21 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { PageContent } from '../../types/rssa.types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePageCompletion } from '../../hooks/usePageCompletion';
+import type { SurveyPageType } from '../../types/rssa.types';
 import ContentBlock from './ContentBlock';
 
 interface SurveyTemplateProps {
-    pageContents: PageContent[];
-    onComplete: () => void;
+    surveyPage: SurveyPageType;
 }
 
-const SurveyTemplate: React.FC<SurveyTemplateProps> = ({ pageContents, onComplete }) => {
+const SurveyTemplate: React.FC<SurveyTemplateProps> = ({ surveyPage }) => {
     const [completedContentIds, setCompletedContentIds] = useState<Set<string>>(new Set());
+    const { setIsPageComplete } = usePageCompletion();
 
     const handelCompletion = useCallback((contentId: string) => {
         setCompletedContentIds((prev) => new Set(prev).add(contentId));
     }, []);
 
+    const pageContents = useMemo(() => {
+        if (!surveyPage.page_content) return [];
+        return surveyPage.page_content;
+    }, [surveyPage]);
+
     useEffect(() => {
-        if (completedContentIds.size === pageContents.length) onComplete();
+        if (completedContentIds.size === pageContents.length) setIsPageComplete(true);
     });
 
     return (
@@ -23,12 +29,7 @@ const SurveyTemplate: React.FC<SurveyTemplateProps> = ({ pageContents, onComplet
             {pageContents.map((pageContent, index) => (
                 <div key={pageContent.id + '_' + index}>
                     <p>{pageContent.preamble || ''}</p>
-                    <ContentBlock
-                        contentId={pageContent.id}
-                        items={pageContent.items}
-                        scaleLevels={pageContent.scale_levels}
-                        onComplete={handelCompletion}
-                    />
+                    <ContentBlock content={pageContent} onComplete={handelCompletion} />
                 </div>
             ))}
         </>

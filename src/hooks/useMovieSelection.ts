@@ -8,6 +8,7 @@ export interface MovieSelectionContextType<T extends Movie> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const MovieSelectionContext = createContext<MovieSelectionContextType<any> | undefined>(undefined);
+
 export const useMovieSelection = <T extends Movie>() => {
     const context = useContext(MovieSelectionContext);
     if (context === undefined) {

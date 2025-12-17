@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useStepCompletion } from '../hooks/useStepCompletion';
+import { useStepCompletion } from 'rssa-study-template';
 import rsinteract from '../res/interact.png';
 import postsurvey from '../res/post-survey.png';
 import presurvey from '../res/pre-survey.png';
@@ -26,11 +26,11 @@ const StudyOverviewPage: React.FC = () => {
     }, [setIsStepComplete]);
 
     return (
-        <div className="flex flex-between text-2xl">
+        <div className="flex flex-between text-2xl mb-3">
             {stepCards.map((card, idx) => (
                 <div key={idx}>
                     <img src={card.img} alt={card.text} />
-                    <p>{card.text}</p>
+                    <p className="text-center">{card.text}</p>
                 </div>
             ))}
         </div>

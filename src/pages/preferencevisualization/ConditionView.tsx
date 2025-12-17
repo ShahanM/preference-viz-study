@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useOutletContext } from 'react-router-dom';
 import { useStudy } from 'rssa-api';
 import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
 import Baseline from '../../components/visualiations/Baseline';
@@ -11,32 +12,70 @@ import { useMovieSelection } from '../../hooks/useMovieSelection';
 import {
     type PreferenceVizRecommendedItem,
     type PreferenceVizResponseObject,
+    type RecommendationRequestPayload,
     type RecommendationType,
+    type BackendRecommendationResponse,
 } from '../../types/preferenceVisualization.types';
-import type { RatedItem } from '../../types/rssa.types';
+import { type StudyLayoutContextType } from '../../types/study.types';
 import ResponsiveContainer from './ResponsiveContainer';
 
 type ConditionViewProps = {
     condition: number;
-    ratedItems: RatedItem[];
     recommendationType: RecommendationType;
 };
 
-const ConditionView: React.FC<ConditionViewProps> = ({ condition, ratedItems, recommendationType }) => {
-    const { setSelectedMovie } = useMovieSelection<PreferenceVizRecommendedItem>();
+const ConditionView: React.FC<ConditionViewProps> = ({ condition, recommendationType }) => {
+    const { studyStep } = useOutletContext<StudyLayoutContextType>();
     const { studyApi } = useStudy();
+    const { setSelectedMovie } = useMovieSelection<PreferenceVizRecommendedItem>();
 
     const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
-        queryKey: ['recommendations', condition, ratedItems?.map((item) => item.item_id)],
+        queryKey: ['recommendations', condition],
         queryFn: async () => {
-            const payload = { rec_type: recommendationType, ratings: ratedItems };
-            const response = await studyApi.post<
-                PreferenceVizResponseObject,
-                { rec_type: string; ratings: RatedItem[] | undefined }
-            >('recommendations/prefviz', payload);
-            return response;
+            let algoKey = 'biased_recs_top_n';
+            if (recommendationType === 'diverse') algoKey = 'biased_recs_diverse_community_score';
+            if (recommendationType === 'reference') algoKey = 'biased_recs_reference_community_score';
+
+            const payload = {
+                step_id: studyStep.id,
+                context_tag: 'preference visualization recommendations',
+                rec_type: recommendationType,
+                algorithm_key: algoKey,
+            };
+
+
+            // Fetch as BackendRecommendationResponse
+            const response = await studyApi.post<RecommendationRequestPayload, BackendRecommendationResponse>(
+                'recommendations/',
+                payload
+            );
+
+
+            // Adapter: Convert BackendResponse to Frontend PreferenceVizResponseObject
+            const adaptedResponse: PreferenceVizResponseObject = {};
+
+            Object.entries(response).forEach(([key, value]) => {
+                const { item, score, label, ...rest } = value;
+                // Check if 'item' is present and is an object (nested structure)
+                // If the backend sends flattened structure by mistake, we might need a check, 
+                // but we assume stricter adherence to specific backend schema here.
+                if (item && typeof item === 'object') {
+                    adaptedResponse[key] = {
+                        ...item, // Spread all movie properties
+                        ...rest, // Spread community_score, community_label, cluster
+                        item_id: key, // Ensure item_id matches the key
+                        user_score: score, // Map score -> user_score
+                        user_label: label, // Map label -> user_label
+                    };
+                } else {
+                    // Fallback/Warning if schema doesn't match expectation
+                    console.warn(`Unexpected item structure for key ${key}:`, value);
+                }
+            });
+
+
+            return adaptedResponse;
         },
-        enabled: !!ratedItems,
     });
 
     if (recommendationsLoading || !recommendations) {

@@ -1,32 +1,19 @@
-import clsx from "clsx";
-import LoadingText from "../components/LoadingText";
-import { useStepCompletion } from "../hooks/useStepCompletion";
+import clsx from 'clsx';
 
-
-export const Footer: React.FC<{ onNextButtonClick: () => void; text?: string; loading?: false }> = ({
-	onNextButtonClick,
-	text = 'Next',
-	loading = false,
-}) => {
-	const { isStepComplete } = useStepCompletion();
-	const disabled = !isStepComplete;
-	return (
-		<div className=" bg-gray-200 rounded-lg mt-3 content-center p-5">
-			<button
-				className={clsx(
-					'p-3 float-end rounded-md',
-					'font-normal',
-					disabled
-						? 'bg-gray-400 text-gray-500 cursor-not-allowed'
-						: 'bg-amber-500 hover:bg-amber-600 text-gray-800 hover:text-gray-100 cursor-pointer'
-				)}
-				onClick={onNextButtonClick}
-				disabled={disabled}
-			>
-				<span>{!loading ? text : <LoadingText text={'Loading...'} />}</span>
-			</button>
-		</div>
-	);
+export const Footer: React.FC = () => {
+    return (
+        <footer
+            className={clsx(
+                'bottom-0 w-full h-5 mt-3 bg-gray-200',
+                'content-center p-5 text-gray-400 text-left text-xs'
+            )}
+        >
+            <p className="">
+                <i>Recommender systems for self actualization</i>
+                <span>, Clemson University, Clemson, South Carolina</span>
+            </p>
+        </footer>
+    );
 };
 
 export default Footer;

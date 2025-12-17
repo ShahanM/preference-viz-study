@@ -30,7 +30,7 @@ export interface PreferenceVizObject {
     recommendation_features: PreferenceVizRecommendationFeature;
 }
 
-export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature {}
+export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature { }
 
 export interface PreferenceVizResponseObject {
     [key: string]: PreferenceVizRecommendedItem;
@@ -53,4 +53,44 @@ export interface PreferenceVizDataMixin {
     index?: number;
 }
 
-export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin {}
+export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin { }
+
+export interface EssayResponseObject {
+    familiarity: string;
+    exploration: string;
+    explanation: string;
+}
+
+export interface EssayResponse {
+    id?: string;
+    payload_json: EssayResponseObject;
+    version?: number;
+}
+
+export interface ParticipantResponsePayload {
+    study_step_id: string;
+    study_step_page_id: string | null;
+    context_tag: string;
+    payload_json: EssayResponseObject;
+}
+
+export interface BackendCommunityScoreItem {
+    item: Movie;
+    community_score: number;
+    score: number;
+    community_label: number;
+    label: number;
+    cluster: number;
+}
+
+export interface BackendRecommendationResponse {
+    [key: string]: BackendCommunityScoreItem;
+}
+
+export interface RecommendationRequestPayload {
+    step_id: string;
+    step_page_id?: string;
+    context_tag: string;
+    rec_type?: RecommendationType;
+    algorithm_key?: string;
+}

@@ -1,6 +1,6 @@
-import { Container, Row } from 'react-bootstrap';
-
 const FinalPage: React.FC = () => {
+    // Placeholder for completion code logic
+    const completionCode = "RSSA-COMPLETED";
     // const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
     // const resetParticipant = useResetRecoilState(participantState);
@@ -26,27 +26,26 @@ const FinalPage: React.FC = () => {
     // }
 
     return (
-        <Container>
-            {/* <Header title={studyStep?.name} content={studyStep?.description} /> */}
-            <Row style={{ textAlign: 'left' }}>
-                <p>
-                    You should be automatically redirected back to the Prolific page. If not, please click the link
-                    below.
+        <div>
+            <div className="mx-auto mt-7 text-left w-1/3">
+                <p className="mt-5">
+                    Thank you so much for participating in this study. You have reached the end of the study.
                 </p>
-                <a href="#" style={{ textAlign: 'center' }}>
-                    Some redirect url.
-                </a>
-                <p>
-                    Currently, this is a placeholder for testing. Please click the Done button below to finish the
-                    study.
-                </p>
-                <p>
-                    Note: If you do not click the Done button, you will not be able to run the study again on this
-                    browser without clearing browser data/cache.
-                </p>
-            </Row>
-            {/* <Footer callback={handleNextBtn} text={"Done"} /> */}
-        </Container>
+                <div className="mt-5">
+                    <b>Please copy the following code and paste it back to the survey window you came from.</b>
+                    <div className="mt-5 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                        <div className="flex">
+                            <div className="ml-3">
+                                <p className="text-sm text-yellow-700">
+                                    <span className="font-bold">Completion Code: </span>
+                                    {completionCode || 'Loading...'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

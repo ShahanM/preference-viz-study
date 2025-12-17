@@ -1,5 +1,5 @@
 // import { MySimDatum } from "./DiscreteDecoupled";
-// import { Movie } from "../../widgets/moviegrid/moviegriditem/MovieGridItem.types";
+import type { Movie } from '../../types/rssa.types';
 
 export type PrefVizRecItem = {
     item_id: number;
@@ -23,7 +23,7 @@ export type PrefVizItem = {
     recommendations: PrefVizRecItem[];
 };
 
-// export interface PrefVizRecItemDetail extends Movie, PrefVizRecItem { }
+export interface PrefVizRecItemDetail extends Movie, PrefVizRecItem { }
 
 export interface VisualizationProps {
     width: number;

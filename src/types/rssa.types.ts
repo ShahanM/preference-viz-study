@@ -1,6 +1,8 @@
 export interface RatedItem {
+    id?: string;
     item_id: string;
     rating: number;
+    version?: number;
 }
 
 export interface MovieEmotions {
@@ -53,8 +55,8 @@ export interface Movie {
     poster_identifier: string;
 }
 
-export interface EmotionMovies extends Movie, MovieEmotions {}
-export interface MovieRecommdantions extends Movie, MovieRecommendationText {}
+export interface EmotionMovies extends Movie, MovieEmotions { }
+export interface MovieRecommdantions extends Movie, MovieRecommendationText { }
 
 export interface MovieDetails extends Movie {
     emotions: MovieEmotions | null;
@@ -113,6 +115,7 @@ export interface ScaleLevel {
 
 export interface PageContent {
     id: string;
+    page_id: string;
     preamble: string;
     construct_id: string;
     items: SurveyConstructItem[];
@@ -126,4 +129,31 @@ export interface SurveyPageType {
     order_position: number;
     page_content: PageContent[];
     next: string;
+}
+
+export interface StudyResponseMetaFields {
+    step_id: string;
+    page_id?: string;
+    construct_id?: string;
+    construct_name?: string;
+}
+
+export interface SurveyItemResponse {
+    id: string;
+    item_id: string;
+    scale_level_id: string;
+    version?: number;
+}
+
+export interface ParticipantRatingPayload {
+    step_id: string;
+    step_page_id: string | null;
+    context_tag: string;
+    rated_item: RatedItem;
+}
+
+export interface NavigationWrapper<T> {
+    data: T;
+    next_id: string | null;
+    next_path: string | null;
 }

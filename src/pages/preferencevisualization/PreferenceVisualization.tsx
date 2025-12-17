@@ -2,22 +2,18 @@ import { Label, Listbox, ListboxButton, ListboxOption, ListboxOptions, Transitio
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useStudy } from 'rssa-api';
-import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
-import { MovieSelectionProvider } from '../../contexts/movieSelectionContext';
-import type { RatedItem } from '../../types/rssa.types';
+import { MovieSelectionProvider } from '../../contexts/movieSelectionProvider';
+import type { EssayResponse } from '../../types/preferenceVisualization.types';
+import type { StudyLayoutContextType } from '../../types/study.types';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 import ConditionView from './ConditionView';
-import LeftFormPanel from './LeftFormPanel';
+import ParticipantResponsePanel from './ParticipantResponsePanel';
 import RightInfoPanel from './RightInfoPanel';
 
-type PrefVizRequestObject = {
-    user_id: string;
-    user_condition: string;
-    rec_type: 'baseline' | 'diverse' | 'reference';
-    ratings: { item_id: number; rating: number }[];
-};
+
 const conditions = [
     {
         label: 'Diverse N Recommendations',
@@ -50,35 +46,21 @@ const conditions = [
 ];
 const PreferenceVisualizationContent: React.FC = () => {
     const { studyApi } = useStudy();
-    const [loading, setLoading] = useState<boolean>(false);
+    const { studyStep } = useOutletContext<StudyLayoutContextType>();
 
     // FIXME:
     // Temporary state to get condition from URL for development testing
     // NOTE: Condition 5 is Baseline in the test study, so we will get TopN
     const [selectedCondition, setSelectedCondition] = useState(conditions[0].options[0]);
 
-    const [width, setWidth] = useState(window.innerWidth);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setWidth(window.innerWidth);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const { data: ratedMovies, isLoading: ratedMoviesLoading } = useQuery({
-        queryKey: ['movieRatings'],
-        queryFn: async () => await studyApi.get<RatedItem[]>(`responses/ratings`),
-        staleTime: 1000 * 60 * 5,
+    const { data: essayResponseData } = useQuery({
+        queryKey: ['participantResponse'],
+        queryFn: async () => await studyApi.get<EssayResponse>(`responses/interactions/${studyStep.id}`),
+        enabled: !!studyApi,
     });
 
     const recommendationType = useMemo(() => {
         switch (selectedCondition.id) {
-            case 4:
-            case 52:
-            case 62:
-                return 'baseline';
             case 1:
             case 2:
             case 3:
@@ -91,24 +73,38 @@ const PreferenceVisualizationContent: React.FC = () => {
             case 51:
             case 61:
                 return 'reference';
+            case 4:
+            case 52:
+            case 62:
             default:
                 return 'baseline';
         }
     }, [selectedCondition.id]);
 
-
+    const essayResponse = useMemo(() => {
+        if (!essayResponseData) return undefined;
+        if (essayResponseData instanceof Array) {
+            return essayResponseData[0];
+        }
+    }, [essayResponseData]);
 
     return (
         <div className="">
             <div className="">
                 <Listbox value={selectedCondition} onChange={setSelectedCondition}>
                     <div className="flex flex-between relative mt-1 p-3">
-                        <Label className="block text-md font-medium text-gray-700 me-3 content-center">Experiment condition:</Label>
+                        <Label className="block text-md font-medium text-gray-700 me-3 content-center">
+                            Experiment condition:
+                        </Label>
                         <div>
-                            <ListboxButton className={clsx("relative cursor-default rounded-lg bg-white py-2 pl-3 pr-10",
-                                "text-left shadow-md sm:text-sm rounded-3",
-                                "focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2",
-                                "focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-300")}>
+                            <ListboxButton
+                                className={clsx(
+                                    'relative cursor-default rounded-lg bg-white py-2 pl-3 pr-10',
+                                    'text-left shadow-md sm:text-sm rounded-3',
+                                    'focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2',
+                                    'focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-300'
+                                )}
+                            >
                                 <span className="block truncate">{selectedCondition.name}</span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                     <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -120,11 +116,12 @@ const PreferenceVisualizationContent: React.FC = () => {
                                 leaveFrom="opacity-100"
                                 leaveTo="opacity-0"
                             >
-                                <ListboxOptions className={clsx(
-                                    "absolute mt-1 max-h-60 overflow-auto rounded-md",
-                                    "bg-white py-1 text-base shadow-lg ring-1 ring-black/5",
-                                    "focus:outline-none sm:text-sm"
-                                )}
+                                <ListboxOptions
+                                    className={clsx(
+                                        'absolute mt-1 max-h-60 overflow-auto rounded-md',
+                                        'bg-white py-1 text-base shadow-lg ring-1 ring-black/5',
+                                        'focus:outline-none sm:text-sm'
+                                    )}
                                 >
                                     {conditions.map((group) => (
                                         <div key={group.label}>
@@ -133,15 +130,16 @@ const PreferenceVisualizationContent: React.FC = () => {
                                                 <ListboxOption
                                                     key={option.id}
                                                     className={clsx(
-                                                        "relative cursor-default select-none py-2 pl-10 pr-4",
-                                                        "hover:bg-amber-100 text-amber-900 text-gray-900 cursor-pointer"
-                                                    )
-                                                    }
+                                                        'relative cursor-default select-none py-2 pl-10 pr-4',
+                                                        'hover:bg-amber-100 text-gray-900 cursor-pointer'
+                                                    )}
                                                     value={option}
                                                 >
                                                     {({ selected }) => (
                                                         <>
-                                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                            <span
+                                                                className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}
+                                                            >
                                                                 {option.name}
                                                             </span>
                                                             {selected ? (
@@ -163,13 +161,10 @@ const PreferenceVisualizationContent: React.FC = () => {
             </div>
             <div className="w-full flex flex-between gap-3">
                 <div className="w-1/5">
-                    <LeftFormPanel />
+                    <ParticipantResponsePanel condition={selectedCondition} participantResponse={essayResponse} />
                 </div>
                 <div className="w-3/5">
-                    {!ratedMoviesLoading ?
-                        <ConditionView condition={selectedCondition.id} ratedItems={ratedMovies!} recommendationType={recommendationType} />
-                        : <LoadingScreen loading={loading} message="Gathering your rated movies" />
-                    }
+                    <ConditionView condition={selectedCondition.id} recommendationType={recommendationType} />
                 </div>
                 <div className="w-1/5">
                     <RightInfoPanel

@@ -6,6 +6,7 @@ interface StepCompletionContextType {
 }
 
 export const StepCompletionContext = createContext<StepCompletionContextType | undefined>(undefined);
+
 export const useStepCompletion = () => {
     const context = useContext(StepCompletionContext);
     if (context === undefined) {

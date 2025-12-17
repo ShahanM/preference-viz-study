@@ -4,11 +4,11 @@ const APP_PREFIX = import.meta.env.VITE_APP_NAME || 'pref-viz-';
  * Utility functions for managing localStorage with a specific prefix.
  * This helps avoid conflicts with other applications using the same localStorage.
  */
-export const setItem = (key: string, value: any) => {
+export const setItem = (key: string, value: unknown) => {
     localStorage.setItem(`${APP_PREFIX}-${key}`, JSON.stringify(value));
 };
 
-export const getItem = (key: string): any => {
+export const getItem = (key: string): unknown => {
     const item = localStorage.getItem(`${APP_PREFIX}-${key}`);
     if (item) {
         try {

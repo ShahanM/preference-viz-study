@@ -98,7 +98,7 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps> = ({
 				.attr("width", posterWidth)
 				.attr("height", posterHeight)
 				.attr("preserveAspectRatio", "xMinYMin slice")
-				.on("mouseover", (event, d: DataAugmentedItem) => {
+				.on("mouseover", (_event, d: DataAugmentedItem) => {
 					d3.selectAll("image")
 						.filter(function () {
 							return d3.select(this).attr("data-id") === d.id;
@@ -115,7 +115,7 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps> = ({
 						onHover(d.id); // Call the onHover callback
 					}
 				})
-				.on("mouseout", (event, d: DataAugmentedItem) => {
+				.on("mouseout", (_event, d: DataAugmentedItem) => {
 					d3.selectAll("image")
 						.filter(function () {
 							return d3.select(this).attr("data-id") === d.id;

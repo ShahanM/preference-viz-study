@@ -4,12 +4,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
 import { ParticipantProvider, StudyProvider } from 'rssa-api';
 import App from './App.tsx';
-import { store } from './store.ts';
-import './styles/index.css';
-import './wdyr.ts';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 
 const RSSA_API_DEV = import.meta.env.VITE_RSSA_API_DEV!;
@@ -36,6 +32,7 @@ if (import.meta.hot) {
 }
 
 const api_url_base = process.env.NODE_ENV === 'development' ? RSSA_API_DEV : RSSA_API;
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
@@ -64,12 +61,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: localStoragePersister }}>
             <ParticipantProvider>
                 <StudyProvider config={providerConfig}>
-                    <Provider store={store}>
-                        <ErrorBoundary>
-                            <App />
-                        </ErrorBoundary>
-                        <ReactQueryDevtools initialIsOpen={false} />
-                    </Provider>
+                    <ErrorBoundary>
+                        <App />
+                    </ErrorBoundary>
+                    <ReactQueryDevtools initialIsOpen={false} />
                 </StudyProvider>
             </ParticipantProvider>
         </PersistQueryClientProvider>
