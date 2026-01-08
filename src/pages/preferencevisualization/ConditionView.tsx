@@ -43,13 +43,11 @@ const ConditionView: React.FC<ConditionViewProps> = ({ condition, recommendation
                 algorithm_key: algoKey,
             };
 
-
             // Fetch as BackendRecommendationResponse
             const response = await studyApi.post<RecommendationRequestPayload, BackendRecommendationResponse>(
                 'recommendations/',
                 payload
             );
-
 
             // Adapter: Convert BackendResponse to Frontend PreferenceVizResponseObject
             const adaptedResponse: PreferenceVizResponseObject = {};
@@ -57,7 +55,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({ condition, recommendation
             Object.entries(response).forEach(([key, value]) => {
                 const { item, score, label, ...rest } = value;
                 // Check if 'item' is present and is an object (nested structure)
-                // If the backend sends flattened structure by mistake, we might need a check, 
+                // If the backend sends flattened structure by mistake, we might need a check,
                 // but we assume stricter adherence to specific backend schema here.
                 if (item && typeof item === 'object') {
                     adaptedResponse[key] = {
@@ -72,7 +70,6 @@ const ConditionView: React.FC<ConditionViewProps> = ({ condition, recommendation
                     console.warn(`Unexpected item structure for key ${key}:`, value);
                 }
             });
-
 
             return adaptedResponse;
         },

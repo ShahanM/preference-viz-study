@@ -30,7 +30,7 @@ export interface PreferenceVizObject {
     recommendation_features: PreferenceVizRecommendationFeature;
 }
 
-export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature { }
+export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature {}
 
 export interface PreferenceVizResponseObject {
     [key: string]: PreferenceVizRecommendedItem;
@@ -53,7 +53,7 @@ export interface PreferenceVizDataMixin {
     index?: number;
 }
 
-export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin { }
+export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin {}
 
 export interface EssayResponseObject {
     familiarity: string;

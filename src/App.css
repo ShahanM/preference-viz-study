@@ -1,4 +1,0 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/forms";
-@plugin "tailwind-scrollbar";
-@import 'highlight.js/styles/atom-one-dark.css';
