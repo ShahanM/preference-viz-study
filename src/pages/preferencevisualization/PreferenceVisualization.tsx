@@ -85,7 +85,10 @@ const PreferenceVisualizationContent: React.FC = () => {
                             showLikeDislikeByLine: showLikeDislikeLines,
                         }}
                         infoPanelLayout={
-                            conditionIdentifier && conditionIdentifier.toLowerCase().includes('decoupled')
+                            conditionIdentifier &&
+                            (conditionIdentifier.toLowerCase().includes('coupled') ||
+                                conditionIdentifier.toLowerCase().includes('decoupled') ||
+                                conditionIdentifier === 'Umber-Swift')
                                 ? 'sidebar'
                                 : 'overlay'
                         }

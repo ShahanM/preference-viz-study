@@ -169,7 +169,7 @@ const ParticipantResponsePanel = ({
     return (
         <div className="bg-slate-100 p-3 m-1 rounded-md text-left">
             <div className="my-3">
-                <p>
+                <p className="text-sm">
                     Please use the movies recommendations on right to collect some notes for the essay that you will
                     write in the next step of the study. To help you write the essay, here are some guiding prompts, and
                     questions.
@@ -264,7 +264,7 @@ const ResponseForm = ({
 }) => {
     return (
         <div className="mt-5 relative group">
-            <label htmlFor={promptTag} className="block mb-1">
+            <label htmlFor={promptTag} className="block mb-1 text-sm">
                 {Parse(promptText)}
             </label>
             <div className="relative">

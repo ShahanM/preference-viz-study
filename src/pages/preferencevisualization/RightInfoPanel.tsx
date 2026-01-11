@@ -11,28 +11,40 @@ const RightInfoPanel = ({
     dislikeCutoff: number;
     showLikeDislikeByLine: boolean;
 }) => {
-    const [ratingSummary, setRatingSummary] = useState('');
+    const [prefSummaryLabel, setPrefSummaryLabel] = useState('');
     const { selectedMovie } = useMovieSelection<PreferenceVizRecommendedItem>();
 
     useEffect(() => {
         if (!selectedMovie) {
-            setRatingSummary('Select a movie to see details.');
+            setPrefSummaryLabel('Select a movie to see details.');
             return;
         }
-        console.log(selectedMovie);
+        const prefCutoffRange = Math.abs(likeCutoff - dislikeCutoff);
         const comm_score = selectedMovie.community_score;
         const user_score = selectedMovie.user_score;
-        if (comm_score < dislikeCutoff && user_score < dislikeCutoff) {
-            setRatingSummary('You and your community both dislike this movie.');
-        } else if (comm_score < dislikeCutoff && user_score > likeCutoff) {
-            setRatingSummary('You like this movie, but your community dislikes it.');
-        } else if (comm_score > likeCutoff && user_score < dislikeCutoff) {
-            setRatingSummary('You dislike this movie, but your community likes it.');
-        } else if (comm_score > likeCutoff && user_score > likeCutoff) {
-            setRatingSummary('You and your community both like this movie.');
+        let yourPrefLabel = '';
+        let communityPrefLabel = '';
+
+        if (user_score < dislikeCutoff - prefCutoffRange) {
+            yourPrefLabel = 'You are predicted to dislike this movie';
+        } else if (user_score > likeCutoff + prefCutoffRange) {
+            yourPrefLabel = 'You are predicted to like this movie';
+        } else {
+            yourPrefLabel = 'You are predicted to be ambivalent towards this movie';
         }
+        if (comm_score < dislikeCutoff - prefCutoffRange) {
+            communityPrefLabel = 'everyone else in the system dislikes this movie';
+        } else if (comm_score > likeCutoff + prefCutoffRange) {
+            communityPrefLabel = 'everyone else in the system likes this movie';
+        } else {
+            communityPrefLabel = 'everyone else in the system is ambivalent towards this movie';
+        }
+        setPrefSummaryLabel(`${yourPrefLabel}, and ${communityPrefLabel}.`);
     }, [selectedMovie, likeCutoff, dislikeCutoff]);
     if (!selectedMovie) return <></>;
+
+    console.log(selectedMovie);
+
     return (
         <div className="bg-slate-100 m-1 p-1 rounded-md">
             <div className="p-3">
@@ -46,25 +58,34 @@ const RightInfoPanel = ({
                 />
             </div>
             <div className="">
-                <h3 className="movie-title">
+                <h3 className="font-bold">
                     {selectedMovie.title} ({selectedMovie.year})
                 </h3>
             </div>
             {showLikeDislikeByLine && (
-                <div className="mt-3 font-medium">
-                    <p>{ratingSummary}</p>
+                <div className="mt-3 ml-3 text-left">
+                    <p className="text-sm italic">{prefSummaryLabel}</p>
                 </div>
             )}
-            <div className="p-3 text-left">
-                <p className="mt-5">
-                    <strong>Cast: </strong>
-                </p>
-                <ExpandableText text={selectedMovie.cast!} wordLimit={5} delimiter="|" joiner={', '} />
-                <p className="mt-3">
-                    <strong>Director: </strong>
-                </p>
-                <ExpandableText text={selectedMovie.director!} wordLimit={5} delimiter="|" joiner={', '} />
-                <ExpandableText text={selectedMovie.description} wordLimit={25} className="mt-5" />
+            <div className="ml-3 mb-3 text-left">
+                <p className="mt-3 font-semibold">Description:</p>
+                <ExpandableText text={selectedMovie.description} wordLimit={25} className="mt-1 text-sm" />
+                <p className="mt-3 font-semibold">Cast:</p>
+                <ExpandableText
+                    text={selectedMovie.cast!}
+                    wordLimit={5}
+                    delimiter="|"
+                    joiner={', '}
+                    className="mt-1 text-sm"
+                />
+                <p className="mt-3 font-semibold">Director:</p>
+                <ExpandableText
+                    text={selectedMovie.director!}
+                    wordLimit={5}
+                    delimiter="|"
+                    joiner={', '}
+                    className="mt-1 text-sm"
+                />
             </div>
         </div>
     );
@@ -98,7 +119,7 @@ const ExpandableText = ({
         <p className={className}>
             {displayText}
             {isTruncated && (
-                <span onClick={toggleExpanded} className="cursor-pointer text-blue-500 hover:text-blue-700">
+                <span onClick={toggleExpanded} className="ml-1 cursor-pointer text-blue-500 hover:text-blue-700">
                     {isExpanded ? ' show less' : '... show more'}
                 </span>
             )}
