@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { BrowserRouter as Router } from 'react-router-dom';
-import { RouteWrapper } from 'rssa-study-template';
-import { WarningDialog } from './components/dialogs/warningDialog';
+import { RouteWrapper, WarningDialog } from 'rssa-study-template';
 import { componentMap } from './pages/componentMap';
 import WelcomePage from './pages/WelcomePage';
 import { STRINGS } from './utils/constants';

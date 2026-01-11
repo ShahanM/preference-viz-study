@@ -54,7 +54,7 @@ export const conditionMap: Record<
      * Map the condition short_code for the respective StudyConditions from the Admin Dashboard to
      * the visualizer components above.
      */
-    'Continuous Coupled': ContinuousCoupledWrapper,
+    'Umber-Swift': ContinuousCoupledWrapper,
     'Explicit Continuous coupled 20 recs': ContinuousCoupledWrapper,
     'Continuous Decoupled': ContinuousDecoupledWrapper,
     'Discrete Decoupled': DiscreteDecoupledWrapper,

@@ -1,59 +1,59 @@
 {
-	"study_id": "afd0d6d8-51db-46c1-a04a-fc1db13d3e65",
-	"conditions": {
-		"Explicit Continuous coupled 20 recs": "a499a424-eeba-4db5-9c9a-f8774fdfca47",
-		"Explicit Continuous decoupled 20 recs": "fc95dd41-ac42-44a6-9733-5a9323f5acc4"
-	},
-	"steps": [
-		{
-			"step_id": "e9a7f134-0b9b-4a24-8d70-8e42e33a7773",
-			"path": "/welcome",
-			"component_type": "ConsentStep"
-		},
-		{
-			"step_id": "0c5af6cc-9052-4439-9536-1cc17b50326a",
-			"path": "/overview",
-			"component_type": "InstructionStep"
-		},
-		{
-			"step_id": "83308e2b-3c86-418c-bf15-9b1933edf7aa",
-			"path": "/pre-survey",
-			"component_type": "SurveyStep"
-		},
-		{
-			"step_id": "246152d5-8809-4335-b042-c426a43d0681",
-			"path": "/-246152d5-8809-4335-b042-c426a43d0681",
-			"component_type": "InstructionStep"
-		},
-		{
-			"step_id": "18651901-c983-468f-8f1c-aae040720d29",
-			"path": "/-18651901-c983-468f-8f1c-aae040720d29",
-			"component_type": "PreferenceElicitationStep"
-		},
-		{
-			"step_id": "f3961921-ce68-4049-8818-4198301d9cce",
-			"path": "/-f3961921-ce68-4049-8818-4198301d9cce",
-			"component_type": "TaskStep"
-		},
-		{
-			"step_id": "393d2ca8-0ab3-493e-9f87-190b53c1d2af",
-			"path": "/-393d2ca8-0ab3-493e-9f87-190b53c1d2af",
-			"component_type": "ExtraStep"
-		},
-		{
-			"step_id": "c3e658ca-78a4-4bc3-a33b-00b9653cc56d",
-			"path": "/-c3e658ca-78a4-4bc3-a33b-00b9653cc56d",
-			"component_type": "SurveyStep"
-		},
-		{
-			"step_id": "e49c4562-af9d-4fe4-865f-a9a43dc397a1",
-			"path": "/-e49c4562-af9d-4fe4-865f-a9a43dc397a1",
-			"component_type": "DemographicsStep"
-		},
-		{
-			"step_id": "425d4b70-7e4c-460a-a2fd-4b68df9b0534",
-			"path": "/-425d4b70-7e4c-460a-a2fd-4b68df9b0534",
-			"component_type": "ExtraStep"
-		}
-	]
+    "study_id": "afd0d6d8-51db-46c1-a04a-fc1db13d3e65",
+    "conditions": {
+        "Explicit Continuous coupled 20 recs": "a499a424-eeba-4db5-9c9a-f8774fdfca47",
+        "Explicit Continuous decoupled 20 recs": "fc95dd41-ac42-44a6-9733-5a9323f5acc4"
+    },
+    "steps": [
+        {
+            "step_id": "e9a7f134-0b9b-4a24-8d70-8e42e33a7773",
+            "path": "/welcome",
+            "component_type": "ConsentStep"
+        },
+        {
+            "step_id": "0c5af6cc-9052-4439-9536-1cc17b50326a",
+            "path": "/overview",
+            "component_type": "InstructionStep"
+        },
+        {
+            "step_id": "83308e2b-3c86-418c-bf15-9b1933edf7aa",
+            "path": "/pre-survey",
+            "component_type": "SurveyStep"
+        },
+        {
+            "step_id": "246152d5-8809-4335-b042-c426a43d0681",
+            "path": "/-246152d5-8809-4335-b042-c426a43d0681",
+            "component_type": "InstructionStep"
+        },
+        {
+            "step_id": "18651901-c983-468f-8f1c-aae040720d29",
+            "path": "/-18651901-c983-468f-8f1c-aae040720d29",
+            "component_type": "PreferenceElicitationStep"
+        },
+        {
+            "step_id": "f3961921-ce68-4049-8818-4198301d9cce",
+            "path": "/-f3961921-ce68-4049-8818-4198301d9cce",
+            "component_type": "TaskStep"
+        },
+        {
+            "step_id": "393d2ca8-0ab3-493e-9f87-190b53c1d2af",
+            "path": "/-393d2ca8-0ab3-493e-9f87-190b53c1d2af",
+            "component_type": "ExtraStep"
+        },
+        {
+            "step_id": "c3e658ca-78a4-4bc3-a33b-00b9653cc56d",
+            "path": "/-c3e658ca-78a4-4bc3-a33b-00b9653cc56d",
+            "component_type": "SurveyStep"
+        },
+        {
+            "step_id": "e49c4562-af9d-4fe4-865f-a9a43dc397a1",
+            "path": "/-e49c4562-af9d-4fe4-865f-a9a43dc397a1",
+            "component_type": "DemographicsStep"
+        },
+        {
+            "step_id": "425d4b70-7e4c-460a-a2fd-4b68df9b0534",
+            "path": "/-425d4b70-7e4c-460a-a2fd-4b68df9b0534",
+            "component_type": "ExtraStep"
+        }
+    ]
 }

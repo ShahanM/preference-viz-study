@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import LoadingText from '../components/LoadingText';
+import { LoadingText } from 'rssa-study-template';
 
 export const WelcomeFooter: React.FC<{
     onStudyStart: () => void;

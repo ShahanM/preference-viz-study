@@ -10,8 +10,6 @@ const StudyRestartButton = () => {
         clearStorage();
         isInternalNavigationRef.current = true;
         navigate('/');
-
-        // setShowStudyRestartDialog(false);
     };
 
     return <button onClick={handleStudyRestart}>Restart Study</button>;

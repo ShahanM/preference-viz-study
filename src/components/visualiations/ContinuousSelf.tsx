@@ -5,12 +5,7 @@ import type {
     PreferenceVizComponentProps,
     PreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
-
-const posterWidth = 54;
-const posterHeight = 81;
-
-const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins
-const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
+import { DEFAULT_MOVIE_ICON, MARGIN, POSTER_HEIGHT, POSTER_WIDTH } from '../../utils/vizConstants';
 
 const X_AXIS_LABEL = "The system's predicted movie rating for you";
 
@@ -23,8 +18,8 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
     onHover,
 }) => {
     const svgHeight = height / 4;
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = svgHeight - margin.top - margin.bottom;
+    const innerWidth = width - MARGIN.left - MARGIN.right;
+    const innerHeight = svgHeight - MARGIN.top - MARGIN.bottom;
 
     const svgRef = useRef<SVGSVGElement>(null);
     const simNodeData = useMemo(
@@ -48,7 +43,7 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
             const yScale = d3.scaleLinear().domain([0, 5]).range([innerHeight, 0]); // Note: range is inverted for y-axis
             const svg = d3.select(svgRef).attr('width', width).attr('height', svgHeight);
             svg.selectAll('*').remove();
-            const g = svg.append<SVGGElement>('g').attr('transform', `translate(${margin.left},${margin.top})`);
+            const g = svg.append<SVGGElement>('g').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
 
             g.append('g')
                 .attr('class', 'grid')
@@ -73,21 +68,13 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
 
             g.append('g').attr('transform', `translate(0, ${innerHeight})`).call(d3.axisBottom(xScale));
 
-            svg.append('style').text(`
-				.grid line {
-				stroke: #ccc; /* Light gray */
-				stroke-opacity: 0.7; /* Slightly transparent */
-				shape-rendering: crispEdges; /* Make lines sharp */
-				}
-			`);
-
             // Images
             g.selectAll<SVGImageElement, DataAugmentedItem>('image')
                 .data(ctxData)
                 .enter()
                 .append('image')
                 .attr('data-id', (d) => d.id)
-                .attr('xlink:href', defaultImage)
+                .attr('xlink:href', DEFAULT_MOVIE_ICON)
                 .each(function (d: DataAugmentedItem) {
                     // Use .each for individual element handling
                     const image = d3.select(this);
@@ -97,13 +84,14 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
                         image.attr('href', d.poster);
                     };
                     img.onerror = () => {
-                        image.attr('href', defaultImage);
+                        image.attr('href', DEFAULT_MOVIE_ICON);
                     };
                 })
-                .attr('x', (d) => xScale(d.x!) - posterWidth / 2)
+                .attr('x', (d) => xScale(d.x!) - POSTER_WIDTH / 2)
                 .attr('y', innerHeight / 2)
-                .attr('width', posterWidth)
-                .attr('height', posterHeight)
+                .attr('width', POSTER_WIDTH)
+                .attr('height', POSTER_HEIGHT)
+
                 .attr('preserveAspectRatio', 'xMinYMin slice')
                 .on('mouseover', (_event, d: DataAugmentedItem) => {
                     d3.selectAll('image')
@@ -112,10 +100,10 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
                         })
                         .style('cursor', 'pointer')
                         .raise()
-                        .attr('x', (d) => xScale((d as DataAugmentedItem).x!) - posterWidth / 2)
-                        .attr('y', innerHeight / 2 - posterHeight)
-                        .attr('width', posterWidth * 2) // Increase width by 20%
-                        .attr('height', posterHeight * 2)
+                        .attr('x', (d) => xScale((d as DataAugmentedItem).x!) - POSTER_WIDTH / 2)
+                        .attr('y', innerHeight / 2 - POSTER_HEIGHT)
+                        .attr('width', POSTER_WIDTH * 2) // Increase width by 20%
+                        .attr('height', POSTER_HEIGHT * 2)
                         .classed('image-with-border', true);
 
                     if (onHover) {
@@ -127,10 +115,10 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
                         .filter(function () {
                             return d3.select(this).attr('data-id') === d.id;
                         })
-                        .attr('x', (d) => xScale((d as DataAugmentedItem).x!) - posterWidth / 2)
+                        .attr('x', (d) => xScale((d as DataAugmentedItem).x!) - POSTER_WIDTH / 2)
                         .attr('y', innerHeight / 2)
-                        .attr('width', posterWidth) // Reset to original width
-                        .attr('height', posterHeight) // Reset to original height
+                        .attr('width', POSTER_WIDTH) // Reset to original width
+                        .attr('height', POSTER_HEIGHT) // Reset to original height
                         .classed('image-with-border', false); // Reset to original height
                     if (onHover) {
                         onHover('');
@@ -138,7 +126,8 @@ const ContinuousSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommen
                 });
 
             svg.append('text')
-                .attr('x', innerWidth / 2 + margin.left)
+                .attr('x', innerWidth / 2 + MARGIN.left)
+
                 .attr('y', svgHeight - 5) // Position below the chart
                 .style('text-anchor', 'middle')
                 .style('font-weight', 'bold')

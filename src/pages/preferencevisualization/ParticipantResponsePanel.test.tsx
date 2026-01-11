@@ -64,7 +64,7 @@ describe('ParticipantResponsePanel Save Logic', () => {
             <QueryClientProvider client={queryClient}>
                 <ParticipantResponsePanel
                     participantResponse={undefined}
-                    condition={{ id: 1, name: 'Test Condition' }}
+                    condition={{ id: '1', name: 'Test Condition' }}
                 />
             </QueryClientProvider>
         );

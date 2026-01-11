@@ -19,6 +19,7 @@ const RightInfoPanel = ({
             setRatingSummary('Select a movie to see details.');
             return;
         }
+        console.log(selectedMovie);
         const comm_score = selectedMovie.community_score;
         const user_score = selectedMovie.user_score;
         if (comm_score < dislikeCutoff && user_score < dislikeCutoff) {

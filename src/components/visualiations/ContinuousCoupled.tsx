@@ -1,13 +1,12 @@
 import * as d3 from 'd3';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type {
     DataAugmentedItem,
     PreferenceVizComponentProps,
     PreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
-
-const posterWidth = 54;
-const posterHeight = 81;
+import { POSTER_HEIGHT, POSTER_WIDTH } from '../../utils/vizConstants';
+import { fisheye } from '../../utils/vizUtils';
 
 const X_AXIS_LABEL = "The system's predicted movie rating for you";
 const Y_AXIS_LABEL = 'Ratings from everyone else in the system';
@@ -26,6 +25,9 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         onHoverRef.current = onHover;
     }, [onHover]);
 
+    // specific data transformation
+    const dataValues = useMemo(() => (data ? Object.values(data) : []), [data]);
+
     useEffect(() => {
         if (!data || !svgRef.current || width === 0 || height === 0) {
             return;
@@ -35,8 +37,8 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const innerHeight = height - margin.top - margin.bottom;
 
         // Poster padding logic to prevent clipping at edges (1.0 and 5.0)
-        const xRangePadding = posterWidth / 2;
-        const yRangePadding = posterHeight / 2;
+        const xRangePadding = POSTER_WIDTH / 2;
+        const yRangePadding = POSTER_HEIGHT / 2;
 
         const xScale = d3
             .scaleLinear()
@@ -136,37 +138,6 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .attr('stroke', '#000000')
             .attr('shape-rendering', 'crispEdges');
 
-        // CSS for grid lines
-        svg.append('style').text(`
-				.grid line {
-				stroke: #ccc; /* Light gray */
-				stroke-opacity: 0.7; /* Slightly transparent */
-				shape-rendering: crispEdges; /* Make lines sharp */
-				}
-			`);
-
-        const dataValues: DataAugmentedItem[] = Object.values(data);
-
-        // Define Fisheye Function
-        const fisheye = (val: number, focus: number, distortionFactor: number, min: number, max: number) => {
-            const leftDist = focus - min;
-            const rightDist = max - focus;
-
-            if (val < focus) {
-                if (leftDist === 0) return val;
-                const t = (focus - val) / leftDist;
-                const d = distortionFactor;
-                const t_distorted = ((d + 1) * t) / (d * t + 1);
-                return focus - t_distorted * leftDist;
-            } else {
-                if (rightDist === 0) return val;
-                const t = (val - focus) / rightDist;
-                const d = distortionFactor;
-                const t_distorted = ((d + 1) * t) / (d * t + 1);
-                return focus + t_distorted * rightDist;
-            }
-        };
-
         // Images
         const images = g
             .selectAll<SVGImageElement, DataAugmentedItem>('image')
@@ -175,10 +146,10 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .append('image')
             .attr('xlink:href', (d) => d.tmdb_poster)
             // Center the image on the data point
-            .attr('x', (d) => xScale(d.community_score) - posterWidth / 2)
-            .attr('y', (d) => yScale(d.user_score) - posterHeight / 2)
-            .attr('width', posterWidth)
-            .attr('height', posterHeight)
+            .attr('x', (d) => xScale(d.community_score) - POSTER_WIDTH / 2)
+            .attr('y', (d) => yScale(d.user_score) - POSTER_HEIGHT / 2)
+            .attr('width', POSTER_WIDTH)
+            .attr('height', POSTER_HEIGHT)
             .attr('preserveAspectRatio', 'xMinYMin slice')
             .attr('data-ox', (d) => xScale(d.community_score)) // Original X Center
             .attr('data-oy', (d) => yScale(d.user_score)) // Original Y Center
@@ -189,14 +160,14 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                     // Expand from center
                     .attr('x', function () {
                         const cx = parseFloat(d3.select(this).attr('current-cx') || d3.select(this).attr('data-ox'));
-                        return cx - posterWidth;
+                        return cx - POSTER_WIDTH;
                     })
                     .attr('y', function () {
                         const cy = parseFloat(d3.select(this).attr('current-cy') || d3.select(this).attr('data-oy'));
-                        return cy - posterHeight;
+                        return cy - POSTER_HEIGHT;
                     })
-                    .attr('width', posterWidth * 2)
-                    .attr('height', posterHeight * 2)
+                    .attr('width', POSTER_WIDTH * 2)
+                    .attr('height', POSTER_HEIGHT * 2)
                     .classed('image-with-border', true);
 
                 if (onHoverRef.current) {
@@ -207,14 +178,14 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                 d3.select(event.currentTarget)
                     .attr('x', function () {
                         const cx = parseFloat(d3.select(this).attr('current-cx') || d3.select(this).attr('data-ox'));
-                        return cx - posterWidth / 2;
+                        return cx - POSTER_WIDTH / 2;
                     })
                     .attr('y', function () {
                         const cy = parseFloat(d3.select(this).attr('current-cy') || d3.select(this).attr('data-oy'));
-                        return cy - posterHeight / 2;
+                        return cy - POSTER_HEIGHT / 2;
                     })
-                    .attr('width', posterWidth)
-                    .attr('height', posterHeight)
+                    .attr('width', POSTER_WIDTH)
+                    .attr('height', POSTER_HEIGHT)
                     .classed('image-with-border', false);
                 if (onHoverRef.current) {
                     onHoverRef.current('');
@@ -303,7 +274,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                     });
             });
         }
-    }, [data, svgRef, width, height, isFisheye]);
+    }, [dataValues, svgRef, width, height, isFisheye]);
 
     return <svg ref={svgRef} width={width} height={height}></svg>;
 };

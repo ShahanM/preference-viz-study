@@ -2,3 +2,9 @@
 @source "../../node_modules/rssa-study-template/dist/rssa-study-template.es.js";
 @plugin "@tailwindcss/forms";
 @plugin "tailwind-scrollbar";
+
+.grid line {
+    stroke: #ccc; /* Light gray */
+    stroke-opacity: 0.7; /* Slightly transparent */
+    shape-rendering: crispEdges; /* Make lines sharp */
+}

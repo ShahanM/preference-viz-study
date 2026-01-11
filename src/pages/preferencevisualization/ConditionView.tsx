@@ -126,7 +126,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
     if (recommendationsLoading || !recommendations) {
         return <LoadingScreen loading={true} message="Loading Recommendations" />;
     }
-    console.log(JSON.stringify(recommendations));
+
     return (
         <div className="relative w-full h-full group">
             {/* Enlarge Button */}
