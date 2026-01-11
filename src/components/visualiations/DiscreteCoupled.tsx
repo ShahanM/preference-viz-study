@@ -85,7 +85,6 @@ const DiscreteCoupled: React.FC<VisualizationProps> = ({
                     .attr('data-id', (d) => d.id)
                     .attr('xlink:href', defaultImage)
                     .each(function (d: VizDataProps) {
-                        // Use .each for individual element handling
                         const image = d3.select(this);
                         const img = new Image();
                         img.src = d.poster;

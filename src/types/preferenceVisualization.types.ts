@@ -33,16 +33,17 @@ export interface PreferenceVizObject {
 export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature {}
 
 export interface PreferenceVizResponseObject {
-    [key: string]: PreferenceVizRecommendedItem;
+    [key: string]: PreferenceVizRecommendedItem | Movie;
 }
 
-export interface PreferenceVizComponentProps {
+export interface PreferenceVizComponentProps<T = PreferenceVizRecommendedItem | Movie> {
     width: number;
     height: number;
-    data: PreferenceVizResponseObject;
+    data: { [key: string]: T };
     xCol: string;
     yCol: string;
     onHover: (item_id: string) => void;
+    isFisheye?: boolean;
 }
 
 export interface PreferenceVizDataMixin {
@@ -51,6 +52,7 @@ export interface PreferenceVizDataMixin {
     vx?: number;
     vy?: number;
     index?: number;
+    scoreValue?: number;
 }
 
 export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin {}
@@ -84,7 +86,12 @@ export interface BackendCommunityScoreItem {
 }
 
 export interface BackendRecommendationResponse {
-    [key: string]: BackendCommunityScoreItem;
+    [key: string]: BackendCommunityScoreItem | Movie;
+}
+
+export interface BackendResponsePayload {
+    rec_type: 'standard' | 'community_comparison';
+    items: BackendRecommendationResponse;
 }
 
 export interface RecommendationRequestPayload {
@@ -93,4 +100,10 @@ export interface RecommendationRequestPayload {
     context_tag: string;
     rec_type?: RecommendationType;
     algorithm_key?: string;
+}
+
+export function isPreferenceVizRecommendedItem(
+    item: PreferenceVizRecommendedItem | Movie
+): item is PreferenceVizRecommendedItem {
+    return (item as PreferenceVizRecommendedItem).user_score !== undefined;
 }

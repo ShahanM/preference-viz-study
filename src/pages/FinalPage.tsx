@@ -1,6 +1,6 @@
 const FinalPage: React.FC = () => {
     // Placeholder for completion code logic
-    const completionCode = "RSSA-COMPLETED";
+    const completionCode = 'RSSA-COMPLETED';
     // const studyStep: StudyStep | null = useRecoilValue(studyStepState);
 
     // const resetParticipant = useResetRecoilState(participantState);

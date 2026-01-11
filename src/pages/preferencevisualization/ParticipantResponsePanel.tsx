@@ -1,3 +1,5 @@
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import Parse from 'html-react-parser';
@@ -46,14 +48,16 @@ const ParticipantResponsePanel = ({
     condition,
 }: {
     participantResponse: EssayResponse | undefined;
-    condition: { id: number; name: string };
+    condition: { id: string; name: string };
 }) => {
-
     const [localResponseDraft, setLocalResponseDraft] = useState<EssayResponseObject>({
         familiarity: '',
         exploration: '',
         explanation: '',
     });
+
+    // State for the expanded modal
+    const [expandedField, setExpandedField] = useState<keyof EssayResponseObject | null>(null);
 
     const { studyStep } = useOutletContext<StudyLayoutContextType>();
     const { studyApi } = useStudy();
@@ -115,8 +119,8 @@ const ParticipantResponsePanel = ({
         },
         onSuccess: (result) => {
             const newPayload = {
-                exploration: result.exploration,
                 familiarity: result.familiarity,
+                exploration: result.exploration,
                 explanation: result.explanation,
             };
             setSavedResponse(newPayload);
@@ -136,21 +140,6 @@ const ParticipantResponsePanel = ({
             setSavedResponse(participantResponse.payload_json);
         }
     }, [participantResponse]);
-    // FIX: Simplified auto-save effect
-    // useEffect(() => {
-    //     // Only save if the draft is different from what's already saved.
-    //     if (JSON.stringify(localResponseDraft) === JSON.stringify(savedResponse)) {
-    //         return; // Don't save if nothing has changed
-    //     }
-
-    //     const handler = setTimeout(() => {
-    //         essayMutation.mutate(localResponseDraft);
-    //     }, 1500); // 1.5-second debounce
-
-    //     return () => {
-    //         clearTimeout(handler);
-    //     };
-    // }, [localResponseDraft, savedResponse, essayMutation]);
 
     useEffect(() => {
         const allFieldsFilled =
@@ -167,14 +156,15 @@ const ParticipantResponsePanel = ({
         }));
     };
 
-    // ADD: Click handler for the save button
-    const handleSaveClick = () => {
-
-        essayMutation.mutateAsync(localResponseDraft);
+    const handleSaveClick = async () => {
+        await essayMutation.mutateAsync(localResponseDraft);
+        setExpandedField(null); // Close modal on save
     };
 
-    // ADD: Declarative check for unsaved changes
-    const hasUnsavedChanges = JSON.stringify(localResponseDraft) !== JSON.stringify(savedResponse);
+    const hasUnsavedChanges =
+        localResponseDraft.familiarity !== savedResponse.familiarity ||
+        localResponseDraft.exploration !== savedResponse.exploration ||
+        localResponseDraft.explanation !== savedResponse.explanation;
 
     return (
         <div className="bg-slate-100 p-3 m-1 rounded-md text-left">
@@ -186,28 +176,18 @@ const ParticipantResponsePanel = ({
                 </p>
             </div>
             {essayMutation.isPending && <p>Saving...</p>}
-            <ResponseForm
-                key={'exploration'}
-                promptTag={'exploration'}
-                promptText={PROMPTS.exploration}
-                text={localResponseDraft.exploration}
-                onTextChange={(value) => handleTextChange('exploration', value)}
-            />
-            <ResponseForm
-                key={'familiarity'}
-                promptTag={'familiarity'}
-                promptText={PROMPTS.familiarity}
-                text={localResponseDraft.familiarity}
-                onTextChange={(value) => handleTextChange('familiarity', value)}
-            />
-            <ResponseForm
-                key={'explanation'}
-                promptTag={'explanation'}
-                promptText={PROMPTS.explanation}
-                text={localResponseDraft.explanation}
-                onTextChange={(value) => handleTextChange('explanation', value)}
-            />
-            {/* ADD: Save button and container */}
+
+            {(['exploration', 'familiarity', 'explanation'] as const).map((field) => (
+                <ResponseForm
+                    key={field}
+                    promptTag={field}
+                    promptText={PROMPTS[field]}
+                    text={localResponseDraft[field]}
+                    onTextChange={(value) => handleTextChange(field, value)}
+                    onExpand={() => setExpandedField(field)}
+                />
+            ))}
+
             <div className="text-right mt-5">
                 <button
                     onClick={handleSaveClick}
@@ -223,37 +203,95 @@ const ParticipantResponsePanel = ({
                     {essayMutation.isPending ? 'Saving...' : 'Save Notes'}
                 </button>
             </div>
+
+            {/* Modal for Expanded View */}
+            <Dialog open={expandedField !== null} onClose={() => setExpandedField(null)} className="relative z-50">
+                {/* The backdrop, rendered as a fixed sibling to the panel container */}
+                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+                {/* Full-screen container to center the panel */}
+                <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                    <DialogPanel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                        <DialogTitle as="h3" className="text-lg font-medium leading-6 text-gray-900 border-b pb-2 mb-4">
+                            {expandedField && Parse(PROMPTS[expandedField])}
+                        </DialogTitle>
+
+                        <div className="mt-2">
+                            <textarea
+                                value={expandedField ? localResponseDraft[expandedField] : ''}
+                                onChange={(e) => expandedField && handleTextChange(expandedField, e.target.value)}
+                                className="w-full h-[60vh] p-4 text-base rounded-md border-gray-300 focus:border-amber-500 focus:ring-amber-500 font-mono"
+                                placeholder="Enter your detailed response here..."
+                            />
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                                onClick={() => setExpandedField(null)}
+                            >
+                                Close
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex justify-center rounded-md border border-transparent bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                                onClick={handleSaveClick}
+                                disabled={!hasUnsavedChanges || essayMutation.isPending}
+                            >
+                                {essayMutation.isPending ? 'Saving...' : 'Save & Close'}
+                            </button>
+                        </div>
+                    </DialogPanel>
+                </div>
+            </Dialog>
         </div>
     );
 };
+
 const ResponseForm = ({
     promptTag,
     promptText,
     text,
     onTextChange,
+    onExpand,
 }: {
     promptTag: string;
     promptText: string;
     text: string;
     onTextChange: (text: string) => void;
+    onExpand: () => void;
 }) => {
     return (
-        <div className="mt-5">
-            <label htmlFor={promptTag}>{Parse(promptText)}</label>
-            <textarea
-                id={promptTag}
-                value={text}
-                name={promptTag}
-                placeholder="Enter your response..."
-                onChange={(evt) => onTextChange(evt.target.value)}
-                className={clsx(
-                    'rounded-md',
-                    'p-3 mt-1',
-                    'block w-full rounded-md border-amber-400',
-                    'shadow-sm focus:border-yellow-500 focus:ring-yellow-500',
-                    'sm:text-sm font-mono'
-                )}
-            />
+        <div className="mt-5 relative group">
+            <label htmlFor={promptTag} className="block mb-1">
+                {Parse(promptText)}
+            </label>
+            <div className="relative">
+                <textarea
+                    id={promptTag}
+                    value={text}
+                    name={promptTag}
+                    placeholder="Enter your response..."
+                    onChange={(evt) => onTextChange(evt.target.value)}
+                    className={clsx(
+                        'rounded-md',
+                        'p-3 mt-1',
+                        'block w-full rounded-md border-amber-400',
+                        'shadow-sm focus:border-yellow-500 focus:ring-yellow-500',
+                        'sm:text-sm font-mono'
+                    )}
+                />
+                {/* Enlarge Icon - Top Right of Textarea */}
+                <button
+                    type="button"
+                    onClick={onExpand}
+                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 bg-white/50 hover:bg-white rounded-md transition-colors"
+                    title="Enlarge text area"
+                >
+                    <ArrowsPointingOutIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+            </div>
         </div>
     );
 };

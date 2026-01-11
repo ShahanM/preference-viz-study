@@ -55,8 +55,8 @@ export interface Movie {
     poster_identifier: string;
 }
 
-export interface EmotionMovies extends Movie, MovieEmotions { }
-export interface MovieRecommdantions extends Movie, MovieRecommendationText { }
+export interface EmotionMovies extends Movie, MovieEmotions {}
+export interface MovieRecommdantions extends Movie, MovieRecommendationText {}
 
 export interface MovieDetails extends Movie {
     emotions: MovieEmotions | null;

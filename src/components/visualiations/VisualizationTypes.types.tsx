@@ -23,7 +23,7 @@ export type PrefVizItem = {
     recommendations: PrefVizRecItem[];
 };
 
-export interface PrefVizRecItemDetail extends Movie, PrefVizRecItem { }
+export interface PrefVizRecItemDetail extends Movie, PrefVizRecItem {}
 
 export interface VisualizationProps {
     width: number;

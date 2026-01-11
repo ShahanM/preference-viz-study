@@ -1,6 +1,10 @@
 import * as d3 from 'd3';
 import { useEffect, useMemo, useRef } from 'react';
-import type { DataAugmentedItem, PreferenceVizComponentProps } from '../../types/preferenceVisualization.types';
+import type {
+    DataAugmentedItem,
+    PreferenceVizComponentProps,
+    PreferenceVizRecommendedItem,
+} from '../../types/preferenceVisualization.types';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 
 const posterWidth = 45;
@@ -14,7 +18,12 @@ const colHeaderHeight = 100;
 
 const defaultImage = 'https://rssa.recsys.dev/movie/poster/default_movie_icon.svg';
 
-const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({ width, height, data, onHover }) => {
+const DiscreteSelf: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
+    width,
+    height,
+    data,
+    onHover,
+}) => {
     const numRows = 2;
     const numCols = 2;
 
@@ -29,10 +38,10 @@ const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({ width, height, da
         () =>
             data
                 ? Object.values(data).map((d) => ({
-                    ...d,
-                    x: svgWidth / 2,
-                    y: svgHeight / 2,
-                }))
+                      ...d,
+                      x: svgWidth / 2,
+                      y: svgHeight / 2,
+                  }))
                 : [],
         [data, svgWidth, svgHeight]
     );
@@ -41,11 +50,6 @@ const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({ width, height, da
         return {
             myLikes: simNodeData.filter((d) => d.user_score >= likeCuttoff),
             myDislikes: simNodeData.filter((d) => d.user_score < dislikeCuttoff),
-            // ,
-            // commLikes: simNodeData.filter((d) =>
-            // 	d.community_score >= likeCuttoff),
-            // commDisikes: simNodeData.filter((d) =>
-            // 	d.community_score < dislikeCuttoff)
         };
     }, [simNodeData]);
 
@@ -56,7 +60,6 @@ const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({ width, height, da
         if (currentSvgRefs.length === dataArrays.length && filteredData) {
             const newSimulations: d3.Simulation<DataAugmentedItem, undefined>[] = [];
             svgRefs.current.forEach((svgRef, i) => {
-
                 const svg = d3
                     .select(svgRef)
                     .attr('width', width / numCols)
@@ -71,7 +74,6 @@ const DiscreteSelf: React.FC<PreferenceVizComponentProps> = ({ width, height, da
                     .attr('data-id', (d) => d.id)
                     .attr('xlink:href', defaultImage)
                     .each(function (d: DataAugmentedItem) {
-                        // Use .each for individual element handling
                         const image = d3.select(this);
                         const img = new Image();
                         img.src = d.poster;

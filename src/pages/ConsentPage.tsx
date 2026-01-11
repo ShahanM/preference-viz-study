@@ -43,7 +43,6 @@ const ConsentContent: React.FC = () => {
 };
 
 const ConsentPage: React.FC = () => {
-    // Hardcoded as in original file
     const PARTICIPANT_TYPE_ID = '149078d0-cece-4b2c-81cd-a7df4f76d15a';
     const PARTICIPANT_EXTERNAL_ID = 'N/A';
 

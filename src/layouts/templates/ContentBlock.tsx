@@ -13,9 +13,7 @@ const ContentBlock: React.FC<ContentBlockProps> = ({ content, onComplete }) => {
     const [answeredItemIds, setAnsweredItemIds] = useState<Set<string>>(new Set());
     const { studyApi } = useStudy();
 
-    const {
-        data: currentPageResponses,
-    } = useQuery({
+    const { data: currentPageResponses } = useQuery({
         queryKey: ['currentPageResponses', content.page_id],
         queryFn: async () => studyApi.get<SurveyItemResponse[]>(`responses/survey/${content.page_id!}`),
         select: (data) => (Array.isArray(data) ? data : []),

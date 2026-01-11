@@ -31,7 +31,7 @@ if (import.meta.hot) {
     });
 }
 
-const api_url_base = process.env.NODE_ENV === 'development' ? RSSA_API_DEV : RSSA_API;
+const api_url_base = import.meta.env.DEV ? RSSA_API_DEV : RSSA_API;
 
 const queryClient = new QueryClient({
     defaultOptions: {

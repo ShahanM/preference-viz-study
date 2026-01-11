@@ -15,7 +15,6 @@ interface WarningDialogProps {
 }
 
 export const WarningDialog: React.FC<WarningDialogProps> = (props) => {
-
     const [isOpen, setIsOpen] = useState(false);
     const handleClose = () => !props.disableHide && setIsOpen(false);
 

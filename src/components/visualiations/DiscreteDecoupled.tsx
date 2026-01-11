@@ -12,12 +12,11 @@ const posterHeight = 72;
 
 const likeCuttoff = LIKE_CUTOFF;
 const dislikeCuttoff = DISLIKE_CUTOFF;
-const margin = { top: 20, right: 60, bottom: 60, left: 60 }; // Define margins
+const margin = { top: 20, right: 20, bottom: 30, left: 40 }; // Define margins
 const rowHeaderWidth = 100;
 const colHeaderHeight = 100;
 const numRows = 2;
 const numCols = 2;
-
 interface DiscreteData {
     myLikes: PreferenceVizRecommendedItem[];
     myDislikes: PreferenceVizRecommendedItem[];
@@ -25,7 +24,12 @@ interface DiscreteData {
     commDislikes: PreferenceVizRecommendedItem[];
 }
 
-const DiscreteDecoupled: React.FC<PreferenceVizComponentProps> = ({ width, height, data, onHover }) => {
+const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
+    width,
+    height,
+    data,
+    onHover,
+}) => {
     const svgRefs = useRef<Map<keyof DiscreteData, SVGSVGElement>>(new Map());
 
     const simulationRefs = useRef<Map<keyof DiscreteData, d3.Simulation<DataAugmentedItem, undefined>>>(new Map());

@@ -8,7 +8,7 @@ export interface NextButtonControl {
 
 export const defaultControl: NextButtonControl = {
     label: 'Continue to Next Step',
-    action: () => { },
+    action: () => {},
     isDisabled: false,
 };
 export interface NextButtonContextType {
