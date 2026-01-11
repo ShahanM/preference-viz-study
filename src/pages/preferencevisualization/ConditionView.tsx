@@ -1,118 +1,307 @@
-import { useEffect, useState } from 'react';
-import { useSetRecoilState } from 'recoil';
-import LoadingScreen from "../../components/loadingscreen/LoadingScreen";
-import Baseline from '../../components/visualiations/Baseline';
-import ContinuousCoupled from '../../components/visualiations/ContinuousCoupled';
-import ContinuousDecoupled from '../../components/visualiations/ContinuousDecoupled';
-import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
-import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
-import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
-import { movieSelectionState } from '../../states/ItemState';
-import { PrefVizRecItemDetail } from './VisualizationTypes.types';
-
+import { Dialog } from '@headlessui/react';
+import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { useStudy } from 'rssa-api';
+import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
+import { useMovieSelection } from '../../hooks/useMovieSelection';
+import {
+    type BackendCommunityScoreItem,
+    type BackendResponsePayload,
+    type PreferenceVizComponentProps,
+    type PreferenceVizRecommendedItem,
+    type PreferenceVizResponseObject,
+    type RecommendationRequestPayload,
+    type RecommendationType,
+    isPreferenceVizRecommendedItem,
+} from '../../types/preferenceVisualization.types';
+import { type StudyLayoutContextType } from '../../types/study.types';
+import ResponsiveContainer from './ResponsiveContainer';
+import RightInfoPanel from './RightInfoPanel';
+import { type Movie } from '../../types/rssa.types';
 
 type ConditionViewProps = {
-	condition: number;
-	prefItemDetails: Map<string, PrefVizRecItemDetail>;
-}
+    Visualizer:
+        | React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>>
+        | React.FC<PreferenceVizComponentProps<Movie>>;
+    recommendationType?: RecommendationType;
+    rightPanelProps?: {
+        likeCutoff: number;
+        dislikeCutoff: number;
+        showLikeDislikeByLine: boolean;
+    };
+    infoPanelLayout?: 'overlay' | 'sidebar';
+    isFisheye?: boolean;
+};
 
 const ConditionView: React.FC<ConditionViewProps> = ({
-	condition,
-	prefItemDetails
+    Visualizer,
+    recommendationType,
+    rightPanelProps,
+    infoPanelLayout = 'overlay',
+    isFisheye,
 }) => {
+    const { studyStep } = useOutletContext<StudyLayoutContextType>();
+    const { studyApi } = useStudy();
+    const { setSelectedMovie } = useMovieSelection<PreferenceVizRecommendedItem | Movie>();
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [panelPosition, setPanelPosition] = useState<'left' | 'right'>('right');
 
-	const [width, setWidth] = useState(800);
-	const [height, setHeight] = useState(900);
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent) => {
+            if (infoPanelLayout !== 'overlay') return;
 
-	const setSelectedMovie = useSetRecoilState(movieSelectionState);
+            const x = e.clientX;
+            const threshold = window.innerWidth / 2;
+            if (x > threshold) {
+                setPanelPosition('left');
+            } else {
+                setPanelPosition('right');
+            }
+        },
+        [infoPanelLayout]
+    );
 
-	useEffect(() => {
-		const handleResize = () => {
-			const windowWidth = window.innerWidth;
-			if (windowWidth < 1400) {
-				setWidth(900 - (1400 - windowWidth) / 2);
-				setHeight(900);
-			}
-			else if (windowWidth < 1800) {
-				setWidth(800 - (1600 - windowWidth) / 2);
-				setHeight(900);
-			} else if (windowWidth < 2000) {
-				setWidth(1000 - (1900 - windowWidth) / 2);
-				setHeight(1000);
-			}
-			else {
-				setWidth(1000);
-				setHeight(1000);
-			}
-		}
-		window.addEventListener('resize', handleResize);
-		handleResize();
-		return () => window.removeEventListener('resize', handleResize);
-	}, []);
+    const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
+        queryKey: ['recommendations', studyStep.id],
+        queryFn: async () => {
+            const payload: RecommendationRequestPayload = {
+                step_id: studyStep.id,
+                context_tag: 'preference visualization recommendations',
+                rec_type: recommendationType,
+            };
 
-	const handleHover = (item: string) => {
-		const selectedMovie = prefItemDetails.get(item);
-		if (selectedMovie) setSelectedMovie(selectedMovie);
-	}
+            const response = await studyApi.post<RecommendationRequestPayload, BackendResponsePayload>(
+                'recommendations/',
+                payload
+            );
 
-	if (prefItemDetails && prefItemDetails.size > 0) {
-		switch (condition) {
-			case 1:
-			case 11:
-				return <ContinuousCoupled
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />
-			case 2:
-			case 21:
-				return <ContinuousDecoupled
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />
-			case 3:
-			case 31:
-				return <DiscreteDecoupled
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover}
-				/>
-			case 4:
-				return <Baseline
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover}
-				/>
-			case 5:
-			case 51:
-			case 52:
-				return <ContinuousSelf
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />
-			case 6:
-			case 61:
-			case 62:
-				return <DiscreteSelf
-					width={width}
-					height={height}
-					data={prefItemDetails}
-					xCol={"community_score"} yCol={"user_score"}
-					onHover={handleHover} />
-			default: return <LoadingScreen loading={true} message="Loading Recommendations" />;
-		}
-	} else {
-		return <LoadingScreen loading={true} message="Loading Recommendations" />;
-	}
-}
+            if (!response) {
+                throw new Error('Failed to fetch recommendations');
+            }
+
+            const adaptedResponse: PreferenceVizResponseObject = {};
+
+            if (response.rec_type === 'standard') {
+                Object.entries(response.items).forEach(([key, value]) => {
+                    adaptedResponse[key] = value as Movie;
+                });
+            }
+
+            if (response.rec_type === 'community_comparison') {
+                Object.entries(response.items).forEach(([key, value]) => {
+                    const { item, score, label, ...rest } = value as BackendCommunityScoreItem;
+                    if (item && typeof item === 'object') {
+                        const itemId = item.id;
+                        adaptedResponse[itemId] = {
+                            ...item, // Spread all movie properties
+                            ...rest, // Spread community_score, community_label, cluster
+                            item_id: itemId, // Ensure item_id matches the key
+                            user_score: score, // Map score -> user_score
+                            user_label: label, // Map label -> user_label
+                        };
+                    } else {
+                        console.warn(`Unexpected item structure for key ${key}:`, value);
+                    }
+                });
+            }
+
+            return adaptedResponse;
+        },
+    });
+
+    const handleHover = useCallback(
+        (item_id: string) => {
+            const selectedMovie = recommendations ? recommendations[item_id] : undefined;
+            if (selectedMovie) {
+                setSelectedMovie(selectedMovie);
+            }
+            // CRITICAL: Do NOT add 'else { setSelectedMovie(undefined) }' here.
+            // Clearing state on mouseout/empty ID triggers context update -> re-render -> D3 wipe -> mouseout loop.
+        },
+        [recommendations, setSelectedMovie]
+    );
+
+    if (recommendationsLoading || !recommendations) {
+        return <LoadingScreen loading={true} message="Loading Recommendations" />;
+    }
+
+    return (
+        <div className="relative w-full h-full group">
+            {/* Enlarge Button */}
+            <button
+                type="button"
+                onClick={() => setIsFullScreen(true)}
+                className="absolute top-2 right-2 p-1.5 text-gray-400 bg-white/80 hover:bg-white hover:text-gray-900 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                title="Enlarge visualization"
+            >
+                <ArrowsPointingOutIcon className="h-5 w-5" />
+            </button>
+
+            <ResponsiveContainer>
+                {(width, height) => {
+                    const firstItem = Object.values(recommendations)[0];
+                    if (!firstItem) return null; // Or some fallback
+
+                    if (isPreferenceVizRecommendedItem(firstItem)) {
+                        const SpecificVisualizer = Visualizer as React.FC<
+                            PreferenceVizComponentProps<PreferenceVizRecommendedItem>
+                        >;
+                        const specificData = recommendations as Record<string, PreferenceVizRecommendedItem>;
+                        return (
+                            <SpecificVisualizer
+                                width={width}
+                                height={height}
+                                data={specificData}
+                                xCol=""
+                                yCol=""
+                                onHover={handleHover}
+                                isFisheye={isFisheye}
+                            />
+                        );
+                    } else {
+                        const SpecificVisualizer = Visualizer as React.FC<PreferenceVizComponentProps<Movie>>;
+                        const specificData = recommendations as Record<string, Movie>;
+                        return (
+                            <SpecificVisualizer
+                                width={width}
+                                height={height}
+                                data={specificData}
+                                xCol=""
+                                yCol=""
+                                onHover={handleHover}
+                                isFisheye={isFisheye}
+                            />
+                        );
+                    }
+                }}
+            </ResponsiveContainer>
+
+            {/* Full Screen Modal */}
+            <Dialog open={isFullScreen} onClose={() => setIsFullScreen(false)} className="relative z-50">
+                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+                    <Dialog.Panel
+                        className="w-full h-full bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
+                        onClick={() => setSelectedMovie(undefined)}
+                        onMouseMove={handleMouseMove}
+                        data-testid="fullscreen-panel"
+                    >
+                        <div
+                            className={`flex-1 relative w-full overflow-hidden ${infoPanelLayout === 'sidebar' ? 'flex flex-row' : 'flex flex-col'}`}
+                        >
+                            {/* Visualization Area */}
+                            <div
+                                className={`relative ${infoPanelLayout === 'sidebar' ? 'w-3/4 h-full' : 'w-full h-full'}`}
+                            >
+                                {/* Floating Right Info Panel (Overlay Mode) */}
+                                {rightPanelProps && infoPanelLayout === 'overlay' && (
+                                    <div
+                                        className={`absolute top-4 z-20 w-96 max-h-[90vh] overflow-y-auto shadow-2xl rounded-xl border border-gray-200 group/panel transition-all duration-200 ${
+                                            panelPosition === 'right' ? 'right-4' : 'left-4'
+                                        }`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        data-testid="info-panel-wrapper"
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedMovie(undefined)}
+                                            className="absolute top-2 right-2 p-1 text-gray-400 bg-white/50 hover:bg-white hover:text-gray-900 rounded-full z-30 opacity-0 group-hover/panel:opacity-100 transition-opacity"
+                                            title="Close info panel"
+                                        >
+                                            <XMarkIcon className="h-5 w-5" />
+                                        </button>
+                                        <div className="bg-white rounded-xl p-1">
+                                            <RightInfoPanel
+                                                likeCutoff={rightPanelProps.likeCutoff}
+                                                dislikeCutoff={rightPanelProps.dislikeCutoff}
+                                                showLikeDislikeByLine={rightPanelProps.showLikeDislikeByLine}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <ResponsiveContainer>
+                                    {(width, height) => {
+                                        const firstItem = Object.values(recommendations)[0];
+                                        if (!firstItem) return null;
+
+                                        if (isPreferenceVizRecommendedItem(firstItem)) {
+                                            const SpecificVisualizer = Visualizer as React.FC<
+                                                PreferenceVizComponentProps<PreferenceVizRecommendedItem>
+                                            >;
+                                            const specificData = recommendations as Record<
+                                                string,
+                                                PreferenceVizRecommendedItem
+                                            >;
+                                            return (
+                                                <SpecificVisualizer
+                                                    width={width}
+                                                    height={height}
+                                                    data={specificData}
+                                                    xCol=""
+                                                    yCol=""
+                                                    onHover={handleHover}
+                                                    isFisheye={isFisheye}
+                                                />
+                                            );
+                                        } else {
+                                            const SpecificVisualizer = Visualizer as React.FC<
+                                                PreferenceVizComponentProps<Movie>
+                                            >;
+                                            const specificData = recommendations as Record<string, Movie>;
+                                            return (
+                                                <SpecificVisualizer
+                                                    width={width}
+                                                    height={height}
+                                                    data={specificData}
+                                                    xCol=""
+                                                    yCol=""
+                                                    onHover={handleHover}
+                                                    isFisheye={isFisheye}
+                                                />
+                                            );
+                                        }
+                                    }}
+                                </ResponsiveContainer>
+                            </div>
+
+                            {/* Sidebar Info Panel (Sidebar Mode) */}
+                            {rightPanelProps && infoPanelLayout === 'sidebar' && (
+                                <div
+                                    className="w-1/4 h-full border-l border-gray-200 bg-gray-50 flex flex-col overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="flex-1 overflow-y-auto p-4">
+                                        <RightInfoPanel
+                                            likeCutoff={rightPanelProps.likeCutoff}
+                                            dislikeCutoff={rightPanelProps.dislikeCutoff}
+                                            showLikeDislikeByLine={rightPanelProps.showLikeDislikeByLine}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div
+                            className="h-14 border-t border-gray-200 bg-gray-50 flex justify-end items-center px-4 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsFullScreen(false)}
+                                className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >
+                                Exit Full Screen
+                            </button>
+                        </div>
+                    </Dialog.Panel>
+                </div>
+            </Dialog>
+        </div>
+    );
+};
 
 export default ConditionView;
