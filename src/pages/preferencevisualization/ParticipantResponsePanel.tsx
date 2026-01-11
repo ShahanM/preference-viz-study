@@ -167,8 +167,8 @@ const ParticipantResponsePanel = ({
         localResponseDraft.explanation !== savedResponse.explanation;
 
     return (
-        <div className="bg-slate-100 p-3 m-1 rounded-md text-left">
-            <div className="my-3">
+        <div className="bg-slate-100 p-3 m-1 rounded-md text-left" id="participant-response-panel">
+            <div className="my-3" id="response-instructions">
                 <p className="text-sm">
                     Please use the movies recommendations on right to collect some notes for the essay that you will
                     write in the next step of the study. To help you write the essay, here are some guiding prompts, and
@@ -190,6 +190,7 @@ const ParticipantResponsePanel = ({
 
             <div className="text-right mt-5">
                 <button
+                    id="save-response-btn"
                     onClick={handleSaveClick}
                     disabled={!hasUnsavedChanges || essayMutation.isPending}
                     className={clsx(
@@ -263,7 +264,7 @@ const ResponseForm = ({
     onExpand: () => void;
 }) => {
     return (
-        <div className="mt-5 relative group">
+        <div className="mt-5 relative group" id={`response-group-${promptTag}`}>
             <label htmlFor={promptTag} className="block mb-1 text-sm">
                 {Parse(promptText)}
             </label>
@@ -286,8 +287,9 @@ const ResponseForm = ({
                 <button
                     type="button"
                     onClick={onExpand}
-                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 bg-white/50 hover:bg-white rounded-md transition-colors"
+                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 bg-white/50 hover:bg-white rounded-md transition-colors enlarge-text-btn"
                     title="Enlarge text area"
+                    id={`enlarge-btn-${promptTag}`}
                 >
                     <ArrowsPointingOutIcon className="h-5 w-5" aria-hidden="true" />
                 </button>

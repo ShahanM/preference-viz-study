@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useStudy } from 'rssa-api';
 import { useFetchParticipant } from 'rssa-api';
@@ -12,9 +12,13 @@ import ParticipantResponsePanel from './ParticipantResponsePanel';
 import RightInfoPanel from './RightInfoPanel';
 import { conditionMap } from './conditionMap';
 
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { useTour } from '../../hooks/useTour';
+
 const PreferenceVisualizationContent: React.FC = () => {
     const { studyApi } = useStudy();
     const { studyStep } = useOutletContext<StudyLayoutContextType>();
+    const { startMainTour } = useTour();
 
     const { data: participant } = useFetchParticipant();
 
@@ -70,8 +74,45 @@ const PreferenceVisualizationContent: React.FC = () => {
         name: conditionName || '',
     };
 
+    const handleVizLoaded = () => {
+        // Optional: Check if tour has been seen
+        const tourSeen = localStorage.getItem(`tour-seen-${studyStep.id}`);
+        if (!tourSeen) {
+            // Add a small delay to ensure DOM is fully painted
+            setTimeout(() => {
+                startMainTour(0);
+                localStorage.setItem(`tour-seen-${studyStep.id}`, 'true');
+            }, 1000);
+        }
+    };
+
+    const handleFullScreenChange = useCallback(
+        (isFull: boolean) => {
+            if (!isFull) {
+                // User exited full screen. Check if we should resume tour.
+                // Step index 2 is "Maximize View". If we were there, resume at 3.
+                const lastStepIndex = sessionStorage.getItem('current_tour_index');
+                if (lastStepIndex === '2') {
+                    // 2 is the index of the Enlarge Button step
+                    setTimeout(() => {
+                        startMainTour(3); // Resume at next step
+                    }, 500);
+                }
+            }
+        },
+        [startMainTour]
+    );
+
     return (
-        <div className="">
+        <div className="relative">
+            {/* Tour Button */}
+            <button
+                onClick={() => startMainTour(0)}
+                className="fixed bottom-4 right-4 z-50 bg-amber-500 hover:bg-amber-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-110"
+                title="Start Guided Tour"
+            >
+                <QuestionMarkCircleIcon className="h-6 w-6" />
+            </button>
             <div className="w-full flex flex-between gap-3">
                 <div className="w-1/5">
                     <ParticipantResponsePanel condition={conditionForPanel} participantResponse={essayResponse} />
@@ -79,6 +120,8 @@ const PreferenceVisualizationContent: React.FC = () => {
                 <div className="w-3/5">
                     <ConditionView
                         Visualizer={ConditionalVisualizer}
+                        onDataLoaded={handleVizLoaded}
+                        onFullScreenChange={handleFullScreenChange}
                         rightPanelProps={{
                             likeCutoff: LIKE_CUTOFF,
                             dislikeCutoff: DISLIKE_CUTOFF,

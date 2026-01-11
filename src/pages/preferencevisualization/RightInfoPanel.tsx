@@ -46,7 +46,7 @@ const RightInfoPanel = ({
     console.log(selectedMovie);
 
     return (
-        <div className="bg-slate-100 m-1 p-1 rounded-md">
+        <div className="bg-slate-100 m-1 p-1 rounded-md" id="info-panel-sidebar">
             <div className="p-3">
                 <img
                     className="mx-auto h-81 rounded-3"
