@@ -43,7 +43,7 @@ const RightInfoPanel = ({
     }, [selectedMovie, likeCutoff, dislikeCutoff]);
     if (!selectedMovie) return <></>;
 
-    console.log(selectedMovie);
+    // console.log(selectedMovie);
 
     return (
         <div className="bg-slate-100 m-1 p-1 rounded-md" id="info-panel-sidebar">

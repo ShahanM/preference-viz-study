@@ -6,10 +6,15 @@ import type {
     PreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
 import { POSTER_HEIGHT, POSTER_WIDTH } from '../../utils/vizConstants';
-import { appendStyledPoster, attachNodeInteractions, fisheye, PADDING } from '../../utils/vizUtils';
-
-const X_AXIS_LABEL = "The system's predicted movie rating for you";
-const Y_AXIS_LABEL = 'Ratings from everyone else in the system';
+import {
+    appendStyledPoster,
+    attachFisheyeBehavior,
+    attachNodeInteractions,
+    PADDING,
+    renderVizGrid,
+    X_AXIS_LABEL_ONE,
+    Y_AXIS_LABEL_ONE,
+} from '../../utils/vizUtils';
 
 const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
     width,
@@ -67,7 +72,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const g = svg.append<SVGGElement>('g').attr('transform', `translate(${leftOffset},${topOffset})`);
 
         // Helper to reset visuals
-        const resetNodeVisuals = (node: d3.Selection<any, any, any, any>) => {
+        const resetNodeVisuals = (node: d3.Selection<any, DataAugmentedItem, any, any>) => {
             const content = node.select('.node-content');
             content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
             content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
@@ -77,8 +82,8 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         svg.on('click', () => {
             if (stickyIdRef.current) {
                 // Reset visuals of the sticky node
-                g.selectAll('.movie-node')
-                    .filter((d: any) => d.id === stickyIdRef.current)
+                g.selectAll<SVGGElement, DataAugmentedItem>('.movie-node')
+                    .filter((d: DataAugmentedItem) => d.id === stickyIdRef.current)
                     .each(function () {
                         resetNodeVisuals(d3.select(this));
                     });
@@ -90,63 +95,24 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             }
         });
 
-        // Grid Ticks: 0.1 steps (1.0, 1.1, ...)
-        // Use integer range to avoid floating point issues (e.g. 1.200000002)
-        const gridTickValues = d3.range(10, 51).map((x) => x / 10);
+        // Render Grid and Axes
+        // ContinuousCoupled uses 2D grid
+        const { xLines, yLines, xTicks, yTicks } = renderVizGrid(
+            g,
+            { xScale, yScale },
+            { innerWidth, innerHeight },
+            { drawYGridLines: true, drawYAxis: true }
+        );
 
-        // Label Ticks: 0.5 steps (1.0, 1.5, ... 5.0)
-        const labelTickValues = d3.range(10, 51, 5).map((x) => x / 10);
-
-        // Grid lines (x-axis) - Use 0.1 density
-        g.append('g')
-            .attr('class', 'grid')
-            .attr('transform', `translate(0,${innerHeight})`)
-            .call(
-                d3
-                    .axisBottom(xScale)
-                    .tickValues(gridTickValues)
-                    .tickSize(-innerHeight)
-                    .tickFormat(() => '')
-            )
-            // Extend domain line to full width
-            .select('.domain')
-            .attr('d', `M0.5,0.5H${innerWidth}`);
-
-        // Grid lines (y-axis) - Use 0.1 density
-        g.append('g')
-            .attr('class', 'grid')
-            .call(
-                d3
-                    .axisLeft(yScale)
-                    .tickValues(gridTickValues)
-                    .tickSize(-innerWidth)
-                    .tickFormat(() => '')
-            )
-            // Extend domain line to full height
-            .select('.domain')
-            .attr('d', `M0.5,0.5V${innerHeight}`);
-
-        // Axes (drawn on top of grid lines) - Use 0.5 density for Labeling
-        g.append('g')
-            .attr('transform', `translate(0, ${innerHeight})`)
-            .call(d3.axisBottom(xScale).tickValues(labelTickValues))
-            .select('.domain')
-            .attr('d', `M0.5,0.5H${innerWidth}`);
-
-        g.append('g')
-            .call(d3.axisLeft(yScale).tickValues(labelTickValues))
-            .select('.domain')
-            .attr('d', `M0.5,0.5V${innerHeight}`);
-
-        // X-axis label
+        // X-axis label (Bottom) -> Corresponds to "Community Score" (from everyone else)
         g.append('text')
             .attr('class', 'axis-label')
             .attr('transform', `translate(${innerWidth / 2}, ${innerHeight + margin.bottom - 10})`)
             .style('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text(Y_AXIS_LABEL);
+            .text(Y_AXIS_LABEL_ONE);
 
-        // Y-axis label
+        // Y-axis label (Left) -> Corresponds to "User Score" (predicted for you)
         g.append('text')
             .attr('transform', 'rotate(-90)')
             .attr('y', 0 - margin.left + 15) // Adjusted position
@@ -154,7 +120,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .attr('dy', '1em')
             .style('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text(X_AXIS_LABEL);
+            .text(X_AXIS_LABEL_ONE);
 
         // Right and Top borders to close the chart box
         g.append('line')
@@ -220,78 +186,21 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const { image } = appendStyledPoster(content, POSTER_WIDTH, POSTER_HEIGHT);
 
         // Bind data-specific attributes to the image
-        image.attr('xlink:href', (d: any) => d.tmdb_poster);
-
-        const gridGroups = svg.selectAll('.grid');
-        const xGridGroup = d3.select(gridGroups.nodes()[0] as SVGGElement);
-        const yGridGroup = d3.select(gridGroups.nodes()[1] as SVGGElement);
-
-        const xLines = xGridGroup.selectAll('line');
-        const yLines = yGridGroup.selectAll('line');
-
-        const allTicks = g.selectAll('.tick');
-
-        const xTicks = allTicks.filter(function () {
-            const t = d3.select(this).attr('transform');
-            return !!(t && !t.includes('translate(0,'));
-        });
-
-        const yTicks = allTicks.filter(function () {
-            const t = d3.select(this).attr('transform');
-            return !!(t && t.includes('translate(0,'));
-        });
+        image.attr('xlink:href', (d: DataAugmentedItem) => d.tmdb_poster);
 
         if (isFisheye) {
-            svg.on('mousemove', (event) => {
-                const [mx, my] = d3.pointer(event, g.node());
-                if (mx < 0 || mx > innerWidth || my < 0 || my > innerHeight) return;
-
-                const df = 3.0;
-
-                xLines
-                    .attr('x1', (d: any) => fisheye(xScale(d), mx, df, 0, innerWidth))
-                    .attr('x2', (d: any) => fisheye(xScale(d), mx, df, 0, innerWidth));
-
-                yLines
-                    .attr('y1', (d: any) => fisheye(yScale(d), my, df, 0, innerHeight))
-                    .attr('y2', (d: any) => fisheye(yScale(d), my, df, 0, innerHeight));
-
-                xTicks.attr('transform', (d: any) => `translate(${fisheye(xScale(d), mx, df, 0, innerWidth)},0)`);
-                yTicks.attr('transform', (d: any) => `translate(0,${fisheye(yScale(d), my, df, 0, innerHeight)})`);
-
-                // Update Node Positions
-                nodes.each(function (d) {
-                    const ox = xScale(d.community_score);
-                    const oy = yScale(d.user_score);
-                    const nx = fisheye(ox, mx, df, 0, innerWidth);
-                    const ny = fisheye(oy, my, df, 0, innerHeight);
-
-                    const node = d3.select(this);
-
-                    // Update stored current position
-                    node.attr('data-cx', nx).attr('data-cy', ny);
-
-                    node.attr('transform', `translate(${nx}, ${ny})`);
-                });
-            });
-
-            svg.on('mouseleave', () => {
-                // Reset Grid
-                xLines.attr('x1', (d: any) => xScale(d)).attr('x2', (d: any) => xScale(d));
-                yLines.attr('y1', (d: any) => yScale(d)).attr('y2', (d: any) => yScale(d));
-                xTicks.attr('transform', (d: any) => `translate(${xScale(d)},0)`);
-                yTicks.attr('transform', (d: any) => `translate(0,${yScale(d)})`);
-
-                // Reset Nodes
-                nodes.each(function (d) {
-                    const cx = xScale(d.community_score);
-                    const cy = yScale(d.user_score);
-                    d3.select(this)
-                        .attr('data-cx', null)
-                        .attr('data-cy', null)
-                        .attr('transform', `translate(${cx}, ${cy})`);
-                });
-            });
+            attachFisheyeBehavior(
+                svg,
+                { xLines, yLines, xTicks, yTicks, nodes },
+                {
+                    scales: { xScale, yScale },
+                    dimensions: { innerWidth, innerHeight, margin },
+                    isFisheye,
+                    getX: (d: DataAugmentedItem) => d.community_score,
+                    getY: (d: DataAugmentedItem) => d.user_score,
+                    mode: '2D',
+                }
+            );
         }
     }, [dataValues, svgRef, width, height, isFisheye]);
 
