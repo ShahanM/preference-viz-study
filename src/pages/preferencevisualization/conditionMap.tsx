@@ -5,6 +5,7 @@ import ContinuousDecoupled from '../../components/visualiations/ContinuousDecoup
 import ContinuousSelf from '../../components/visualiations/ContinuousSelf';
 import DiscreteDecoupled from '../../components/visualiations/DiscreteDecoupled';
 import DiscreteSelf from '../../components/visualiations/DiscreteSelf';
+import DiscreteCoupled from '../../components/visualiations/DiscreteCoupled';
 import {
     type PreferenceVizComponentProps,
     type PreferenceVizRecommendedItem,
@@ -20,6 +21,11 @@ const ContinuousDecoupledWrapper: React.FC<PreferenceVizComponentProps<Preferenc
     isFisheye = false,
     ...props
 }) => <ContinuousDecoupled {...props} isFisheye={isFisheye} xCol="community_score" yCol="user_score" />;
+
+const DiscreteCoupledWrapper: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
+    isFisheye = false,
+    ...props
+}) => <DiscreteCoupled {...props} isFisheye={isFisheye} xCol="community_score" yCol="user_score" />;
 
 const DiscreteDecoupledWrapper: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
     isFisheye = false,
@@ -40,27 +46,39 @@ const BaselineWrapper: React.FC<PreferenceVizComponentProps<Movie>> = ({ isFishe
     <Baseline {...props} data={data} />
 );
 
-export const conditionMap: Record<
-    string,
-    React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> | React.FC<PreferenceVizComponentProps<Movie>>
-> = {
-    // "Continuous Coupled": ContinuousCoupledWrapper,
-    // "Continuous Decoupled": ContinuousDecoupledWrapper, (Variants: Self, Community)
-    // "Discrete Coupled": DiscreteCoupledWrapper,
-    // "Discrete Decoupled": DiscreteDecoupledWrapper, (Variants: Self, Community)
-    // "Baseline": BaselineWrapper,
+export type ConditionConfig = {
+    Visualizer:
+        | React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>>
+        | React.FC<PreferenceVizComponentProps<Movie>>;
+    layout: 'sidebar' | 'overlay';
+};
+
+export const conditionMap: Record<string, ConditionConfig> = {
+    // "Continuous Coupled": { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
+    // "Continuous Decoupled": { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
+    // "Discrete Decoupled": { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
+    // "Continuous Top N": { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' }, // Top N (single view)
+    // "Discrete Top N": { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' }, // Top N (single view)
+    // "Baseline Top N": { Visualizer: BaselineWrapper, layout: 'overlay' }, // Top N (single view)
+    // ---
+    // "Discrete Coupled": { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' }, Not included in this study
 
     /**
      * Map the condition short_code for the respective StudyConditions from the Admin Dashboard to
      * the visualizer components above.
      */
-    'Umber-Swift': ContinuousCoupledWrapper,
-    'Explicit Continuous coupled 20 recs': ContinuousCoupledWrapper,
-    'Continuous Decoupled': ContinuousDecoupledWrapper,
-    'Discrete Decoupled': DiscreteDecoupledWrapper,
-    'Continuous Decoupled - Self': ContinuousSelfWrapper,
-    'Continuous Self': ContinuousSelfWrapper,
-    'Discrete Decoupled - Self': DiscreteSelfWrapper,
-    'Discrete Self': DiscreteSelfWrapper,
-    'Obsidian-Pangolin': BaselineWrapper,
+    'Umber-Swift': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
+    // 'Placeholder1': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
+    'Bronze-Narwhal': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
+    Placeholder2: { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
+    Placeholder3: { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
+    Placehodler4: { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
+    Placeholder5: { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
+    'Obsidian-Pangolin': { Visualizer: BaselineWrapper, layout: 'sidebar' },
+    // 'Bronze-Narwhal': { Visualizer: BaselineWrapper, layout: 'sidebar' },
 };

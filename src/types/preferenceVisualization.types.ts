@@ -44,6 +44,7 @@ export interface PreferenceVizComponentProps<T = PreferenceVizRecommendedItem | 
     yCol: string;
     onHover: (item_id: string) => void;
     isFisheye?: boolean;
+    showCommunity?: boolean;
 }
 
 export interface PreferenceVizDataMixin {

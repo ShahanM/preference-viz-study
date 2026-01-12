@@ -26,7 +26,8 @@ const PreferenceVisualizationContent: React.FC = () => {
     const conditionName = participant?.study_condition?.name;
     const conditionId = participant?.study_condition?.id;
 
-    const ConditionalVisualizer = conditionIdentifier ? conditionMap[conditionIdentifier] : undefined;
+    const conditionConfig = conditionIdentifier ? conditionMap[conditionIdentifier] : undefined;
+    const ConditionalVisualizer = conditionConfig?.Visualizer;
 
     const showLikeDislikeLines = useMemo(() => {
         if (!conditionIdentifier) return true;
@@ -127,14 +128,7 @@ const PreferenceVisualizationContent: React.FC = () => {
                             dislikeCutoff: DISLIKE_CUTOFF,
                             showLikeDislikeByLine: showLikeDislikeLines,
                         }}
-                        infoPanelLayout={
-                            conditionIdentifier &&
-                            (conditionIdentifier.toLowerCase().includes('coupled') ||
-                                conditionIdentifier.toLowerCase().includes('decoupled') ||
-                                conditionIdentifier === 'Umber-Swift')
-                                ? 'sidebar'
-                                : 'overlay'
-                        }
+                        infoPanelLayout={conditionConfig?.layout || 'overlay'}
                     />
                 </div>
                 <div className="w-1/5">
