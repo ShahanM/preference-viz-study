@@ -67,18 +67,18 @@ export const conditionMap: Record<string, ConditionConfig> = {
      * Map the condition short_code for the respective StudyConditions from the Admin Dashboard to
      * the visualizer components above.
      */
-    'Umber-Swift': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
-    // 'Placeholder1': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
-    'Bronze-Narwhal': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
-    Placeholder2: { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
+    'Bronze-Narwhal': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
+    Placeholder1: { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
+    // Placeholder2: { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
+    'Umber-Swift': { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
     Placeholder3: { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
     Placehodler4: { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
     Placeholder5: { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
     'Obsidian-Pangolin': { Visualizer: BaselineWrapper, layout: 'sidebar' },
-    // 'Bronze-Narwhal': { Visualizer: BaselineWrapper, layout: 'sidebar' },
+    // 'Umber-Swift': { Visualizer: BaselineWrapper, layout: 'sidebar' },
 };

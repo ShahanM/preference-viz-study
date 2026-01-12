@@ -5,13 +5,17 @@ import type {
     PreferenceVizComponentProps,
     PreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
-import { appendStyledPoster, attachNodeInteractions, fisheye } from '../../utils/vizUtils';
+import {
+    appendStyledPoster,
+    attachFisheyeBehavior,
+    attachNodeInteractions,
+    renderVizGrid,
+    X_AXIS_LABEL_ONE,
+    Y_AXIS_LABEL_ONE,
+} from '../../utils/vizUtils';
 
 const posterWidth = 54;
 const posterHeight = 81;
-
-const X_AXIS_LABEL_ONE = "The system's predicted movie rating for you";
-const X_AXIS_LABEL_TWO = 'Ratings from everyone else in the system';
 
 const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>> = ({
     width,
@@ -87,7 +91,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
             });
 
             const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-            const label = i === 0 ? X_AXIS_LABEL_ONE : X_AXIS_LABEL_TWO;
+            const label = i === 0 ? X_AXIS_LABEL_ONE : Y_AXIS_LABEL_ONE;
 
             g.append('style').text(
                 `.grid line { stroke: #ccccccff; stroke-opacity: 0.7; shape-rendering: crispEdges; }`
@@ -102,70 +106,21 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
                 .attr('stroke', '#000000') // Match axis color (usually black or dark grey)
                 .attr('shape-rendering', 'crispEdges');
 
-            const gridTickValues = d3.range(10, 51).map((x) => x / 10); // 0.1 steps
-            const labelTickValues = d3.range(10, 51, 5).map((x) => x / 10); // 0.5 steps
+            // Render Grid and Axes
+            const { xLines, xTicks } = renderVizGrid(
+                g,
+                { xScale, yScale },
+                { innerWidth, innerHeight },
+                {
+                    drawYGridLines: true,
+                    drawYAxis: true,
+                    hideYAxisLabels: true,
+                    // Use scale roughly matching ~25 ticks over 0-5 domain, as per legacy code
+                    yTickValues: d3.ticks(0, 5, 25),
+                }
+            );
 
-            // Grid Lines (Vertical)
-            const gridGroup = g.append('g').attr('class', 'grid').attr('transform', `translate(0,${innerHeight})`);
-
-            // We draw manually to allow easy updates
-            const gridLines = gridGroup
-                .selectAll<SVGLineElement, number>('.grid-line')
-                .data(gridTickValues)
-                .join('line')
-                .attr('class', 'grid-line')
-                .attr('x1', (d) => xScale(d))
-                .attr('x2', (d) => xScale(d))
-                .attr('y1', 0)
-                .attr('y2', -innerHeight)
-                .attr('stroke', '#cccccc')
-                .attr('stroke-opacity', 0.7);
-
-            // Bottom Axis Domain
-            gridGroup
-                .append('path')
-                .attr('class', 'domain')
-                .attr('d', `M0.5,0.5H${innerWidth}`)
-                .attr('stroke', 'currentColor');
-
-            // Left Axis
-            g.append('g')
-                .attr('class', 'grid')
-                .call(
-                    d3
-                        .axisLeft(yScale)
-                        .ticks(25)
-                        .tickSize(-innerWidth)
-                        .tickFormat(() => '')
-                );
-
-            // Bottom Axis Ticks (Manually managed for distortion)
-            const axisGroup = g.append('g').attr('transform', `translate(0, ${innerHeight})`);
-
-            axisGroup
-                .append('path')
-                .attr('class', 'domain')
-                .attr('d', `M0.5,0.5H${innerWidth}`)
-                .attr('stroke', 'currentColor');
-
-            const ticks = axisGroup
-                .selectAll<SVGGElement, number>('.tick-mark')
-                .data(labelTickValues)
-                .join('g')
-                .attr('class', 'tick-mark')
-                .attr('transform', (d) => `translate(${xScale(d)}, 0)`);
-
-            ticks.append('line').attr('y2', 6).attr('stroke', 'currentColor');
-
-            ticks
-                .append('text')
-                .attr('dy', '0.71em')
-                .attr('y', 9)
-                .attr('text-anchor', 'middle')
-                .attr('fill', 'currentColor')
-                .style('font-size', '10px')
-                .text((d) => (d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)));
-
+            // X-axis label
             svg.append('text')
                 .attr('x', innerWidth / 2 + margin.left)
                 .attr('y', svgHeight - 5)
@@ -201,51 +156,20 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
             const { image } = appendStyledPoster(contentGroups, posterWidth, posterHeight);
             image.attr('xlink:href', (d: DataAugmentedItem) => d.tmdb_poster);
 
-            // Interaction Handlers on SVG
-            svg.on('mousemove', (event) => {
-                const [mx] = d3.pointer(event);
-                const focus = mx - margin.left; // Adjust to graph coordinates
-
-                // Only distort if within graph bounds
-                if (focus < 0 || focus > innerWidth) return;
-
-                // Toggle distortion based on prop
-                const dynamicFactor = isFisheye ? 3.0 : 0;
-
-                // Update Grid Lines
-                gridLines
-                    .attr('x1', (d) => fisheye(xScale(d), focus, dynamicFactor, 0, innerWidth))
-                    .attr('x2', (d) => fisheye(xScale(d), focus, dynamicFactor, 0, innerWidth));
-
-                // Update Ticks
-                ticks.attr(
-                    'transform',
-                    (d) => `translate(${fisheye(xScale(d), focus, dynamicFactor, 0, innerWidth)}, 0)`
+            if (isFisheye) {
+                attachFisheyeBehavior(
+                    svg,
+                    { xLines, xTicks, nodes },
+                    {
+                        scales: { xScale, yScale },
+                        dimensions: { innerWidth, innerHeight, margin },
+                        isFisheye,
+                        getX: (d: DataAugmentedItem) => d.x!,
+                        getY: () => innerHeight / 2, // Fixed Y
+                        mode: '1D',
+                    }
                 );
-
-                // Update Nodes (Groups)
-                nodes.attr('transform', function (d) {
-                    const originalCenter = xScale(d.x!);
-                    const distortedCenter = fisheye(originalCenter, focus, dynamicFactor, 0, innerWidth);
-                    const y = innerHeight / 2;
-                    return `translate(${distortedCenter}, ${y})`;
-                });
-            });
-
-            svg.on('mouseleave', () => {
-                // Reset to linear
-                gridLines.attr('x1', (d) => xScale(d)).attr('x2', (d) => xScale(d));
-
-                ticks.attr('transform', (d) => `translate(${xScale(d)}, 0)`);
-
-                nodes.attr('transform', function (d) {
-                    const originalCenter = xScale(d.x!);
-                    const y = innerHeight / 2;
-                    // Reset position but keep scale if technically still "hovered"?
-                    // No, mouseleave of SVG means we left the area, so unhover everything.
-                    return `translate(${originalCenter}, ${y})`;
-                });
-            });
+            }
         });
     }, [simNodeData, width, height, showCommunity, isFisheye]);
 

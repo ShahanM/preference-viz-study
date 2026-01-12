@@ -75,7 +75,17 @@ describe('ConditionView Full Screen', () => {
         vi.clearAllMocks();
         queryClient.clear();
         mockStudyApi.post.mockResolvedValue({
-            '1': { item: { id: '1', title: 'Test Movie' }, score: 5, label: 'Liked' },
+            rec_type: 'community_comparison',
+            items: {
+                '1': {
+                    item: { id: '1', title: 'Test Movie', poster_path: '/path' },
+                    score: 5,
+                    label: 'Liked',
+                    community_score: 3,
+                    community_label: 'Neutral',
+                    cluster: 0,
+                },
+            },
         });
 
         // Mock getBoundingClientRect for initial load

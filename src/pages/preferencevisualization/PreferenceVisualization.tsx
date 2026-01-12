@@ -48,6 +48,23 @@ const PreferenceVisualizationContent: React.FC = () => {
         }
     }, [essayResponseData]);
 
+    const handleFullScreenChange = useCallback(
+        (isFull: boolean) => {
+            if (!isFull) {
+                // User exited full screen. Check if we should resume tour.
+                // Step index 2 is "Maximize View". If we were there, resume at 3.
+                const lastStepIndex = sessionStorage.getItem('current_tour_index');
+                if (lastStepIndex === '2') {
+                    // 2 is the index of the Enlarge Button step
+                    setTimeout(() => {
+                        startMainTour(3); // Resume at next step
+                    }, 500);
+                }
+            }
+        },
+        [startMainTour]
+    );
+
     if (!participant) {
         return <div className="p-10 text-center">Loading participant data...</div>;
     }
@@ -86,23 +103,6 @@ const PreferenceVisualizationContent: React.FC = () => {
             }, 1000);
         }
     };
-
-    const handleFullScreenChange = useCallback(
-        (isFull: boolean) => {
-            if (!isFull) {
-                // User exited full screen. Check if we should resume tour.
-                // Step index 2 is "Maximize View". If we were there, resume at 3.
-                const lastStepIndex = sessionStorage.getItem('current_tour_index');
-                if (lastStepIndex === '2') {
-                    // 2 is the index of the Enlarge Button step
-                    setTimeout(() => {
-                        startMainTour(3); // Resume at next step
-                    }, 500);
-                }
-            }
-        },
-        [startMainTour]
-    );
 
     return (
         <div className="relative">

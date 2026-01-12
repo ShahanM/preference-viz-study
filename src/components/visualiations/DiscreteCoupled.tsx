@@ -83,7 +83,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             bg.on('click', () => {
                 if (stickyIdRef.current) {
                     // Reset visual state of all nodes globally (simplest safety)
-                    d3.selectAll('.movie-node').each(function () {
+                    d3.selectAll<SVGGElement, unknown>('.movie-node').each(function () {
                         const content = d3.select(this).select('.node-content');
                         content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
                         content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
@@ -124,7 +124,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             const nodesGroup = svg.append('g');
 
             const nodes = nodesGroup
-                .selectAll('.movie-node')
+                .selectAll<SVGGElement, PreferenceVizRecommendedItem & { x: number; y: number }>('.movie-node')
                 .data(quadrantData as (PreferenceVizRecommendedItem & { x: number; y: number })[])
                 .enter()
                 .append('g')
@@ -180,7 +180,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             // Content
             const content = nodes.append('g').attr('class', 'node-content');
             const { image } = appendStyledPoster(content, POSTER_WIDTH, POSTER_HEIGHT);
-            image.attr('xlink:href', (d) => d.tmdb_poster);
+            image.attr('xlink:href', (d: PreferenceVizRecommendedItem) => d.tmdb_poster);
 
             // Fisheye Logic
             if (isFisheye) {

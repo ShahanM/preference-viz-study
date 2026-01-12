@@ -1,4 +1,4 @@
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel } from '@headlessui/react';
 import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -224,7 +224,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
             <Dialog open={isFullScreen} onClose={() => setIsFullScreen(false)} className="relative z-50">
                 <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
                 <div className="fixed inset-0 flex items-center justify-center p-4">
-                    <Dialog.Panel
+                    <DialogPanel
                         className="w-full h-full bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
                         onClick={() => setSelectedMovie(undefined)}
                         onMouseMove={handleMouseMove}
@@ -343,7 +343,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                                 Exit Full Screen
                             </button>
                         </div>
-                    </Dialog.Panel>
+                    </DialogPanel>
                 </div>
             </Dialog>
         </div>
