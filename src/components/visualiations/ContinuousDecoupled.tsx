@@ -75,7 +75,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
             bg.on('click', () => {
                 if (stickyIdRef.current) {
                     // Reset all nodes
-                    d3.selectAll('.movie-node').each(function () {
+                    d3.selectAll<SVGGElement, DataAugmentedItem>('.movie-node').each(function () {
                         const content = d3.select(this).select('.node-content');
                         content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
                         content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
@@ -110,7 +110,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
 
             // We draw manually to allow easy updates
             const gridLines = gridGroup
-                .selectAll('.grid-line')
+                .selectAll<SVGLineElement, number>('.grid-line')
                 .data(gridTickValues)
                 .join('line')
                 .attr('class', 'grid-line')
@@ -149,7 +149,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
                 .attr('stroke', 'currentColor');
 
             const ticks = axisGroup
-                .selectAll('.tick-mark')
+                .selectAll<SVGGElement, number>('.tick-mark')
                 .data(labelTickValues)
                 .join('g')
                 .attr('class', 'tick-mark')
@@ -181,8 +181,6 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
                 .attr('data-ox', (d) => xScale(d.x!)) // Original linear pos center X
                 .attr('data-oy', innerHeight / 2) // Center Y
                 .attr('transform', (d) => `translate(${xScale(d.x!)}, ${innerHeight / 2})`)
-                .style('cursor', 'pointer')
-                .attr('transform', (d) => `translate(${xScale(d.x!)}, ${innerHeight / 2})`)
                 .style('cursor', 'pointer');
 
             // Attach shared interaction logic (Hover, Click/Sticky, Edge-Aware)
@@ -201,7 +199,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
 
             // Append styled content to the INNER group
             const { image } = appendStyledPoster(contentGroups, posterWidth, posterHeight);
-            image.attr('xlink:href', (d: any) => d.tmdb_poster);
+            image.attr('xlink:href', (d: DataAugmentedItem) => d.tmdb_poster);
 
             // Interaction Handlers on SVG
             svg.on('mousemove', (event) => {

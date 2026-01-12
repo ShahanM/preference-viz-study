@@ -7,7 +7,6 @@ import type {
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 import { POSTER_HEIGHT, POSTER_WIDTH } from '../../utils/vizConstants';
 import { appendStyledPoster, attachNodeInteractions, fisheye, PADDING } from '../../utils/vizUtils';
-import './Visualization.css';
 
 const likeCuttoff = LIKE_CUTOFF;
 const dislikeCuttoff = DISLIKE_CUTOFF;
@@ -224,13 +223,14 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             {/* Y Axis Label Area */}
             <div className="flex flex-col justify-center items-center" style={{ width: '30px' }}>
                 <p
-                    className="viz-label-label-v"
                     style={{
                         writingMode: 'vertical-rl',
                         transform: 'rotate(180deg)',
-                        margin: 0,
-                        padding: 0,
+                        margin: '0 auto 100px 0',
+                        paddingTop: '512px',
                         whiteSpace: 'nowrap',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
                     }}
                 >
                     Me

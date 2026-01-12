@@ -78,8 +78,8 @@ export const fisheye = (val: number, focus: number, distortionFactor: number, mi
  *  - Content to scale is a child 'g.node-content'.
  *  - Parent transform provides current position (translate(cx, cy)).
  */
-export const attachNodeInteractions = (
-    nodes: d3.Selection<SVGGElement, any, any, any>,
+export const attachNodeInteractions = <T extends { id: string }>(
+    nodes: d3.Selection<SVGGElement, T, any, any>,
     config: {
         onHoverRef: React.MutableRefObject<((id: string) => void) | undefined>;
         stickyIdRef: React.MutableRefObject<string | null>;
@@ -102,7 +102,7 @@ export const attachNodeInteractions = (
     };
 
     nodes
-        .on('click', (event, d: any) => {
+        .on('click', (event, d) => {
             event.stopPropagation();
             const currentSticky = stickyIdRef.current;
 
@@ -130,7 +130,7 @@ export const attachNodeInteractions = (
                 if (onHoverRef.current) onHoverRef.current(d.id);
             }
         })
-        .on('mouseenter', function (_, d: any) {
+        .on('mouseenter', function (_, d) {
             // Select ALL nodes with this ID (for decoupled chart sync)
             const relevantNodes = d3.selectAll(`.node-id-${d.id}`);
             relevantNodes.raise();
@@ -185,7 +185,7 @@ export const attachNodeInteractions = (
                 onHoverRef.current(d.id);
             }
         })
-        .on('mouseleave', (_, d: any) => {
+        .on('mouseleave', (_, d) => {
             if (stickyIdRef.current === d.id) return;
 
             const relevantNodes = d3.selectAll(`.node-id-${d.id}`);

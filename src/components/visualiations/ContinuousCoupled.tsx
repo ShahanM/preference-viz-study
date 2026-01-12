@@ -67,7 +67,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const g = svg.append<SVGGElement>('g').attr('transform', `translate(${leftOffset},${topOffset})`);
 
         // Helper to reset visuals
-        const resetNodeVisuals = (node: d3.Selection<any, any, any, any>) => {
+        const resetNodeVisuals = (node: d3.Selection<any, DataAugmentedItem, any, any>) => {
             const content = node.select('.node-content');
             content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
             content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
@@ -77,8 +77,8 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         svg.on('click', () => {
             if (stickyIdRef.current) {
                 // Reset visuals of the sticky node
-                g.selectAll('.movie-node')
-                    .filter((d: any) => d.id === stickyIdRef.current)
+                g.selectAll<SVGGElement, DataAugmentedItem>('.movie-node')
+                    .filter((d: DataAugmentedItem) => d.id === stickyIdRef.current)
                     .each(function () {
                         resetNodeVisuals(d3.select(this));
                     });
@@ -220,16 +220,16 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const { image } = appendStyledPoster(content, POSTER_WIDTH, POSTER_HEIGHT);
 
         // Bind data-specific attributes to the image
-        image.attr('xlink:href', (d: any) => d.tmdb_poster);
+        image.attr('xlink:href', (d: DataAugmentedItem) => d.tmdb_poster);
 
         const gridGroups = svg.selectAll('.grid');
         const xGridGroup = d3.select(gridGroups.nodes()[0] as SVGGElement);
         const yGridGroup = d3.select(gridGroups.nodes()[1] as SVGGElement);
 
-        const xLines = xGridGroup.selectAll('line');
-        const yLines = yGridGroup.selectAll('line');
+        const xLines = xGridGroup.selectAll<SVGLineElement, number>('line');
+        const yLines = yGridGroup.selectAll<SVGLineElement, number>('line');
 
-        const allTicks = g.selectAll('.tick');
+        const allTicks = g.selectAll<SVGGElement, number>('.tick');
 
         const xTicks = allTicks.filter(function () {
             const t = d3.select(this).attr('transform');
@@ -249,15 +249,15 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                 const df = 3.0;
 
                 xLines
-                    .attr('x1', (d: any) => fisheye(xScale(d), mx, df, 0, innerWidth))
-                    .attr('x2', (d: any) => fisheye(xScale(d), mx, df, 0, innerWidth));
+                    .attr('x1', (d: number) => fisheye(xScale(d), mx, df, 0, innerWidth))
+                    .attr('x2', (d: number) => fisheye(xScale(d), mx, df, 0, innerWidth));
 
                 yLines
-                    .attr('y1', (d: any) => fisheye(yScale(d), my, df, 0, innerHeight))
-                    .attr('y2', (d: any) => fisheye(yScale(d), my, df, 0, innerHeight));
+                    .attr('y1', (d: number) => fisheye(yScale(d), my, df, 0, innerHeight))
+                    .attr('y2', (d: number) => fisheye(yScale(d), my, df, 0, innerHeight));
 
-                xTicks.attr('transform', (d: any) => `translate(${fisheye(xScale(d), mx, df, 0, innerWidth)},0)`);
-                yTicks.attr('transform', (d: any) => `translate(0,${fisheye(yScale(d), my, df, 0, innerHeight)})`);
+                xTicks.attr('transform', (d: number) => `translate(${fisheye(xScale(d), mx, df, 0, innerWidth)},0)`);
+                yTicks.attr('transform', (d: number) => `translate(0,${fisheye(yScale(d), my, df, 0, innerHeight)})`);
 
                 // Update Node Positions
                 nodes.each(function (d) {
@@ -277,10 +277,10 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
 
             svg.on('mouseleave', () => {
                 // Reset Grid
-                xLines.attr('x1', (d: any) => xScale(d)).attr('x2', (d: any) => xScale(d));
-                yLines.attr('y1', (d: any) => yScale(d)).attr('y2', (d: any) => yScale(d));
-                xTicks.attr('transform', (d: any) => `translate(${xScale(d)},0)`);
-                yTicks.attr('transform', (d: any) => `translate(0,${yScale(d)})`);
+                xLines.attr('x1', (d: number) => xScale(d)).attr('x2', (d: number) => xScale(d));
+                yLines.attr('y1', (d: number) => yScale(d)).attr('y2', (d: number) => yScale(d));
+                xTicks.attr('transform', (d: number) => `translate(${xScale(d)},0)`);
+                yTicks.attr('transform', (d: number) => `translate(0,${yScale(d)})`);
 
                 // Reset Nodes
                 nodes.each(function (d) {

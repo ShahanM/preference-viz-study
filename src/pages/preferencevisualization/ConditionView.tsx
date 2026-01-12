@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useStudy } from 'rssa-api';
-import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
+import { LoadingScreen } from 'rssa-study-template';
 import { useMovieSelection } from '../../hooks/useMovieSelection';
 import {
     type BackendCommunityScoreItem,
