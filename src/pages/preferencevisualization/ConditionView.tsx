@@ -1,7 +1,7 @@
 import { Dialog } from '@headlessui/react';
 import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useStudy } from 'rssa-api';
 import LoadingScreen from '../../components/loadingscreen/LoadingScreen';
@@ -54,16 +54,20 @@ const ConditionView: React.FC<ConditionViewProps> = ({
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [panelPosition, setPanelPosition] = useState<'left' | 'right'>('right');
     const { startFullscreenTour } = useTour();
+    const tourStartedRef = useRef(false);
 
     useEffect(() => {
         if (onFullScreenChange) {
             onFullScreenChange(isFullScreen);
         }
         if (isFullScreen) {
-            // Short delay to allow modal to open and render
-            setTimeout(() => {
-                startFullscreenTour();
-            }, 500);
+            if (!tourStartedRef.current) {
+                tourStartedRef.current = true;
+                // Short delay to allow modal to open and render
+                setTimeout(() => {
+                    startFullscreenTour();
+                }, 500);
+            }
         }
     }, [isFullScreen, startFullscreenTour, onFullScreenChange]);
 

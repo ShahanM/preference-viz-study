@@ -6,7 +6,7 @@ import type {
     PreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
 import { POSTER_HEIGHT, POSTER_WIDTH } from '../../utils/vizConstants';
-import { fisheye } from '../../utils/vizUtils';
+import { appendStyledPoster, attachNodeInteractions, fisheye, PADDING } from '../../utils/vizUtils';
 
 const X_AXIS_LABEL = "The system's predicted movie rating for you";
 const Y_AXIS_LABEL = 'Ratings from everyone else in the system';
@@ -68,7 +68,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
 
         // Helper to reset visuals
         const resetNodeVisuals = (node: d3.Selection<any, any, any, any>) => {
-            const content = node.select('.content-wrapper');
+            const content = node.select('.node-content');
             content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
             content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
         };
@@ -173,8 +173,6 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .attr('stroke', '#000000')
             .attr('shape-rendering', 'crispEdges');
 
-        const PADDING = 3;
-        const BORDER_RADIUS = 4;
         const totalW = POSTER_WIDTH + PADDING * 2;
         const totalH = POSTER_HEIGHT + PADDING * 2;
 
@@ -184,7 +182,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .data(dataValues)
             .enter()
             .append('g')
-            .attr('class', 'movie-node')
+            .attr('class', (d) => `movie-node node-id-${d.id}`)
             .attr('transform', (d) => {
                 const cx = xScale(d.community_score);
                 const cy = yScale(d.user_score);
@@ -192,86 +190,18 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             })
             // Store original positions for fisheye reset
             .attr('data-ox', (d) => xScale(d.community_score))
-            .attr('data-oy', (d) => yScale(d.user_score))
-            .on('click', (event, d) => {
-                event.stopPropagation(); // Prevent clearing selection
-                const currentSticky = stickyIdRef.current;
+            .attr('data-oy', (d) => yScale(d.user_score));
 
-                if (currentSticky === d.id) {
-                    // Unlock: just clear the ID.
-                    // Visuals remain in "hover" state because mouse is here.
-                    stickyIdRef.current = null;
-                } else {
-                    // Lock new item
-                    // Reset previous sticky if exists
-                    if (currentSticky) {
-                        g.selectAll('.movie-node')
-                            .filter((n: any) => n.id === currentSticky)
-                            .each(function () {
-                                resetNodeVisuals(d3.select(this));
-                            });
-                    }
-                    stickyIdRef.current = d.id;
-
-                    // Raise this one
-                    d3.select(event.currentTarget).raise();
-
-                    // Force selection update
-                    if (onHoverRef.current) {
-                        onHoverRef.current(d.id);
-                    }
-                }
-            })
-            .on('mouseover', (event, d: DataAugmentedItem) => {
-                const node = d3.select(event.currentTarget);
-                node.style('cursor', 'pointer').raise();
-                const content = node.select('.content-wrapper');
-
-                // Determine current position of the group (cx, cy)
-                const cx = parseFloat(node.attr('data-cx') || node.attr('data-ox'));
-                const cy = parseFloat(node.attr('data-cy') || node.attr('data-oy'));
-
-                // Calculate available shifts to keep inside bounds
-                const halfW = totalW;
-                const halfH = totalH;
-
-                let shiftX = 0;
-                if (cx < halfW) {
-                    shiftX = halfW - cx + 4;
-                } else if (cx > innerWidth - halfW) {
-                    shiftX = innerWidth - halfW - 4 - cx;
-                }
-
-                let shiftY = 0;
-                if (cy < halfH) {
-                    shiftY = halfH - cy + 4;
-                } else if (cy > innerHeight - halfH) {
-                    shiftY = innerHeight - halfH - 4 - cy;
-                }
-
-                // Scale up content with shift
-                content.transition().duration(200).attr('transform', `translate(${shiftX}, ${shiftY}) scale(2)`);
-
-                // Add stronger shadow on hover
-                content.select('rect').style('filter', 'drop-shadow(0px 8px 12px rgba(0,0,0,0.5))');
-
-                // Update selection if NOT sticky
-                if (onHoverRef.current && !stickyIdRef.current) {
-                    onHoverRef.current(d.id);
-                }
-            })
-            .on('mouseout', (event, d: DataAugmentedItem) => {
-                // If this is the sticky item, DO NOT reset visuals
-                if (stickyIdRef.current === d.id) return;
-
-                const node = d3.select(event.currentTarget);
-                resetNodeVisuals(node);
-
-                // Clear selection if NOT sticky
-                if (onHoverRef.current && !stickyIdRef.current) {
-                    onHoverRef.current('');
-                }
-            });
+        // Attach reusable interaction handlers (hover, click, sticky, edge-shifting)
+        attachNodeInteractions(nodes, {
+            onHoverRef,
+            stickyIdRef,
+            posterWidth: POSTER_WIDTH,
+            posterHeight: POSTER_HEIGHT,
+            innerWidth,
+            innerHeight,
+            scaleFactor: 2.0, // Coupled uses 2.0 scale
+        });
 
         // Invisible Hit Area (Stays centered at 0,0 of the group)
         nodes
@@ -284,33 +214,13 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .attr('fill', 'transparent'); // Invisible but catches events
 
         // Content Wrapper (Visuals)
-        const content = nodes.append('g').attr('class', 'content-wrapper');
+        const content = nodes.append('g').attr('class', 'node-content');
 
-        // Background/Border Rect
-        content
-            .append('rect')
-            .attr('width', totalW)
-            .attr('height', totalH)
-            .attr('x', -totalW / 2)
-            .attr('y', -totalH / 2)
-            .attr('rx', BORDER_RADIUS)
-            .attr('ry', BORDER_RADIUS)
-            .attr('fill', 'white')
-            .attr('stroke', '#e5e7eb') // Light gray border
-            .attr('stroke-width', 1)
-            .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))'); // Soft shadow
+        // Use shared styling
+        const { image } = appendStyledPoster(content, POSTER_WIDTH, POSTER_HEIGHT);
 
-        // Poster Image
-        content
-            .append('image')
-            .attr('xlink:href', (d) => d.tmdb_poster)
-            .attr('width', POSTER_WIDTH)
-            .attr('height', POSTER_HEIGHT)
-            .attr('x', -POSTER_WIDTH / 2)
-            .attr('y', -POSTER_HEIGHT / 2)
-            .attr('preserveAspectRatio', 'xMinYMin slice')
-            // Optional: clip to rounded corners if desired
-            .attr('clip-path', 'inset(0px round 2px)');
+        // Bind data-specific attributes to the image
+        image.attr('xlink:href', (d: any) => d.tmdb_poster);
 
         const gridGroups = svg.selectAll('.grid');
         const xGridGroup = d3.select(gridGroups.nodes()[0] as SVGGElement);
