@@ -54,31 +54,43 @@ export type ConditionConfig = {
 };
 
 export const conditionMap: Record<string, ConditionConfig> = {
-    // "Continuous Coupled": { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
-    // "Continuous Decoupled": { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
-    // "Discrete Decoupled": { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' }, // Diverse vs referenced
-    // "Continuous Top N": { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' }, // Top N (single view)
-    // "Discrete Top N": { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' }, // Top N (single view)
-    // "Baseline Top N": { Visualizer: BaselineWrapper, layout: 'overlay' }, // Top N (single view)
-    // ---
-    // "Discrete Coupled": { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' }, Not included in this study
-
     /**
      * Map the condition short_code for the respective StudyConditions from the Admin Dashboard to
      * the visualizer components above.
      */
-    // 'Umber-Swift': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
-    'Bronze-Narwhal': { Visualizer: ContinuousCoupledWrapper, layout: 'sidebar' },
-    Placeholder1: { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
-    // 'Umber-Swift': { Visualizer: ContinuousDecoupledWrapper, layout: 'sidebar' },
-    // Placeholder2: { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
-    'Umber-Swift': { Visualizer: DiscreteDecoupledWrapper, layout: 'sidebar' },
-    Placeholder3: { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
-    // 'Umber-Swift': { Visualizer: DiscreteCoupledWrapper, layout: 'sidebar' },
-    Placehodler4: { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
-    // 'Umber-Swift': { Visualizer: ContinuousSelfWrapper, layout: 'sidebar' },
-    Placeholder5: { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
-    // 'Umber-Swift': { Visualizer: DiscreteSelfWrapper, layout: 'sidebar' },
-    'Obsidian-Pangolin': { Visualizer: BaselineWrapper, layout: 'sidebar' },
-    // 'Umber-Swift': { Visualizer: BaselineWrapper, layout: 'sidebar' },
+    CONT_COUPLED: {
+        // Continuous Coupled - Diverse vs referenced
+        Visualizer: ContinuousCoupledWrapper,
+        layout: 'sidebar',
+    },
+    CONT_DECOUPLED: {
+        // Continuous Decoupled - Diverse vs referenced
+        Visualizer: ContinuousDecoupledWrapper,
+        layout: 'sidebar',
+    },
+    DISC_DECOUPLED: {
+        // Discrete Decoupled - Diverse vs referenced
+        Visualizer: DiscreteDecoupledWrapper,
+        layout: 'sidebar',
+    },
+    DISC_COUPLED: {
+        // Discrete Coupled - Not included in this study
+        Visualizer: DiscreteCoupledWrapper,
+        layout: 'sidebar',
+    },
+    CONT_SELF: {
+        // Continuous Self - Top N (single view)
+        Visualizer: ContinuousSelfWrapper,
+        layout: 'sidebar',
+    },
+    DISC_SELF: {
+        // Discrete Self - Top N (single view)
+        Visualizer: DiscreteSelfWrapper,
+        layout: 'sidebar',
+    },
+    BASE_TOPN: {
+        // Baseline Top N - Top N (single view)
+        Visualizer: BaselineWrapper,
+        layout: 'sidebar',
+    },
 };

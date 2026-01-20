@@ -14,6 +14,7 @@ import { conditionMap } from './conditionMap';
 
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useTour } from '../../hooks/useTour';
+import { useConditionMapping } from '../../hooks/useConditionMapping';
 
 const PreferenceVisualizationContent: React.FC = () => {
     const { studyApi } = useStudy();
@@ -22,7 +23,31 @@ const PreferenceVisualizationContent: React.FC = () => {
 
     const { data: participant } = useFetchParticipant();
 
-    const conditionIdentifier = participant?.study_condition?.short_code;
+    // Use short_code from backend to resolve internal visualizer key
+    const externalCode = participant?.study_condition?.short_code;
+    const viewLinkKey = (participant?.study_condition as unknown as { view_link_key?: string })?.view_link_key;
+
+    // Always call the hook to ensure rules of hooks are followed
+    const { mappedCondition, isLoading: isMappingLoading } = useConditionMapping(externalCode);
+
+    let finalConditionIdentifier = mappedCondition;
+    let isResolving = isMappingLoading;
+
+    if (viewLinkKey) {
+        // Precedence Rule: view_link_key overrides mapping
+        if (conditionMap[viewLinkKey]) {
+            finalConditionIdentifier = viewLinkKey;
+            isResolving = false; // We have a direct match, no need to wait for mapping loading
+        } else {
+            console.warn(
+                `view_link_key '${viewLinkKey}' provided but not found in conditionMap. Falling back to mapping.`
+            );
+            // finalConditionIdentifier remains as mappedCondition (from hook)
+        }
+    }
+
+    const conditionIdentifier = finalConditionIdentifier; // Use the resolved condition
+
     const conditionName = participant?.study_condition?.name;
     const conditionId = participant?.study_condition?.id;
 
@@ -65,7 +90,7 @@ const PreferenceVisualizationContent: React.FC = () => {
         [startMainTour]
     );
 
-    if (!participant) {
+    if (!participant || isResolving) {
         return <div className="p-10 text-center">Loading participant data...</div>;
     }
 
