@@ -119,12 +119,14 @@ const PreferenceVisualizationContent: React.FC = () => {
 
     const handleVizLoaded = () => {
         // Optional: Check if tour has been seen
-        const tourSeen = localStorage.getItem(`tour-seen-${studyStep.id}`);
+        const studyId = import.meta.env.VITE_RSSA_STUDY_ID;
+        const tourKey = `${studyId}_tour-seen-${studyStep.id}`;
+        const tourSeen = localStorage.getItem(tourKey);
         if (!tourSeen) {
             // Add a small delay to ensure DOM is fully painted
             setTimeout(() => {
                 startMainTour(0);
-                localStorage.setItem(`tour-seen-${studyStep.id}`, 'true');
+                localStorage.setItem(tourKey, 'true');
             }, 1000);
         }
     };
