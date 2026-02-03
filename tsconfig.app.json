@@ -20,7 +20,11 @@
         "erasableSyntaxOnly": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true,
-        "types": ["@testing-library/jest-dom"]
+        "types": ["@testing-library/jest-dom"],
+        "paths": {
+            "rssa-api": ["node_modules/react-rssa-api"],
+            "rssa-study-template": ["node_modules/rssa-study-template"]
+        }
     },
     "include": ["src"]
 }
