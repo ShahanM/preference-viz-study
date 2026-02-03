@@ -38,7 +38,7 @@ function App() {
                     disableHide={true}
                 />
             )}
-            <Router basename="/preference-visualization/">
+            <Router>
                 <RouteWrapper componentMap={componentMap} WelcomePage={WelcomePage} />
             </Router>
         </div>
