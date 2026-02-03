@@ -22,7 +22,7 @@
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-router-dom": "^7.7.1",
-        "rssa-api": "github:RSSA-Project/react-rssa-api",
+        "react-rssa-api": "github:RSSA-Project/react-rssa-api",
         "rssa-study-template": "github:RSSA-Project/rssa-study-template",
         "tailwindcss": "^4.1.11",
         "web-vitals": "^2.1.4"
