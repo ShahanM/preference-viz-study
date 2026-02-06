@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useStudy } from 'rssa-api';
-import { useFetchParticipant } from 'rssa-api';
+import { useStudy } from '@rssa-project/api';
+import { useFetchParticipant } from '@rssa-project/api';
 import { MovieSelectionProvider } from '../../contexts/movieSelectionProvider';
 import type { EssayResponse } from '../../types/preferenceVisualization.types';
 import type { StudyLayoutContextType } from '../../types/study.types';
@@ -27,7 +27,6 @@ const PreferenceVisualizationContent: React.FC = () => {
     const externalCode = participant?.study_condition?.short_code;
     const viewLinkKey = (participant?.study_condition as unknown as { view_link_key?: string })?.view_link_key;
 
-    // Always call the hook to ensure rules of hooks are followed
     const { mappedCondition, isLoading: isMappingLoading } = useConditionMapping(externalCode);
 
     let finalConditionIdentifier = mappedCondition;
@@ -42,7 +41,6 @@ const PreferenceVisualizationContent: React.FC = () => {
             console.warn(
                 `view_link_key '${viewLinkKey}' provided but not found in conditionMap. Falling back to mapping.`
             );
-            // finalConditionIdentifier remains as mappedCondition (from hook)
         }
     }
 
@@ -53,7 +51,6 @@ const PreferenceVisualizationContent: React.FC = () => {
 
     const conditionConfig = conditionIdentifier ? conditionMap[conditionIdentifier] : undefined;
     const ConditionalVisualizer = conditionConfig?.Visualizer;
-
     const showLikeDislikeLines = useMemo(() => {
         if (!conditionIdentifier) return true;
         const lowerName = conditionIdentifier.toLowerCase();
@@ -123,7 +120,7 @@ const PreferenceVisualizationContent: React.FC = () => {
         const tourKey = `${studyId}_tour-seen-${studyStep.id}`;
         const tourSeen = localStorage.getItem(tourKey);
         if (!tourSeen) {
-            // Add a small delay to ensure DOM is fully painted
+            // Add a small delay to ensure DOM is fully rendered.
             setTimeout(() => {
                 startMainTour(0);
                 localStorage.setItem(tourKey, 'true');

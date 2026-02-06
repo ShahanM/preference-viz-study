@@ -3,8 +3,8 @@ import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useStudy } from 'rssa-api';
-import { LoadingScreen } from 'rssa-study-template';
+import { useStudy } from '@rssa-project/api';
+import { LoadingScreen } from '@rssa-project/study-template';
 import { useMovieSelection } from '../../hooks/useMovieSelection';
 import {
     type BackendCommunityScoreItem,

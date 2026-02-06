@@ -1,25 +1,22 @@
 import React from 'react';
-import { WelcomePage as GenericWelcomePage } from 'rssa-study-template';
+import { WelcomePage as GenericWelcomePage } from '@rssa-project/study-template';
+import { NumberedList, PCallout, PVSpaced } from '../components/styled/Font';
 
 const WelcomeContent: React.FC = () => {
+    const steps = [
+        'Complete a pre-survey',
+        'Rate a few movies you are familiar with to let recommender system know about your movie preferences.',
+        'Interact with the movie recommender system.',
+        'Complete a post-survey.',
+    ];
     return (
         <div className="m-3 p-5 text-left rounded-3">
-            <h3 className="mb-3">What can you expect?</h3>
-            <p>In this study you will test a new recommender system for movies.</p>
+            <PCallout>What can you expect?</PCallout>
+            <PVSpaced>In this study you will test a new recommender system for movies.</PVSpaced>
             <p>There are four steps to the study:</p>
-            <ol>
-                <li className="p-1 list-decimal">Complete a pre-survey.</li>
-                <li className="p-1 list-decimal">
-                    Rate a few movies you are familiar with to let recommender system know about your movie preferences.
-                </li>
-                <li className="p-1 list-decimal">Interact with the movie recommender system.</li>
-                <li className="p-1 list-decimal">Complete a post-survey.</li>
-            </ol>
-            <p>
-                Thanks,
-                <br />
-                Research Team
-            </p>
+            <NumberedList>{steps}</NumberedList>
+            <p>Thanks,</p>
+            <p>Research Team</p>
         </div>
     );
 };

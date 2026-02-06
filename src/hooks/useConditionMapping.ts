@@ -15,12 +15,12 @@ export const useConditionMapping = (externalCode?: string) => {
         let isMounted = true;
 
         const fetchMapping = async () => {
-            // Reset loading state when fetching starts
             if (isMounted) setIsLoading(true);
 
             try {
-                console.log('Fetching condition mapping...');
                 // Use BASE_URL to construct correct path (handles non-root deployments)
+                // We only ever want to use it for testing and its existence is purely for legacy practices.
+                // It is recommended to use the dynamic view mapping set in the study admin panel.
                 const baseUrl = import.meta.env.BASE_URL.endsWith('/')
                     ? import.meta.env.BASE_URL
                     : `${import.meta.env.BASE_URL}/`;

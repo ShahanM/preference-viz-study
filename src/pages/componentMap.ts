@@ -1,4 +1,4 @@
-import { DemographicsPage, MovieRatingPage, SurveyPage, FeedbackPage } from 'rssa-study-template';
+import { DemographicsPage, MovieRatingPage, SurveyPage, FeedbackPage } from '@rssa-project/study-template';
 import InformedConsent from './ConsentPage';
 import FinalPage from './FinalPage';
 import PreferenceVisualization from './preferencevisualization/PreferenceVisualization';

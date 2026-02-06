@@ -183,20 +183,6 @@ describe('ConditionView Full Screen', () => {
 
         // Open full screen
         fireEvent.click(screen.getByTitle('Enlarge visualization'));
-
-        // Mock selection (which shows the panel)
-        // Since we mocked RightInfoPanel to render if props are present, we need to ensure local state allows it?
-        // Wait, current implementation only renders the wrapper if rightPanelProps is truthy.
-        // It DOES NOT check if a movie is selected in the ConditionView TSX (it relies on RightInfoPanel to handle null selection or be always visible?)
-        // Let's check ConditionView.tsx logic again.
-        // Logic: {rightPanelProps && ( ... <RightInfoPanel ... /> ... )}
-        // It always renders the wrapper if props are passed!
-        // But RightInfoPanel internals likely hide if no movie selected?
-        // Re-reading ConditionView.tsx: The wrapper is ALWAYS rendered if rightPanelProps is set.
-        // So the close button is always there?
-        // "onClick={() => setSelectedMovie(undefined)}"
-        // If the wrapper is visible, the button is compatible.
-
         const closePanelButton = await screen.findByTitle('Close info panel');
         fireEvent.click(closePanelButton);
 

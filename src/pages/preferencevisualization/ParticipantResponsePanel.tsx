@@ -1,12 +1,12 @@
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import { useStudy } from '@rssa-project/api';
+import { useStepCompletion } from '@rssa-project/study-template';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import Parse from 'html-react-parser';
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useStudy } from 'rssa-api';
-import { useStepCompletion } from 'rssa-study-template';
 import type {
     EssayResponse,
     EssayResponseObject,
@@ -56,7 +56,6 @@ const ParticipantResponsePanel = ({
         explanation: '',
     });
 
-    // State for the expanded modal
     const [expandedField, setExpandedField] = useState<keyof EssayResponseObject | null>(null);
 
     const { studyStep } = useOutletContext<StudyLayoutContextType>();
@@ -212,7 +211,12 @@ const ParticipantResponsePanel = ({
 
                 {/* Full-screen container to center the panel */}
                 <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-                    <DialogPanel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <DialogPanel
+                        className={clsx(
+                            'w-full max-w-4xl transform overflow-hidden rounded-2xl',
+                            'bg-white p-6 text-left align-middle shadow-xl transition-all'
+                        )}
+                    >
                         <DialogTitle as="h3" className="text-lg font-medium leading-6 text-gray-900 border-b pb-2 mb-4">
                             {expandedField && Parse(PROMPTS[expandedField])}
                         </DialogTitle>
@@ -221,7 +225,10 @@ const ParticipantResponsePanel = ({
                             <textarea
                                 value={expandedField ? localResponseDraft[expandedField] : ''}
                                 onChange={(e) => expandedField && handleTextChange(expandedField, e.target.value)}
-                                className="w-full h-[60vh] p-4 text-base rounded-md border-gray-300 focus:border-amber-500 focus:ring-amber-500 font-mono"
+                                className={clsx(
+                                    'w-full h-[60vh] p-4 text-base rounded-md border-gray-300',
+                                    'focus:border-amber-500 focus:ring-amber-500 font-mono'
+                                )}
                                 placeholder="Enter your detailed response here..."
                             />
                         </div>
@@ -229,14 +236,24 @@ const ParticipantResponsePanel = ({
                         <div className="mt-6 flex justify-end gap-3">
                             <button
                                 type="button"
-                                className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                                className={clsx(
+                                    'inline-flex justify-center rounded-md border border-transparent',
+                                    'bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200',
+                                    'focus:outline-none focus-visible:ring-2',
+                                    'focus-visible:ring-gray-500 focus-visible:ring-offset-2'
+                                )}
                                 onClick={() => setExpandedField(null)}
                             >
                                 Close
                             </button>
                             <button
                                 type="button"
-                                className="inline-flex justify-center rounded-md border border-transparent bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                                className={clsx(
+                                    'inline-flex justify-center rounded-md border border-transparent',
+                                    'bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600',
+                                    'focus:outline-none focus-visible:ring-2',
+                                    'focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:opacity-50'
+                                )}
                                 onClick={handleSaveClick}
                                 disabled={!hasUnsavedChanges || essayMutation.isPending}
                             >
@@ -287,7 +304,10 @@ const ResponseForm = ({
                 <button
                     type="button"
                     onClick={onExpand}
-                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 bg-white/50 hover:bg-white rounded-md transition-colors enlarge-text-btn"
+                    className={clsx(
+                        'absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600',
+                        'bg-white/50 hover:bg-white rounded-md transition-colors enlarge-text-btn'
+                    )}
                     title="Enlarge text area"
                     id={`enlarge-btn-${promptTag}`}
                 >

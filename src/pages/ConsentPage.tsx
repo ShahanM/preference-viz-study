@@ -1,15 +1,16 @@
-import { ConsentPage as GenericConsentPage } from 'rssa-study-template';
+import { ConsentPage as GenericConsentPage } from '@rssa-project/study-template';
+import { PCallout, PSubhead, PVSpaced } from '../components/styled/Font';
 
 const ConsentContent: React.FC = () => {
     return (
-        <div className="ps-3 pt-3 pe-3 ms-3 mt-3 me-3 text-left">
-            <h3>Call for Participation and Consent</h3>
-            <p>
+        <div>
+            <PCallout>Call for Participation and Consent</PCallout>
+            <PVSpaced>
                 Dr. Bart Knijnenburg is inviting you to volunteer for a research study. Dr. Bart Knijnenburg is an
                 Associate Professor at Clemson University conducting the study with graduate students. In this study,
                 you will be asked to interact with a movie recommender system.
-            </p>
-            <h4 className="mt-3">Study Purpose</h4>
+            </PVSpaced>
+            <PSubhead>Study Purpose</PSubhead>
             <p>
                 The goal of this study is to support users in developing, exploring, and understanding their unique
                 personal preferences to help them escape the trap of "Filter bubbles," a problematic side effect of
@@ -21,7 +22,7 @@ const ConsentContent: React.FC = () => {
                 their preferences.
             </p>
 
-            <h4 className="mt-3">Eligibility</h4>
+            <PSubhead>Eligibility</PSubhead>
             <p>
                 Please note that you may only participate in this study once. Previous participants in this study are
                 not eligible to participate again. When you participate, please carefully perform every task and read
@@ -31,7 +32,7 @@ const ConsentContent: React.FC = () => {
                 reach out to Sushmita Khan (sushmik@clemson.edu) if you have any questions. Thank you for your time!
             </p>
 
-            <h4 className="mt-3">Time and Compensation</h4>
+            <PSubhead>Time and Compensation</PSubhead>
             <p>
                 It will take about 15 to 20 minutes to complete the study, and you will receive&nbsp;
                 <span className="textemph">$2.75</span>&nbsp; upon completion. Participation is voluntary. Please feel

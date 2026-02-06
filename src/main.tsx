@@ -4,9 +4,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ParticipantProvider, StudyProvider } from 'rssa-api';
+import { ParticipantProvider, StudyProvider } from '@rssa-project/api';
 import App from './App.tsx';
-import { ErrorBoundary } from 'rssa-study-template';
+import { ErrorBoundary } from '@rssa-project/study-template';
 
 const RSSA_API_DEV = import.meta.env.VITE_RSSA_API_DEV!;
 const RSSA_API = import.meta.env.VITE_RSSA_API!;

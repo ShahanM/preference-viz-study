@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@source "../../node_modules/rssa-study-template/dist/rssa-study-template.es.js";
 @plugin "@tailwindcss/forms";
 @plugin "tailwind-scrollbar";
 

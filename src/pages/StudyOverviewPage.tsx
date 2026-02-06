@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useStepCompletion } from 'rssa-study-template';
+import { useStepCompletion } from '@rssa-project/study-template';
 import rsinteract from '../res/interact.png';
 import postsurvey from '../res/post-survey.png';
 import presurvey from '../res/pre-survey.png';
@@ -19,7 +19,7 @@ const StudyOverviewPage: React.FC = () => {
         setIsStepComplete(false);
         const timerId = setTimeout(() => {
             setIsStepComplete(true);
-        }, 2000);
+        }, 1000);
         return () => {
             clearTimeout(timerId);
         };

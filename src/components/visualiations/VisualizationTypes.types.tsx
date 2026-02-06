@@ -1,4 +1,3 @@
-// import { MySimDatum } from "./DiscreteDecoupled";
 import type { Movie } from '../../types/rssa.types';
 
 export type PrefVizRecItem = {

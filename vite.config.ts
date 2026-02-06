@@ -6,6 +6,9 @@ import { defineConfig } from 'vite';
 export default defineConfig(() => {
     return {
         plugins: [react(), tailwindcss()],
+        optimizeDeps: {
+            exclude: ['@rssa-project/study-template'],
+        },
         base: '/preference-visualization/',
         build: {
             outDir: 'build',
