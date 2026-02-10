@@ -10,8 +10,10 @@ interface ListProps {
 }
 export const NumberedList = ({ children }: ListProps) => (
     <ol className="mt-3 mb-3">
-        {children.map((child) => (
-            <li className="p-1 list-decimal list-inside">{child}</li>
+        {children.map((child, idx) => (
+            <li key={idx} className="p-1 list-decimal list-inside">
+                {child}
+            </li>
         ))}
     </ol>
 );

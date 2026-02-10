@@ -1,11 +1,13 @@
+import { StudyLayoutContextType, useStepCompletion } from '@rssa-project/study-template';
 import { useEffect } from 'react';
-import { useStepCompletion } from '@rssa-project/study-template';
+import { useOutletContext } from 'react-router-dom';
 import rsinteract from '../res/interact.png';
 import postsurvey from '../res/post-survey.png';
 import presurvey from '../res/pre-survey.png';
 import rspref from '../res/rate-prefs.png';
 
 const StudyOverviewPage: React.FC = () => {
+    const { showButtonLoader } = useOutletContext<StudyLayoutContextType>();
     const { setIsStepComplete } = useStepCompletion();
 
     const stepCards = [
@@ -17,13 +19,15 @@ const StudyOverviewPage: React.FC = () => {
 
     useEffect(() => {
         setIsStepComplete(false);
+        showButtonLoader(true);
         const timerId = setTimeout(() => {
             setIsStepComplete(true);
+            showButtonLoader(false);
         }, 1000);
         return () => {
             clearTimeout(timerId);
         };
-    }, [setIsStepComplete]);
+    }, [setIsStepComplete, showButtonLoader]);
 
     return (
         <div className="flex flex-between text-2xl mb-3">

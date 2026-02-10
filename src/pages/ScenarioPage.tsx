@@ -1,18 +1,22 @@
+import { StudyLayoutContextType, useStepCompletion } from '@rssa-project/study-template';
 import { useEffect } from 'react';
-import { useStepCompletion } from '@rssa-project/study-template';
+import { useOutletContext } from 'react-router-dom';
 import { PCallout, PSubhead, PVSpaced } from '../components/styled/Font';
 
 const ScenarioPage: React.FC = () => {
+    const { showButtonLoader } = useOutletContext<StudyLayoutContextType>();
     const { setIsStepComplete } = useStepCompletion();
     useEffect(() => {
         setIsStepComplete(false);
+        showButtonLoader(true);
         const timerId = setTimeout(() => {
             setIsStepComplete(true);
+            showButtonLoader(false);
         }, 3000);
         return () => {
             clearTimeout(timerId);
         };
-    }, [setIsStepComplete]);
+    }, [setIsStepComplete, showButtonLoader]);
     return (
         <div className="p-5 m-3 text-left">
             <PCallout>Your task</PCallout>
