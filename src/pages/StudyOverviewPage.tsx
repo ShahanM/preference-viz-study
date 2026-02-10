@@ -1,4 +1,4 @@
-import { StudyLayoutContextType, useStepCompletion } from '@rssa-project/study-template';
+import { type StudyLayoutContextType, useStepCompletion } from '@rssa-project/study-template';
 import { useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import rsinteract from '../res/interact.png';
