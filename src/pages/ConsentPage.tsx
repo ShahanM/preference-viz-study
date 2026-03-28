@@ -11,16 +11,7 @@ const ConsentContent: React.FC = () => {
                 you will be asked to interact with a movie recommender system.
             </PVSpaced>
             <PSubhead>Study Purpose</PSubhead>
-            <p>
-                The goal of this study is to support users in developing, exploring, and understanding their unique
-                personal preferences to help them escape the trap of "Filter bubbles," a problematic side effect of
-                recommendation technology that is otherwise meant to help make decisions. To support users and
-                understand their unique personal taste, we designed a movie rating system that displays items beyond the
-                top-rated ones to help both the users understand their tastes and recommenders get a better idea of
-                users' tastes. In this experiment, we will ask users to rate N number of movies in our system and
-                complete a survey pertaining to their thoughts about how the movies helped them learn, grow, and expand
-                their preferences.
-            </p>
+            <p>You are going to use a system that helps you reflect upon your movie preferences.</p>
 
             <PSubhead>Eligibility</PSubhead>
             <p>

@@ -120,7 +120,6 @@ export const useTour = () => {
     }, []);
 
     const startFullscreenTour = useCallback(() => {
-        // Create a new driver instance for the mini-tour to avoid conflicts
         const fsDriver = driver({
             showProgress: false,
             animate: true,

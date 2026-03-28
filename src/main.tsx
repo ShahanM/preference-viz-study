@@ -8,9 +8,9 @@ import { ParticipantProvider, StudyProvider } from '@rssa-project/api';
 import App from './App.tsx';
 import { ErrorBoundary } from '@rssa-project/study-template';
 
-const RSSA_API_DEV = import.meta.env.VITE_RSSA_API_DEV!;
-const RSSA_API = import.meta.env.VITE_RSSA_API!;
-const RSSA_STUDY_ID = import.meta.env.VITE_RSSA_STUDY_ID!;
+const RSSA_API_DEV = import.meta.env.VITE_RSSA_API_DEV;
+const RSSA_API = import.meta.env.VITE_RSSA_API;
+const RSSA_STUDY_ID = import.meta.env.VITE_RSSA_STUDY_ID;
 const RSSA_API_KEY_ID = import.meta.env.VITE_RSSA_API_KEY_ID;
 const RSSA_API_KEY_SECRET = import.meta.env.VITE_RSSA_API_KEY_SECRET;
 

@@ -12,7 +12,7 @@ const WelcomeContent: React.FC = () => {
     return (
         <div className="m-3 p-5 text-left rounded-3">
             <PCallout>What can you expect?</PCallout>
-            <PVSpaced>In this study you will test a new recommender system for movies.</PVSpaced>
+            <PVSpaced>In this study you will test a new system for movies preferences.</PVSpaced>
             <p>There are four steps to the study:</p>
             <NumberedList>{steps}</NumberedList>
             <p>Thanks,</p>
@@ -22,7 +22,14 @@ const WelcomeContent: React.FC = () => {
 };
 
 const WelcomePage: React.FC<{ isStudyReady: boolean; onStudyStart: () => void }> = (props) => {
-    return <GenericWelcomePage {...props} ContentComponent={WelcomeContent} />;
+    return (
+        <GenericWelcomePage
+            title={'Welcome'}
+            subtitle={'Movie Preferences'}
+            {...props}
+            ContentComponent={WelcomeContent}
+        />
+    );
 };
 
 export default WelcomePage;

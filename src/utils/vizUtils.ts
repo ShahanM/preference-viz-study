@@ -16,7 +16,6 @@ export const appendStyledPoster = (
     const totalW = posterWidth + PADDING * 2;
     const totalH = posterHeight + PADDING * 2;
 
-    // Background/Border Rect
     const bgRect = selection
         .append('rect')
         .attr('class', 'poster-bg')
@@ -31,7 +30,6 @@ export const appendStyledPoster = (
         .attr('stroke-width', 1)
         .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))'); // Soft shadow
 
-    // Poster Image
     const image = selection
         .append('image')
         .attr('class', 'poster-img')
@@ -83,8 +81,8 @@ export const fisheye = (val: number, focus: number, distortionFactor: number, mi
 export const attachNodeInteractions = <T extends { id: string }>(
     nodes: d3.Selection<SVGGElement, T, any, any>,
     config: {
-        onHoverRef: React.MutableRefObject<((id: string) => void) | undefined>;
-        stickyIdRef: React.MutableRefObject<string | null>;
+        onHoverRef: React.RefObject<((id: string) => void) | undefined>;
+        stickyIdRef: React.RefObject<string | null>;
         posterWidth: number;
         posterHeight: number;
         innerWidth: number;
@@ -109,14 +107,9 @@ export const attachNodeInteractions = <T extends { id: string }>(
             const currentSticky = stickyIdRef.current;
 
             if (currentSticky === d.id) {
-                // Unlock
                 stickyIdRef.current = null;
-                // Visuals remain in hover state until mouse leaves
             } else {
-                // Lock new item
                 if (currentSticky) {
-                    // Reset previous sticky
-                    // Note: This matches ANY node with that ID (across charts)
                     d3.selectAll('.movie-node')
                         .filter((n: unknown) => (n as { id: string }).id === currentSticky)
                         .each(function () {
@@ -124,11 +117,7 @@ export const attachNodeInteractions = <T extends { id: string }>(
                         });
                 }
                 stickyIdRef.current = d.id;
-
-                // Raise all nodes with this ID
                 d3.selectAll(`.node-id-${d.id}`).raise();
-
-                // Update selection
                 if (onHoverRef.current) onHoverRef.current(d.id);
             }
         })
@@ -156,9 +145,6 @@ export const attachNodeInteractions = <T extends { id: string }>(
                             cy = parseFloat(match[2]);
                         }
                     }
-
-                    // For 'ContinuousCoupled' which stores data-cx/cy, we might want to prefer that?
-                    // But parsing transform is universal for both.
 
                     const expandedHalfW = (totalW * scaleFactor) / 2;
                     const expandedHalfH = (totalH * scaleFactor) / 2;
@@ -199,7 +185,6 @@ export const attachNodeInteractions = <T extends { id: string }>(
         });
 };
 
-// Shared Axis Labels
 export const X_AXIS_LABEL_ONE = "The system's predicted movie rating for you";
 export const Y_AXIS_LABEL_ONE = 'Ratings from everyone else in the system';
 
@@ -238,18 +223,13 @@ export const renderVizGrid = (
         yTickValues = d3.range(10, 51).map((x) => x / 10),
     } = config;
 
-    // Use integer range for clarity, mapped to 0.1 steps
     const gridTickValues = xTickValues;
     const yGridTickValues = yTickValues;
 
-    // Label Ticks: 0.5 steps
     const labelTickValues = d3.range(10, 51, 5).map((x) => x / 10);
 
-    // Group for Grid Lines
     const gridGroup = g.append('g').attr('class', 'grid-group').attr('transform', `translate(0,${innerHeight})`);
 
-    // Draw Vertical Lines (X-axis grid)
-    // Note: These originate from bottom (y=0 in group) and go up (-innerHeight)
     const xLines = gridGroup
         .selectAll<SVGLineElement, number>('.grid-line-x')
         .data(gridTickValues)
@@ -266,11 +246,8 @@ export const renderVizGrid = (
     let yLines: d3.Selection<SVGLineElement, number, SVGGElement, unknown> | undefined;
 
     if (drawYGridLines) {
-        // Draw Horizontal Lines (Y-axis grid)
-        // Draw Y lines directly on `g` (Top-Left) instead of `gridGroup` (Bottom).
-
         yLines = g
-            .insert('g', '.grid-group') // Insert before x-grid
+            .insert('g', '.grid-group')
             .attr('class', 'grid-group-y')
             .selectAll<SVGLineElement, number>('.grid-line-y')
             .data(yGridTickValues)
@@ -285,23 +262,17 @@ export const renderVizGrid = (
             .attr('shape-rendering', 'crispEdges');
     }
 
-    // Bottom Axis Domain (Line)
     gridGroup.append('path').attr('class', 'domain').attr('d', `M0,0H${innerWidth}`).attr('stroke', 'currentColor');
-
-    // Left Axis Tick Marks (if needed) or just the line
     if (drawYAxis) {
         g.append('line')
             .attr('x1', 0)
             .attr('y1', 0)
-            .attr('x2', 0) // Domain line for Y
+            .attr('x2', 0)
             .attr('y2', innerHeight)
             .attr('stroke', 'currentColor');
     }
 
-    // Ticks (Labels)
     const axisGroup = g.append('g').attr('class', 'axis-group').attr('transform', `translate(0, ${innerHeight})`);
-
-    // Bottom Axis Ticks (X)
     const xTicks = axisGroup
         .selectAll<SVGGElement, number>('.tick-mark-x')
         .data(labelTickValues)
@@ -317,13 +288,11 @@ export const renderVizGrid = (
         .attr('text-anchor', 'middle')
         .attr('fill', 'currentColor')
         .style('font-size', '10px')
-        .style('font-weight', 'bold') // Added to match
+        .style('font-weight', 'bold')
         .text((d) => (d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)));
 
     let yTicks: d3.Selection<SVGGElement, number, SVGGElement, unknown> | undefined;
-
     if (drawYAxis && !hideYAxisLabels) {
-        // Left Axis Ticks (Y)
         const yAxisGroup = g.append('g').attr('class', 'axis-group-y');
 
         yTicks = yAxisGroup
@@ -358,7 +327,6 @@ export const renderVizGrid = (
  */
 export const attachFisheyeBehavior = <T>(
     svg: d3.Selection<any, unknown, null, undefined>,
-    // Elements to update
     elements: {
         xLines?: d3.Selection<SVGLineElement, number, any, any>;
         yLines?: d3.Selection<SVGLineElement, number, any, any>;
@@ -366,7 +334,6 @@ export const attachFisheyeBehavior = <T>(
         yTicks?: d3.Selection<SVGGElement, number, any, any>;
         nodes: d3.Selection<SVGGElement, T, any, any>;
     },
-    // Configuration
     config: {
         scales: VizScales;
         dimensions: { innerWidth: number; innerHeight: number; margin: { left: number; top: number } };
@@ -390,8 +357,6 @@ export const attachFisheyeBehavior = <T>(
         if (focusX < 0 || focusX > innerWidth || (mode === '2D' && (focusY < 0 || focusY > innerHeight))) return;
 
         const df = isFisheye ? 3.0 : 0;
-
-        // X Updates
         if (xLines) {
             xLines
                 .attr('x1', (d) => fisheye(xScale(d), focusX, df, 0, innerWidth))
@@ -401,7 +366,6 @@ export const attachFisheyeBehavior = <T>(
             xTicks.attr('transform', (d) => `translate(${fisheye(xScale(d), focusX, df, 0, innerWidth)}, 0)`);
         }
 
-        // Y Updates (only 2D)
         if (mode === '2D') {
             if (yLines) {
                 yLines
@@ -412,8 +376,6 @@ export const attachFisheyeBehavior = <T>(
                 yTicks.attr('transform', (d) => `translate(0, ${fisheye(yScale(d), focusY, df, 0, innerHeight)})`);
             }
         }
-
-        // Node Updates
         nodes.attr('transform', (d) => {
             const ox = xScale(getX(d));
             const nx = fisheye(ox, focusX, df, 0, innerWidth);
@@ -423,7 +385,6 @@ export const attachFisheyeBehavior = <T>(
                 const oy = yScale(getY(d));
                 ny = fisheye(oy, focusY, df, 0, innerHeight);
             } else {
-                // 1D Mode: Fixed Y or pre-calculated
                 ny = getY(d);
             }
             return `translate(${nx}, ${ny})`;
@@ -431,17 +392,14 @@ export const attachFisheyeBehavior = <T>(
     });
 
     svg.on('mouseleave.fisheye', () => {
-        // Reset X
         if (xLines) xLines.attr('x1', (d) => xScale(d)).attr('x2', (d) => xScale(d));
         if (xTicks) xTicks.attr('transform', (d) => `translate(${xScale(d)}, 0)`);
 
-        // Reset Y
         if (mode === '2D') {
             if (yLines) yLines.attr('y1', (d) => yScale(d)).attr('y2', (d) => yScale(d));
             if (yTicks) yTicks.attr('transform', (d) => `translate(0, ${yScale(d)})`);
         }
 
-        // Reset Nodes
         nodes.attr('transform', (d) => {
             const cx = xScale(getX(d));
             const cy = mode === '2D' ? yScale(getY(d)) : getY(d);
