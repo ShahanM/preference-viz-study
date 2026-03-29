@@ -21,18 +21,21 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
     height,
     data,
     onHover,
+    onInteract,
     isFisheye = false,
 }) => {
     const svgRef = useRef<SVGSVGElement>(null);
 
     const onHoverRef = useRef(onHover);
+    const onInteractRef = useRef(onInteract);
+
     useEffect(() => {
         onHoverRef.current = onHover;
-    }, [onHover]);
+        onInteractRef.current = onInteract;
+    }, [onHover, onInteract]);
 
     const stickyIdRef = useRef<string | null>(null);
 
-    // specific data transformation
     const dataValues = useMemo(() => (data ? Object.values(data) : []), [data]);
 
     useEffect(() => {
@@ -48,11 +51,9 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const innerWidth = size;
         const innerHeight = size;
 
-        // Center the visualization horizontally, but align top vertically
         const leftOffset = margin.left + (availableWidth - innerWidth) / 2;
         const topOffset = margin.top;
 
-        // Poster padding logic to prevent clipping at edges (1.0 and 5.0)
         const xRangePadding = POSTER_WIDTH / 2;
         const yRangePadding = POSTER_HEIGHT / 2;
 
@@ -71,17 +72,14 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         svg.selectAll('*').remove();
         const g = svg.append<SVGGElement>('g').attr('transform', `translate(${leftOffset},${topOffset})`);
 
-        // Helper to reset visuals
-        const resetNodeVisuals = (node: d3.Selection<any, DataAugmentedItem, any, any>) => {
+        const resetNodeVisuals = (node: d3.Selection<SVGGElement, DataAugmentedItem, d3.BaseType, unknown>) => {
             const content = node.select('.node-content');
             content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
             content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
         };
 
-        // Click on background to clear sticky state
         svg.on('click', () => {
             if (stickyIdRef.current) {
-                // Reset visuals of the sticky node
                 g.selectAll<SVGGElement, DataAugmentedItem>('.movie-node')
                     .filter((d: DataAugmentedItem) => d.id === stickyIdRef.current)
                     .each(function () {
@@ -89,14 +87,11 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                     });
 
                 stickyIdRef.current = null;
-                if (onHoverRef.current) {
-                    onHoverRef.current('');
-                }
+                if (onHoverRef.current) onHoverRef.current('');
+                if (onInteractRef.current) onInteractRef.current('viz_bg_clear');
             }
         });
 
-        // Render Grid and Axes
-        // ContinuousCoupled uses 2D grid
         const { xLines, yLines, xTicks, yTicks } = renderVizGrid(
             g,
             { xScale, yScale },
@@ -142,7 +137,6 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         const totalW = POSTER_WIDTH + PADDING * 2;
         const totalH = POSTER_HEIGHT + PADDING * 2;
 
-        // Nodes Group (Groups containing Hit Area + Content Group)
         const nodes = g
             .selectAll<SVGGElement, DataAugmentedItem>('.movie-node')
             .data(dataValues)
@@ -154,13 +148,12 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                 const cy = yScale(d.user_score);
                 return `translate(${cx}, ${cy})`;
             })
-            // Store original positions for fisheye reset
             .attr('data-ox', (d) => xScale(d.community_score))
             .attr('data-oy', (d) => yScale(d.user_score));
 
-        // Attach reusable interaction handlers (hover, click, sticky, edge-shifting)
         attachNodeInteractions(nodes, {
             onHoverRef,
+            onInteractRef,
             stickyIdRef,
             posterWidth: POSTER_WIDTH,
             posterHeight: POSTER_HEIGHT,
@@ -179,10 +172,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             .attr('y', -totalH / 2)
             .attr('fill', 'transparent'); // Invisible but catches events
 
-        // Content Wrapper (Visuals)
         const content = nodes.append('g').attr('class', 'node-content');
-
-        // Use shared styling
         const { image } = appendStyledPoster(content, POSTER_WIDTH, POSTER_HEIGHT);
 
         // Bind data-specific attributes to the image
@@ -202,7 +192,7 @@ const ContinuousCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                 }
             );
         }
-    }, [dataValues, svgRef, width, height, isFisheye]);
+    }, [dataValues, svgRef, width, height, isFisheye, data]);
 
     return <svg ref={svgRef} width={width} height={height}></svg>;
 };

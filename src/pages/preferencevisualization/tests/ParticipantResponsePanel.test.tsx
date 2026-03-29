@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import ParticipantResponsePanel from './ParticipantResponsePanel';
+import ParticipantResponsePanel from '../ParticipantResponsePanel';
 
 expect.extend(matchers);
 

@@ -19,15 +19,18 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
     height,
     data,
     onHover,
+    onInteract,
     isFisheye = false,
 }) => {
     const svgRefs = useRef<SVGSVGElement[]>([]);
 
-    // Stable refs for interactions
     const onHoverRef = useRef(onHover);
+    const onInteractRef = useRef(onInteract);
+
     useEffect(() => {
         onHoverRef.current = onHover;
-    }, [onHover]);
+        onInteractRef.current = onInteract;
+    }, [onHover, onInteract]);
 
     const stickyIdRef = useRef<string | null>(null);
 
@@ -90,6 +93,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
                     });
                     stickyIdRef.current = null;
                     if (onHoverRef.current) onHoverRef.current('');
+                    if (onInteractRef.current) onInteractRef.current('viz_bg_clear');
                 }
             });
 
@@ -117,7 +121,6 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             // Calculate spacings (allowing overlap)
             // If cols=1, stepX is unused (center it). If cols>1, stepX distributes available space.
             // stepX = (usableWidth - POSTER_WIDTH) / (cols - 1)
-
             const stepX = cols > 1 ? (usableWidth - POSTER_WIDTH) / (cols - 1) : 0;
             const stepY = rows > 1 ? (usableHeight - POSTER_HEIGHT) / (rows - 1) : 0;
 
@@ -169,6 +172,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
             // Attach Interactions
             attachNodeInteractions(nodes, {
                 onHoverRef,
+                onInteractRef,
                 stickyIdRef,
                 posterWidth: POSTER_WIDTH,
                 posterHeight: POSTER_HEIGHT,
@@ -239,7 +243,6 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
 
             <div className="flex-1 flex flex-col">
                 <div className="flex flex-col flex-1">
-                    {/* Column Headers */}
                     <div className="flex flex-row h-8">
                         <div className="w-8"></div> {/* Spacer for row headers */}
                         <div className="flex-1 flex items-center justify-center font-bold">Likes</div>
@@ -247,7 +250,6 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
                     </div>
 
                     <div className="flex-1 flex flex-row">
-                        {/* Row Headers */}
                         <div className="w-8 flex flex-col">
                             <div
                                 className="flex-1 flex items-center justify-center font-bold"
@@ -263,9 +265,7 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
                             </div>
                         </div>
 
-                        {/* Grid Content */}
                         <div className="flex-1 flex flex-col">
-                            {/* Top Row */}
                             <div className="flex-1 flex flex-row">
                                 <div className="flex-1 border border-gray-300 relative">
                                     <svg ref={setSvgRef(0)} className="absolute inset-0 w-full h-full"></svg>
@@ -274,7 +274,6 @@ const DiscreteCoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecomme
                                     <svg ref={setSvgRef(2)} className="absolute inset-0 w-full h-full"></svg>
                                 </div>
                             </div>
-                            {/* Bottom Row */}
                             <div className="flex-1 flex flex-row">
                                 <div className="flex-1 border border-gray-300 relative">
                                     <svg ref={setSvgRef(1)} className="absolute inset-0 w-full h-full"></svg>

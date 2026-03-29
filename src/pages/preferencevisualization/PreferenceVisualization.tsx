@@ -1,11 +1,9 @@
+import { useFetchParticipant, useStudy } from '@rssa-project/api';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useStudy } from '@rssa-project/api';
-import { useFetchParticipant } from '@rssa-project/api';
 import { MovieSelectionProvider } from '../../contexts/movieSelectionProvider';
 import type { EssayResponse } from '../../types/preferenceVisualization.types';
-import type { StudyLayoutContextType } from '../../types/study.types';
 import { DISLIKE_CUTOFF, LIKE_CUTOFF } from '../../utils/constants';
 import ConditionView from './ConditionView';
 import ParticipantResponsePanel from './ParticipantResponsePanel';
@@ -13,8 +11,9 @@ import RightInfoPanel from './RightInfoPanel';
 import { conditionMap } from './conditionMap';
 
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import { useTour } from '../../hooks/useTour';
 import { useConditionMapping } from '../../hooks/useConditionMapping';
+import { useTour } from '../../hooks/useTour';
+import type { StudyLayoutContextType } from '@rssa-project/study-template';
 
 const PreferenceVisualizationContent: React.FC = () => {
     const { studyApi } = useStudy();
@@ -115,12 +114,10 @@ const PreferenceVisualizationContent: React.FC = () => {
     };
 
     const handleVizLoaded = () => {
-        // Optional: Check if tour has been seen
         const studyId = import.meta.env.VITE_RSSA_STUDY_ID;
         const tourKey = `${studyId}_tour-seen-${studyStep.id}`;
         const tourSeen = localStorage.getItem(tourKey);
         if (!tourSeen) {
-            // Add a small delay to ensure DOM is fully rendered.
             setTimeout(() => {
                 startMainTour(0);
                 localStorage.setItem(tourKey, 'true');
@@ -145,6 +142,8 @@ const PreferenceVisualizationContent: React.FC = () => {
                 <div className="w-3/5">
                     <ConditionView
                         Visualizer={ConditionalVisualizer}
+                        xCol={conditionConfig?.xCol}
+                        yCol={conditionConfig?.yCol}
                         onDataLoaded={handleVizLoaded}
                         onFullScreenChange={handleFullScreenChange}
                         rightPanelProps={{

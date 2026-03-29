@@ -1,29 +1,6 @@
 const FinalPage: React.FC = () => {
     // Placeholder for completion code logic
     const completionCode = 'RSSA-COMPLETED';
-    // const studyStep: StudyStep | null = useRecoilValue(studyStepState);
-
-    // const resetParticipant = useResetRecoilState(participantState);
-    // const resetStudyStep = useResetRecoilState(studyStepState);
-
-    // const navigate = useNavigate();
-    // const location = useLocation();
-
-    // Allowing for some simple checkpoint saving so the participant
-    // can return to the page in case of a browser/system crash
-    // useEffect(() => {
-    // 	if (checkpointUrl !== '/' && checkpointUrl !== location.pathname) {
-    // 		navigate(checkpointUrl);
-    // 	}
-    // }, [checkpointUrl, location.pathname, navigate]);
-
-    // const handleNextBtn = () => {
-    // 	localStorage.clear();
-    // 	resetParticipant();
-    // 	resetStudyStep();
-    // 	navigate(next);
-
-    // }
 
     return (
         <div>

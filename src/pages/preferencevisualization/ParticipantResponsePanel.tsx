@@ -12,7 +12,7 @@ import type {
     EssayResponseObject,
     ParticipantResponsePayload,
 } from '../../types/preferenceVisualization.types';
-import type { StudyLayoutContextType } from '../../types/study.types';
+import { type StudyLayoutContextType } from '@rssa-project/study-template';
 
 interface MutationResult {
     type: 'POST' | 'PATCH';

@@ -13,7 +13,6 @@ const dislikeCuttoff = DISLIKE_CUTOFF;
 const margin = { top: 20, right: 20, bottom: 30, left: 40 }; // Define margins
 const rowHeaderWidth = 100;
 const colHeaderHeight = 100;
-// const numRows = 2; // Removed unused
 const numCols = 2;
 
 interface DiscreteData {
@@ -28,17 +27,19 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
     height,
     data,
     onHover,
+    onInteract,
     isFisheye = false,
     showCommunity = true,
 }) => {
     const svgRefs = useRef<Map<keyof DiscreteData, SVGSVGElement>>(new Map());
 
-    // Stable refs for interactions
     const onHoverRef = useRef(onHover);
+    const onInteractRef = useRef(onInteract);
+
     useEffect(() => {
         onHoverRef.current = onHover;
-    }, [onHover]);
-
+        onInteractRef.current = onInteract;
+    }, [onHover, onInteract]);
     const stickyIdRef = useRef<string | null>(null);
 
     const filteredData = useMemo(() => {
@@ -73,19 +74,15 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         svgRefs.current.forEach((svgRef, svgKey) => {
             if (!svgRef) return;
 
-            // Skip rendering if key is for community and we are not showing community
             if (!showCommunity && (svgKey === 'commLikes' || svgKey === 'commDislikes')) return;
 
             const svg = d3.select(svgRef).attr('width', svgWidth).attr('height', svgHeight);
             svg.selectAll('*').remove();
 
-            // Background rect for resetting global sticky state
             const bg = svg.append('rect').attr('width', svgWidth).attr('height', svgHeight).attr('fill', 'transparent');
 
-            // Click bg to clear sticky
             bg.on('click', () => {
                 if (stickyIdRef.current) {
-                    // Reset visual state of all nodes globally
                     d3.selectAll('.movie-node').each(function () {
                         const content = d3.select(this).select('.node-content');
                         content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
@@ -93,6 +90,7 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
                     });
                     stickyIdRef.current = null;
                     if (onHoverRef.current) onHoverRef.current('');
+                    if (onInteractRef.current) onInteractRef.current('viz_bg_clear');
                 }
             });
 
@@ -106,9 +104,6 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             const ctxData = filteredData[svgKey];
             if (!ctxData) return;
 
-            // ---------------------------
-            // Dynamic Grid Layout Logic
-            // ---------------------------
             const CONTAINER_PADDING = 10;
             const usableWidth = quadrantWidth - 2 * CONTAINER_PADDING;
             const usableHeight = quadrantHeight - 2 * CONTAINER_PADDING;
@@ -175,6 +170,7 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             // Attach Interactions
             attachNodeInteractions(nodes, {
                 onHoverRef,
+                onInteractRef,
                 stickyIdRef,
                 posterWidth: POSTER_WIDTH,
                 posterHeight: POSTER_HEIGHT,
@@ -192,10 +188,7 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             if (isFisheye) {
                 svg.on('mousemove', (event) => {
                     const [mx, my] = d3.pointer(event);
-
-                    // Padding check
                     if (mx < 0 || mx > quadrantWidth || my < 0 || my > quadrantHeight) return;
-
                     const df = 3.0;
 
                     nodes.each(function () {
@@ -231,16 +224,20 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
         >
             <div className="flex flex-col h-full overflow-hidden">
                 <div className="grid grid-cols-2 gap-0 flex-1 min-h-0">
-                    <div className="border rounded-tl-md border-amber-300 relative w-full h-full overflow-hidden">
+                    <div className="border rounded-tl-md border-amber-400 relative w-full h-full overflow-hidden">
+                        <div className=" bg-amber-400 px-2 py-0.5 text-lg font-bold z-10 border-r-amber-50 border-r">
+                            Dislikes
+                        </div>
                         <svg ref={setSvgRef('myDislikes')} className="w-full h-full"></svg>
-                        <div className="absolute top-0 left-0 bg-gray-300 px-2 py-0.5 text-xs z-10">Dislikes</div>
                     </div>
-                    <div className="border rounded-tr-md border-amber-300 relative w-full h-full overflow-hidden">
+                    <div className="border rounded-tr-md border-amber-400 relative w-full h-full overflow-hidden">
+                        <div className=" bg-amber-400 px-2 py-0.5 text-lg font-bold z-10 border-l-amber-50 border-l">
+                            Likes
+                        </div>
                         <svg ref={setSvgRef('myLikes')} className="w-full h-full"></svg>
-                        <div className="absolute top-0 left-0 bg-gray-300 px-2 py-0.5 text-xs z-10">Likes</div>
                     </div>
                 </div>
-                <p className="pt-3 bg-amber-300 rounded-b-md z-10 relative">
+                <p className="p-1 bg-amber-400 font-bold rounded-b-md z-10 relative">
                     The system's predicted movie rating for you
                 </p>
             </div>
@@ -248,16 +245,20 @@ const DiscreteDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRecom
             {showCommunity && (
                 <div className="flex flex-col h-full overflow-hidden">
                     <div className="grid grid-cols-2 gap-0 flex-1 min-h-0">
-                        <div className="border rounded-tl-md border-amber-300 relative w-full h-full overflow-hidden">
+                        <div className="border rounded-tl-md border-amber-400 relative w-full h-full overflow-hidden">
+                            <div className=" bg-amber-400 px-2 py-0.5 text-lg font-bold z-10 border-r-amber-50 border-r">
+                                Dislikes
+                            </div>
                             <svg ref={setSvgRef('commDislikes')} className="w-full h-full"></svg>
-                            <div className="absolute top-0 left-0 bg-gray-300 px-2 py-0.5 text-xs z-10">Dislikes</div>
                         </div>
                         <div className="border rounded-tr-md border-amber-300 relative w-full h-full overflow-hidden">
+                            <div className=" bg-amber-400 px-2 py-0.5 text-lg font-bold z-10 border-l-amber-50 border-l">
+                                Likes
+                            </div>
                             <svg ref={setSvgRef('commLikes')} className="w-full h-full"></svg>
-                            <div className="absolute top-0 left-0 bg-gray-300 px-2 py-0.5 text-xs z-10">Likes</div>
                         </div>
                     </div>
-                    <p className="pt-3 bg-amber-300 rounded-b-md z-10 relative">
+                    <p className="p-1 bg-amber-400 font-bold rounded-b-md z-10 relative">
                         Ratings from everyone else in the system
                     </p>
                 </div>

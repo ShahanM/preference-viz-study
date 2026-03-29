@@ -22,6 +22,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
     height,
     data,
     onHover,
+    onInteract,
     isFisheye = false,
     showCommunity = true,
 }) => {
@@ -41,6 +42,12 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
     }, [data, showCommunity]);
 
     const onHoverRef = useRef(onHover);
+    const onInteractRef = useRef(onInteract);
+
+    useEffect(() => {
+        onHoverRef.current = onHover;
+        onInteractRef.current = onInteract;
+    }, [onHover, onInteract]);
     useEffect(() => {
         onHoverRef.current = onHover;
     }, [onHover]);
@@ -87,6 +94,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
 
                     stickyIdRef.current = null;
                     if (onHoverRef.current) onHoverRef.current('');
+                    if (onInteractRef.current) onInteractRef.current('viz_bg_clear');
                 }
             });
 
@@ -141,6 +149,7 @@ const ContinuousDecoupled: React.FC<PreferenceVizComponentProps<PreferenceVizRec
             // Attach shared interaction logic (Hover, Click/Sticky, Edge-Aware)
             attachNodeInteractions(nodes, {
                 onHoverRef,
+                onInteractRef,
                 stickyIdRef,
                 posterWidth: posterWidth,
                 posterHeight: posterHeight,

@@ -1,11 +1,12 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
 import { ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useStudy, useTelemetry } from '@rssa-project/api';
+import { LoadingScreen, type Movie, type StudyLayoutContextType } from '@rssa-project/study-template';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useStudy } from '@rssa-project/api';
-import { LoadingScreen } from '@rssa-project/study-template';
 import { useMovieSelection } from '../../hooks/useMovieSelection';
+import { useTour } from '../../hooks/useTour';
 import {
     type BackendCommunityScoreItem,
     type BackendResponsePayload,
@@ -16,23 +17,123 @@ import {
     type RecommendationType,
     isPreferenceVizRecommendedItem,
 } from '../../types/preferenceVisualization.types';
-import { type StudyLayoutContextType } from '../../types/study.types';
 import ResponsiveContainer from './ResponsiveContainer';
 import RightInfoPanel from './RightInfoPanel';
-import { type Movie } from '../../types/rssa.types';
 
-import { useTour } from '../../hooks/useTour';
+function useRecommendationsFetch(studyStepId: string, recommendationType?: RecommendationType) {
+    const { studyApi } = useStudy();
+
+    return useQuery({
+        queryKey: ['recommendations', studyStepId],
+        queryFn: async () => {
+            const payload: RecommendationRequestPayload = {
+                step_id: studyStepId,
+                context_tag: 'preference visualization recommendations',
+                response_type: recommendationType,
+            };
+
+            const response = await studyApi.post<RecommendationRequestPayload, BackendResponsePayload>(
+                'recommendations/',
+                payload
+            );
+
+            if (!response) throw new Error('Failed to fetch recommendations');
+
+            const adaptedResponse: PreferenceVizResponseObject = {};
+
+            if (response.response_type === 'standard') {
+                Object.entries(response.items).forEach(([key, value]) => {
+                    adaptedResponse[key] = value as Movie;
+                });
+            }
+
+            if (response.response_type === 'community_comparison') {
+                Object.entries(response.items).forEach(([key, value]) => {
+                    const { item, score, label, ...rest } = value as BackendCommunityScoreItem;
+                    if (item && typeof item === 'object') {
+                        adaptedResponse[item.id] = {
+                            ...item,
+                            ...rest,
+                            item_id: item.id,
+                            user_score: score,
+                            user_label: label,
+                        };
+                    }
+                });
+            }
+
+            return adaptedResponse;
+        },
+    });
+}
+
+const VisualizerContainer = ({
+    recommendations,
+    Visualizer,
+    xCol,
+    yCol,
+    onHover,
+    onInteract,
+    isFisheye,
+}: {
+    recommendations: PreferenceVizResponseObject;
+    Visualizer:
+        | React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>>
+        | React.FC<PreferenceVizComponentProps<Movie>>;
+    xCol?: string;
+    yCol?: string;
+    onHover: (id: string) => void;
+    onInteract: (event: string, data?: Record<string, unknown>, id?: string) => void;
+    isFisheye?: boolean;
+}) => (
+    <ResponsiveContainer>
+        {(width, height) => {
+            const firstItem = Object.values(recommendations)[0];
+            if (!firstItem) return null;
+
+            if (isPreferenceVizRecommendedItem(firstItem)) {
+                const SpecificVisualizer = Visualizer as React.FC<
+                    PreferenceVizComponentProps<PreferenceVizRecommendedItem>
+                >;
+                return (
+                    <SpecificVisualizer
+                        width={width}
+                        height={height}
+                        data={recommendations as Record<string, PreferenceVizRecommendedItem>}
+                        xCol={xCol || ''}
+                        yCol={yCol || ''}
+                        onHover={onHover}
+                        onInteract={onInteract}
+                        isFisheye={isFisheye}
+                    />
+                );
+            } else {
+                const SpecificVisualizer = Visualizer as React.FC<PreferenceVizComponentProps<Movie>>;
+                return (
+                    <SpecificVisualizer
+                        width={width}
+                        height={height}
+                        data={recommendations as Record<string, Movie>}
+                        xCol={xCol || ''}
+                        yCol={yCol || ''}
+                        onHover={onHover}
+                        onInteract={onInteract}
+                        isFisheye={isFisheye}
+                    />
+                );
+            }
+        }}
+    </ResponsiveContainer>
+);
 
 type ConditionViewProps = {
     Visualizer:
         | React.FC<PreferenceVizComponentProps<PreferenceVizRecommendedItem>>
         | React.FC<PreferenceVizComponentProps<Movie>>;
+    xCol?: string;
+    yCol?: string;
     recommendationType?: RecommendationType;
-    rightPanelProps?: {
-        likeCutoff: number;
-        dislikeCutoff: number;
-        showLikeDislikeByLine: boolean;
-    };
+    rightPanelProps?: { likeCutoff: number; dislikeCutoff: number; showLikeDislikeByLine: boolean };
     infoPanelLayout?: 'overlay' | 'sidebar';
     isFisheye?: boolean;
     onDataLoaded?: () => void;
@@ -41,6 +142,8 @@ type ConditionViewProps = {
 
 const ConditionView: React.FC<ConditionViewProps> = ({
     Visualizer,
+    xCol,
+    yCol,
     recommendationType,
     rightPanelProps,
     infoPanelLayout = 'overlay',
@@ -49,128 +152,54 @@ const ConditionView: React.FC<ConditionViewProps> = ({
     onFullScreenChange,
 }) => {
     const { studyStep } = useOutletContext<StudyLayoutContextType>();
-    const { studyApi } = useStudy();
     const { setSelectedMovie } = useMovieSelection<PreferenceVizRecommendedItem | Movie>();
+    const { trackEvent } = useTelemetry();
+    const { startFullscreenTour } = useTour();
+
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [panelPosition, setPanelPosition] = useState<'left' | 'right'>('right');
-    const { startFullscreenTour } = useTour();
     const tourStartedRef = useRef(false);
 
+    const { data: recommendations, isLoading } = useRecommendationsFetch(studyStep.id, recommendationType);
+
     useEffect(() => {
-        if (onFullScreenChange) {
-            onFullScreenChange(isFullScreen);
-        }
-        if (isFullScreen) {
-            if (!tourStartedRef.current) {
-                tourStartedRef.current = true;
-                // Short delay to allow modal to open and render
-                setTimeout(() => {
-                    startFullscreenTour();
-                }, 500);
-            }
+        if (onFullScreenChange) onFullScreenChange(isFullScreen);
+        if (isFullScreen && !tourStartedRef.current) {
+            tourStartedRef.current = true;
+            setTimeout(() => startFullscreenTour(), 500);
         }
     }, [isFullScreen, startFullscreenTour, onFullScreenChange]);
 
     const handleMouseMove = useCallback(
         (e: React.MouseEvent) => {
             if (infoPanelLayout !== 'overlay') return;
-
-            const x = e.clientX;
-            const threshold = window.innerWidth / 2;
-            if (x > threshold) {
-                setPanelPosition('left');
-            } else {
-                setPanelPosition('right');
-            }
+            setPanelPosition(e.clientX > window.innerWidth / 2 ? 'left' : 'right');
         },
         [infoPanelLayout]
     );
 
-    const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
-        queryKey: ['recommendations', studyStep.id],
-        queryFn: async () => {
-            const payload: RecommendationRequestPayload = {
-                step_id: studyStep.id,
-                context_tag: 'preference visualization recommendations',
-                rec_type: recommendationType,
-            };
-
-            const response = await studyApi.post<RecommendationRequestPayload, BackendResponsePayload>(
-                'recommendations/',
-                payload
-            );
-
-            if (!response) {
-                throw new Error('Failed to fetch recommendations');
-            }
-
-            const adaptedResponse: PreferenceVizResponseObject = {};
-
-            if (response.rec_type === 'standard') {
-                Object.entries(response.items).forEach(([key, value]) => {
-                    adaptedResponse[key] = value as Movie;
-                });
-            }
-
-            if (response.rec_type === 'community_comparison') {
-                Object.entries(response.items).forEach(([key, value]) => {
-                    const { item, score, label, ...rest } = value as BackendCommunityScoreItem;
-                    if (item && typeof item === 'object') {
-                        const itemId = item.id;
-                        adaptedResponse[itemId] = {
-                            ...item, // Spread all movie properties
-                            ...rest, // Spread community_score, community_label, cluster
-                            item_id: itemId, // Ensure item_id matches the key
-                            user_score: score, // Map score -> user_score
-                            user_label: label, // Map label -> user_label
-                        };
-                    } else {
-                        console.warn(`Unexpected item structure for key ${key}:`, value);
-                    }
-                });
-            }
-
-            return adaptedResponse;
-        },
-    });
-
     const handleHover = useCallback(
         (item_id: string) => {
-            const selectedMovie = recommendations ? recommendations[item_id] : undefined;
-            if (selectedMovie) {
-                setSelectedMovie(selectedMovie);
-            }
-            // CRITICAL: Do NOT add 'else { setSelectedMovie(undefined) }' here.
-            // Clearing state on mouseout/empty ID triggers context update -> re-render -> D3 wipe -> mouseout loop.
+            const selectedMovie = recommendations?.[item_id];
+            if (selectedMovie) setSelectedMovie(selectedMovie);
         },
         [recommendations, setSelectedMovie]
     );
 
-    // Trigger onDataLoaded when recommendations are ready
     useEffect(() => {
-        if (!recommendationsLoading && recommendations) {
-            // Auto-select the first movie if none is selected, to ensure RightInfoPanel renders
-            const firstMovieKey = Object.keys(recommendations)[0];
-            if (firstMovieKey) {
-                const firstMovie = recommendations[firstMovieKey];
-                if (firstMovie) {
-                    setSelectedMovie(firstMovie);
-                }
-            }
-
-            if (onDataLoaded) {
-                onDataLoaded();
-            }
+        if (!isLoading && recommendations) {
+            const firstMovie = Object.values(recommendations)[0];
+            if (firstMovie) setSelectedMovie(firstMovie);
+            if (onDataLoaded) onDataLoaded();
         }
-    }, [recommendationsLoading, recommendations, onDataLoaded, setSelectedMovie]);
+    }, [isLoading, recommendations, onDataLoaded, setSelectedMovie]);
 
-    if (recommendationsLoading || !recommendations) {
-        return <LoadingScreen loading={true} message="Loading Recommendations" />;
+    if (isLoading || !recommendations) {
+        return <LoadingScreen loading={true} message="Loading your preferences." />;
     }
 
     return (
         <div className="relative w-full h-full group" id="condition-view-container">
-            {/* Enlarge Button */}
             <button
                 type="button"
                 id="viz-enlarge-btn"
@@ -181,46 +210,16 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                 <ArrowsPointingOutIcon className="h-5 w-5" />
             </button>
 
-            <ResponsiveContainer>
-                {(width, height) => {
-                    const firstItem = Object.values(recommendations)[0];
-                    if (!firstItem) return null; // Or some fallback
+            <VisualizerContainer
+                recommendations={recommendations}
+                Visualizer={Visualizer}
+                xCol={xCol || ''}
+                yCol={yCol || ''}
+                onHover={handleHover}
+                onInteract={(event, data, id) => trackEvent(event, data, id)}
+                isFisheye={isFisheye}
+            />
 
-                    if (isPreferenceVizRecommendedItem(firstItem)) {
-                        const SpecificVisualizer = Visualizer as React.FC<
-                            PreferenceVizComponentProps<PreferenceVizRecommendedItem>
-                        >;
-                        const specificData = recommendations as Record<string, PreferenceVizRecommendedItem>;
-                        return (
-                            <SpecificVisualizer
-                                width={width}
-                                height={height}
-                                data={specificData}
-                                xCol=""
-                                yCol=""
-                                onHover={handleHover}
-                                isFisheye={isFisheye}
-                            />
-                        );
-                    } else {
-                        const SpecificVisualizer = Visualizer as React.FC<PreferenceVizComponentProps<Movie>>;
-                        const specificData = recommendations as Record<string, Movie>;
-                        return (
-                            <SpecificVisualizer
-                                width={width}
-                                height={height}
-                                data={specificData}
-                                xCol=""
-                                yCol=""
-                                onHover={handleHover}
-                                isFisheye={isFisheye}
-                            />
-                        );
-                    }
-                }}
-            </ResponsiveContainer>
-
-            {/* Full Screen Modal */}
             <Dialog open={isFullScreen} onClose={() => setIsFullScreen(false)} className="relative z-50">
                 <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
                 <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -234,84 +233,40 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                         <div
                             className={`flex-1 relative w-full overflow-hidden ${infoPanelLayout === 'sidebar' ? 'flex flex-row' : 'flex flex-col'}`}
                         >
-                            {/* Visualization Area */}
                             <div
                                 className={`relative ${infoPanelLayout === 'sidebar' ? 'w-3/4 h-full' : 'w-full h-full'}`}
                             >
-                                {/* Floating Right Info Panel (Overlay Mode) */}
                                 {rightPanelProps && infoPanelLayout === 'overlay' && (
                                     <div
-                                        className={`absolute top-4 z-20 w-96 max-h-[90vh] overflow-y-auto shadow-2xl rounded-xl border border-gray-200 group/panel transition-all duration-200 ${
-                                            panelPosition === 'right' ? 'right-4' : 'left-4'
-                                        }`}
+                                        className={`absolute top-4 z-20 w-96 max-h-[90vh] overflow-y-auto shadow-2xl rounded-xl border border-gray-200 group/panel transition-all duration-200 ${panelPosition === 'right' ? 'right-4' : 'left-4'}`}
                                         onClick={(e) => e.stopPropagation()}
-                                        data-testid="info-panel-wrapper"
                                         id="info-panel-overlay"
                                     >
                                         <button
                                             type="button"
                                             onClick={() => setSelectedMovie(undefined)}
                                             className="absolute top-2 right-2 p-1 text-gray-400 bg-white/50 hover:bg-white hover:text-gray-900 rounded-full z-30 opacity-0 group-hover/panel:opacity-100 transition-opacity"
-                                            title="Close info panel"
                                         >
                                             <XMarkIcon className="h-5 w-5" />
+                                            ''
                                         </button>
                                         <div className="bg-white rounded-xl p-1">
-                                            <RightInfoPanel
-                                                likeCutoff={rightPanelProps.likeCutoff}
-                                                dislikeCutoff={rightPanelProps.dislikeCutoff}
-                                                showLikeDislikeByLine={rightPanelProps.showLikeDislikeByLine}
-                                            />
+                                            <RightInfoPanel {...rightPanelProps} />
                                         </div>
                                     </div>
                                 )}
 
-                                <ResponsiveContainer>
-                                    {(width, height) => {
-                                        const firstItem = Object.values(recommendations)[0];
-                                        if (!firstItem) return null;
-
-                                        if (isPreferenceVizRecommendedItem(firstItem)) {
-                                            const SpecificVisualizer = Visualizer as React.FC<
-                                                PreferenceVizComponentProps<PreferenceVizRecommendedItem>
-                                            >;
-                                            const specificData = recommendations as Record<
-                                                string,
-                                                PreferenceVizRecommendedItem
-                                            >;
-                                            return (
-                                                <SpecificVisualizer
-                                                    width={width}
-                                                    height={height}
-                                                    data={specificData}
-                                                    xCol=""
-                                                    yCol=""
-                                                    onHover={handleHover}
-                                                    isFisheye={isFisheye}
-                                                />
-                                            );
-                                        } else {
-                                            const SpecificVisualizer = Visualizer as React.FC<
-                                                PreferenceVizComponentProps<Movie>
-                                            >;
-                                            const specificData = recommendations as Record<string, Movie>;
-                                            return (
-                                                <SpecificVisualizer
-                                                    width={width}
-                                                    height={height}
-                                                    data={specificData}
-                                                    xCol=""
-                                                    yCol=""
-                                                    onHover={handleHover}
-                                                    isFisheye={isFisheye}
-                                                />
-                                            );
-                                        }
-                                    }}
-                                </ResponsiveContainer>
+                                <VisualizerContainer
+                                    recommendations={recommendations}
+                                    Visualizer={Visualizer}
+                                    xCol={xCol || ''}
+                                    yCol={yCol || ''}
+                                    onHover={handleHover}
+                                    onInteract={(event, data, id) => trackEvent(event, data, id)}
+                                    isFisheye={isFisheye}
+                                />
                             </div>
 
-                            {/* Sidebar Info Panel (Sidebar Mode) */}
                             {rightPanelProps && infoPanelLayout === 'sidebar' && (
                                 <div
                                     className="w-1/4 h-full border-l border-gray-200 bg-gray-50 flex flex-col overflow-hidden"
@@ -319,17 +274,12 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                                     id="info-panel-sidebar"
                                 >
                                     <div className="flex-1 overflow-y-auto p-4">
-                                        <RightInfoPanel
-                                            likeCutoff={rightPanelProps.likeCutoff}
-                                            dislikeCutoff={rightPanelProps.dislikeCutoff}
-                                            showLikeDislikeByLine={rightPanelProps.showLikeDislikeByLine}
-                                        />
+                                        <RightInfoPanel {...rightPanelProps} />
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Footer */}
                         <div
                             className="h-14 border-t border-gray-200 bg-gray-50 flex justify-end items-center px-4 shrink-0"
                             onClick={(e) => e.stopPropagation()}
@@ -338,7 +288,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                                 type="button"
                                 id="viz-exit-fullscreen-btn"
                                 onClick={() => setIsFullScreen(false)}
-                                className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
                                 Exit Full Screen
                             </button>

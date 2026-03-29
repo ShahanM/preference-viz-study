@@ -1,7 +1,11 @@
-import type { Movie } from './rssa.types';
+import type { Movie } from '@rssa-project/study-template';
 
 export type RecommendationType = 'baseline' | 'diverse' | 'reference';
+export type VizTelemetryEvent = 'item_hover_duration' | 'click_sticky' | 'click_unsticky' | 'viz_bg_clear';
 
+// ============================================================================
+// ALGORITHM & FEATURE SCHEMAS
+// ============================================================================
 export interface PreferenceVizAlgoSetting {
     algorithm: string;
     randomize: boolean;
@@ -21,32 +25,22 @@ export interface UserPreferenceFeature {
 }
 
 export interface PreferenceVizRecommendationFeature extends UserPreferenceFeature, CommunityPreferenceFeature {
-    item_id: string;
+    item_id: string; // Unified to string to match UUIDs
     cluster: number;
 }
 
-export interface PreferenceVizObject {
-    algorithm_settings: PreferenceVizAlgoSetting;
-    recommendation_features: PreferenceVizRecommendationFeature;
-}
-
+// ============================================================================
+// FRONTEND COMPONENT DATA MODELS
+// ============================================================================
+// Combines the Movie metadata with the algorithm's scoring features
 export interface PreferenceVizRecommendedItem extends Movie, PreferenceVizRecommendationFeature {}
 
+// The dictionary structure used by the visualizers
 export interface PreferenceVizResponseObject {
     [key: string]: PreferenceVizRecommendedItem | Movie;
 }
 
-export interface PreferenceVizComponentProps<T = PreferenceVizRecommendedItem | Movie> {
-    width: number;
-    height: number;
-    data: { [key: string]: T };
-    xCol: string;
-    yCol: string;
-    onHover: (item_id: string) => void;
-    isFisheye?: boolean;
-    showCommunity?: boolean;
-}
-
+// D3 Physics & Grid Mixin
 export interface PreferenceVizDataMixin {
     x?: number;
     y?: number;
@@ -58,6 +52,53 @@ export interface PreferenceVizDataMixin {
 
 export interface DataAugmentedItem extends PreferenceVizRecommendedItem, PreferenceVizDataMixin {}
 
+// ============================================================================
+// COMPONENT PROPS
+// ============================================================================
+export interface PreferenceVizComponentProps<T = PreferenceVizRecommendedItem | Movie> {
+    width: number;
+    height: number;
+    data: { [key: string]: T };
+    xCol: string;
+    yCol: string;
+    onHover: (item_id: string) => void;
+    isFisheye?: boolean;
+    showCommunity?: boolean;
+    onInteract?: (eventType: VizTelemetryEvent, eventData?: Record<string, unknown>, itemId?: string) => void;
+}
+
+// ============================================================================
+// BACKEND RESPONSE SCHEMAS
+// ============================================================================
+export interface BackendCommunityScoreItem {
+    item: Movie;
+    community_score: number;
+    score: number;
+    community_label: number;
+    label: number;
+    cluster: number;
+}
+
+export interface BackendRecommendationResponse {
+    [key: string]: BackendCommunityScoreItem | Movie;
+}
+
+export interface BackendResponsePayload {
+    response_type: 'standard' | 'community_comparison';
+    items: BackendRecommendationResponse;
+}
+
+export interface RecommendationRequestPayload {
+    step_id: string;
+    step_page_id?: string;
+    context_tag: string;
+    response_type?: RecommendationType;
+    algorithm_key?: string;
+}
+
+// ============================================================================
+// ESSAY / INTERACTION SCHEMAS
+// ============================================================================
 export interface EssayResponseObject {
     familiarity: string;
     exploration: string;
@@ -77,32 +118,9 @@ export interface ParticipantResponsePayload {
     payload_json: EssayResponseObject;
 }
 
-export interface BackendCommunityScoreItem {
-    item: Movie;
-    community_score: number;
-    score: number;
-    community_label: number;
-    label: number;
-    cluster: number;
-}
-
-export interface BackendRecommendationResponse {
-    [key: string]: BackendCommunityScoreItem | Movie;
-}
-
-export interface BackendResponsePayload {
-    rec_type: 'standard' | 'community_comparison';
-    items: BackendRecommendationResponse;
-}
-
-export interface RecommendationRequestPayload {
-    step_id: string;
-    step_page_id?: string;
-    context_tag: string;
-    rec_type?: RecommendationType;
-    algorithm_key?: string;
-}
-
+// ============================================================================
+// TYPE GUARDS
+// ============================================================================
 export function isPreferenceVizRecommendedItem(
     item: PreferenceVizRecommendedItem | Movie
 ): item is PreferenceVizRecommendedItem {

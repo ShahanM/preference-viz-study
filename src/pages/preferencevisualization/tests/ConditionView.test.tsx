@@ -1,14 +1,13 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type PreferenceVizComponentProps } from '../../../types/preferenceVisualization.types';
+import ConditionView from '../ConditionView';
 
 expect.extend(matchers);
-import ConditionView from './ConditionView';
-import { type PreferenceVizComponentProps } from '../../types/preferenceVisualization.types';
 
-// Mock ResizeObserver
 // Mock ResizeObserver
 globalThis.ResizeObserver = class ResizeObserver {
     callback: ResizeObserverCallback;
@@ -18,7 +17,6 @@ globalThis.ResizeObserver = class ResizeObserver {
     }
 
     observe(_target: Element) {
-        // Trigger callback immediately
         this.callback([{ contentRect: { width: 800, height: 600 } } as ResizeObserverEntry], this);
     }
     unobserve() {}
@@ -50,7 +48,7 @@ vi.mock('../../hooks/useMovieSelection', () => ({
 
 // Mock RightInfoPanel
 vi.mock('./RightInfoPanel', () => ({
-    default: ({ likeCutoff, dislikeCutoff }: any) => (
+    default: ({ likeCutoff, dislikeCutoff }: { likeCutoff: number; dislikeCutoff: number }) => (
         <div data-testid="right-info-panel">
             Right Panel: {likeCutoff}/{dislikeCutoff}
         </div>
@@ -106,7 +104,7 @@ describe('ConditionView Full Screen', () => {
         cleanup();
     });
 
-    const renderComponent = (props: any = {}) => {
+    const renderComponent = (props = {}) => {
         return render(
             <QueryClientProvider client={queryClient}>
                 <div style={{ width: 800, height: 600 }}>
@@ -199,7 +197,8 @@ describe('ConditionView Full Screen', () => {
 
         // Click on the visualizer inside the modal (the second one)
         const visualizers = screen.getAllByTestId('visualizer');
-        const modalVisualizer = visualizers[1]; // Index 1 is the one in the portal usually, or purely by order of render
+        // Index 1 is the one in the portal usually, or purely by order of render
+        const modalVisualizer = visualizers[1];
 
         fireEvent.click(modalVisualizer);
 

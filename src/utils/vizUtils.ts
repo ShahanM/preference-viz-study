@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import type { VizTelemetryEvent } from '../types/preferenceVisualization.types';
 
 export const PADDING = 3;
 export const BORDER_RADIUS = 4;
@@ -8,8 +9,8 @@ export const BORDER_RADIUS = 4;
  * Assumes the selection is a 'g' element that serves as the container.
  * The rect and image are centered at (0,0) of this container.
  */
-export const appendStyledPoster = (
-    selection: d3.Selection<SVGGElement, any, any, any>,
+export const appendStyledPoster = <T>(
+    selection: d3.Selection<SVGGElement, T, d3.BaseType, unknown>,
     posterWidth: number,
     posterHeight: number
 ) => {
@@ -79,9 +80,12 @@ export const fisheye = (val: number, focus: number, distortionFactor: number, mi
  *  - Parent transform provides current position (translate(cx, cy)).
  */
 export const attachNodeInteractions = <T extends { id: string }>(
-    nodes: d3.Selection<SVGGElement, T, any, any>,
+    nodes: d3.Selection<SVGGElement, T, d3.BaseType, unknown>,
     config: {
         onHoverRef: React.RefObject<((id: string) => void) | undefined>;
+        onInteractRef?: React.RefObject<
+            ((eventType: VizTelemetryEvent, eventData?: Record<string, unknown>, itemId?: string) => void) | undefined
+        >;
         stickyIdRef: React.RefObject<string | null>;
         posterWidth: number;
         posterHeight: number;
@@ -90,12 +94,21 @@ export const attachNodeInteractions = <T extends { id: string }>(
         scaleFactor?: number;
     }
 ) => {
-    const { onHoverRef, stickyIdRef, posterWidth, posterHeight, innerWidth, innerHeight, scaleFactor = 1.5 } = config;
+    const {
+        onHoverRef,
+        onInteractRef,
+        stickyIdRef,
+        posterWidth,
+        posterHeight,
+        innerWidth,
+        innerHeight,
+        scaleFactor = 1.5,
+    } = config;
     const padding = PADDING;
     const totalW = posterWidth + padding * 2;
     const totalH = posterHeight + padding * 2;
 
-    const resetNodeVisuals = (node: d3.Selection<d3.BaseType, unknown, any, any>) => {
+    const resetNodeVisuals = (node: d3.Selection<d3.BaseType, unknown, d3.BaseType, unknown>) => {
         const content = node.select('.node-content');
         content.transition().duration(200).attr('transform', 'translate(0,0) scale(1)');
         content.select('rect').style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))');
@@ -108,6 +121,9 @@ export const attachNodeInteractions = <T extends { id: string }>(
 
             if (currentSticky === d.id) {
                 stickyIdRef.current = null;
+                if (onInteractRef?.current) {
+                    onInteractRef.current('click_unsticky', {}, d.id);
+                }
             } else {
                 if (currentSticky) {
                     d3.selectAll('.movie-node')
@@ -118,62 +134,63 @@ export const attachNodeInteractions = <T extends { id: string }>(
                 }
                 stickyIdRef.current = d.id;
                 d3.selectAll(`.node-id-${d.id}`).raise();
+
                 if (onHoverRef.current) onHoverRef.current(d.id);
+                if (onInteractRef?.current) onInteractRef.current('click_sticky', {}, d.id);
             }
         })
-        .on('mouseenter', function (_, d) {
-            // Select ALL nodes with this ID (for decoupled chart sync)
+        .on('mouseenter', (event: MouseEvent, d) => {
+            const node = event.currentTarget as SVGGElement;
+            const d3Node = d3.select(node);
+
+            d3Node.property('hoverStartTime', performance.now());
+
             const relevantNodes = d3.selectAll(`.node-id-${d.id}`);
             relevantNodes.raise();
             relevantNodes.style('cursor', 'pointer');
 
-            // Animate .node-content
             relevantNodes
                 .select('.node-content')
                 .transition()
                 .duration(200)
                 .attr('transform', function () {
                     // Calculate Edge-Aware Shift
-                    const parent = (this as Element).parentNode as Element;
-                    const parentTransform = d3.select(parent).attr('transform');
-                    let cx = 0,
-                        cy = 0;
-                    if (parentTransform) {
-                        const match = /translate\(([^,]+),\s*([^)]+)\)/.exec(parentTransform);
-                        if (match) {
-                            cx = parseFloat(match[1]);
-                            cy = parseFloat(match[2]);
-                        }
-                    }
+                    const parentNode = (this as Element).parentNode as SVGGElement;
+                    const cx = parseFloat(parentNode.getAttribute('data-ox') || '0');
+                    const cy = parseFloat(parentNode.getAttribute('data-oy') || '0');
 
                     const expandedHalfW = (totalW * scaleFactor) / 2;
                     const expandedHalfH = (totalH * scaleFactor) / 2;
                     const safeMargin = 4;
 
                     let shiftX = 0;
-                    if (cx < expandedHalfW) {
-                        shiftX = expandedHalfW - cx + safeMargin;
-                    } else if (cx > innerWidth - expandedHalfW) {
-                        shiftX = innerWidth - expandedHalfW - safeMargin - cx;
-                    }
+                    if (cx < expandedHalfW) shiftX = expandedHalfW - cx + safeMargin;
+                    else if (cx > innerWidth - expandedHalfW) shiftX = innerWidth - expandedHalfW - safeMargin - cx;
 
                     let shiftY = 0;
-                    if (cy < expandedHalfH) {
-                        shiftY = expandedHalfH - cy + safeMargin;
-                    } else if (cy > innerHeight - expandedHalfH) {
-                        shiftY = innerHeight - expandedHalfH - safeMargin - cy;
-                    }
+                    if (cy < expandedHalfH) shiftY = expandedHalfH - cy + safeMargin;
+                    else if (cy > innerHeight - expandedHalfH) shiftY = innerHeight - expandedHalfH - safeMargin - cy;
 
                     return `translate(${shiftX}, ${shiftY}) scale(${scaleFactor})`;
                 })
                 .select('rect')
                 .style('filter', 'drop-shadow(0px 8px 12px rgba(0,0,0,0.5))');
 
-            if (onHoverRef.current && !stickyIdRef.current) {
-                onHoverRef.current(d.id);
-            }
+            if (onHoverRef.current && !stickyIdRef.current) onHoverRef.current(d.id);
         })
-        .on('mouseleave', (_, d) => {
+        .on('mouseleave', (event: MouseEvent, d) => {
+            const node = event.currentTarget as SVGGElement;
+            const d3Node = d3.select(node);
+
+            const startTime = d3Node.property('hoverStartTime') as number | undefined;
+            if (startTime) {
+                const durationMs = Math.round(performance.now() - startTime);
+                if (durationMs > 500 && onInteractRef?.current) {
+                    onInteractRef.current('item_hover_duration', { duration_ms: durationMs }, d.id);
+                }
+                d3Node.property('hoverStartTime', null);
+            }
+
             if (stickyIdRef.current === d.id) return;
 
             const relevantNodes = d3.selectAll(`.node-id-${d.id}`);
@@ -326,13 +343,13 @@ export const renderVizGrid = (
  * @param config Configuration object containing scales, dimensions, fisheye toggle, accessors, and mode.
  */
 export const attachFisheyeBehavior = <T>(
-    svg: d3.Selection<any, unknown, null, undefined>,
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
     elements: {
-        xLines?: d3.Selection<SVGLineElement, number, any, any>;
-        yLines?: d3.Selection<SVGLineElement, number, any, any>;
-        xTicks?: d3.Selection<SVGGElement, number, any, any>;
-        yTicks?: d3.Selection<SVGGElement, number, any, any>;
-        nodes: d3.Selection<SVGGElement, T, any, any>;
+        xLines?: d3.Selection<SVGLineElement, number, d3.BaseType, unknown>;
+        yLines?: d3.Selection<SVGLineElement, number, d3.BaseType, unknown>;
+        xTicks?: d3.Selection<SVGGElement, number, d3.BaseType, unknown>;
+        yTicks?: d3.Selection<SVGGElement, number, d3.BaseType, unknown>;
+        nodes: d3.Selection<SVGGElement, T, d3.BaseType, unknown>;
     },
     config: {
         scales: VizScales;
