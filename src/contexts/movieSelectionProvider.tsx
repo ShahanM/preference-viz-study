@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { MovieSelectionContext } from '../hooks/useMovieSelection';
-import type { Movie } from '../types/rssa.types';
+import type { Movie } from '@rssa-project/study-template';
 
 export const MovieSelectionProvider = <T extends Movie>({ children }: { children: ReactNode }) => {
     const [selectedMovie, setSelectedMovie] = useState<T | undefined>(undefined);

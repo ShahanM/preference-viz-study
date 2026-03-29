@@ -48,7 +48,7 @@ function useRecommendationsFetch(studyStepId: string, recommendationType?: Recom
             }
 
             if (response.response_type === 'community_comparison') {
-                Object.entries(response.items).forEach(([key, value]) => {
+                Object.entries(response.items).forEach(([, value]) => {
                     const { item, score, label, ...rest } = value as BackendCommunityScoreItem;
                     if (item && typeof item === 'object') {
                         adaptedResponse[item.id] = {

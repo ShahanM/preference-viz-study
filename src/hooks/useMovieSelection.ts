@@ -1,5 +1,5 @@
+import type { Movie } from '@rssa-project/study-template';
 import { createContext, useContext } from 'react';
-import type { Movie } from '../types/rssa.types';
 
 export interface MovieSelectionContextType<T extends Movie> {
     selectedMovie: T | undefined;
