@@ -1,5 +1,5 @@
+import { useFetchParticipant } from '@rssa-project/api';
 import { type StudyLayoutContextType, useStepCompletion } from '@rssa-project/study-template';
-import { useFetchParticipant, useStudy } from '@rssa-project/api';
 import { useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { PCallout, PSubhead, PVSpaced } from '../components/styled/Font';
@@ -32,7 +32,7 @@ const ScenarioPage: React.FC = () => {
                     is to write personal reflection notes to help you write the essay. To help you reflect on your movie
                     preferences, you will use a
                     <span className="ms-1 me-1 font-bold">“preference visualization system”</span>
-                    <span>{conditionMap[externalCode]?.scenarioText}</span>.
+                    <span>{conditionMap[externalCode!]?.scenarioText}</span>.
                 </p>
                 <PSubhead>Why should I care about understanding and developing my preferences?</PSubhead>
                 <PVSpaced>

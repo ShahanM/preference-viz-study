@@ -11,6 +11,7 @@ export const useTour = () => {
 
     const startMainTour = useCallback(
         (initialStep: number = 0) => {
+            if (externalCode === undefined) return;
             const conditionObj = conditionMap[externalCode];
             document.body.classList.add('tour-active');
             driverObj.current = driver({

@@ -1,12 +1,12 @@
+import { ApiError, ParticipantProvider, StudyProvider } from '@rssa-project/api';
+import { ErrorBoundary } from '@rssa-project/study-template';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ParticipantProvider, StudyProvider } from '@rssa-project/api';
 import App from './App.tsx';
-import { ErrorBoundary } from '@rssa-project/study-template';
 
 const RSSA_API_DEV = import.meta.env.VITE_RSSA_API_DEV;
 const RSSA_API = import.meta.env.VITE_RSSA_API;
@@ -30,11 +30,15 @@ if (import.meta.hot) {
         }
     });
 }
-
+declare module '@tanstack/react-query' {
+    interface Register {
+        defaultError: ApiError;
+    }
+}
 const api_url_base = import.meta.env.DEV ? RSSA_API_DEV : RSSA_API;
 
-const handleGlobalError = (error) => {
-    const statusCode = error?.status || error?.response?.status;
+const handleGlobalError = (error: ApiError) => {
+    const statusCode = error?.status || error?.body?.status;
     if (statusCode === 401) {
         // Broadcast a custom event to the entire browser window
         window.dispatchEvent(new Event('rssa-unauthorized'));
@@ -46,9 +50,9 @@ const queryClient = new QueryClient({
         queries: {
             staleTime: 1000 * 60 * 5, // 5 minutes
             gcTime: 1000 * 60 * 60 * 24, // 24 hours
-            retry: (failureCount, error) => {
-                const statusCode = error?.status || error?.response?.status;
-                if (statusCode === 401) return false; // Fail instantly!
+            retry: (failureCount, error: ApiError) => {
+                const statusCode = error?.status || error?.body?.status;
+                if (statusCode === 401) return false;
                 return failureCount < 3;
             },
         },
