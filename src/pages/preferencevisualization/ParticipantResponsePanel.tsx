@@ -1,18 +1,17 @@
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { useStudy } from '@rssa-project/api';
-import { useStepCompletion } from '@rssa-project/study-template';
+import { useStepCompletion, type StudyLayoutContextType } from '@rssa-project/study-template';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import Parse from 'html-react-parser';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type {
     EssayResponse,
     EssayResponseObject,
     ParticipantResponsePayload,
 } from '../../types/preferenceVisualization.types';
-import { type StudyLayoutContextType } from '@rssa-project/study-template';
 
 interface MutationResult {
     type: 'POST' | 'PATCH';
@@ -24,22 +23,22 @@ interface MutationResult {
 }
 
 const PROMPTS = {
-    familiarity: '<p>Which of the movies on the visualization are you unfamiliar with?</p>',
-    exploration: `<p>Which of the movies in the visualization may help you:
-				<ol type="a" style="margin: 0.5rem">
+    familiarity: '<p>Use your answers above to reflect upon your current movie preferences.</p>',
+    exploration: `<p>Reflect upon the movies in the visualization that may help you:
+				<ol type="a" style="margin: 0.5rem" className="list-disc">
 					<li style="margin: 0 1em 1em 1em;">
-						explore a new interest (e.g. an unfamiliar genre, or pick up a new hobby)?
+						Explore a new interest (e.g. an unfamiliar genre or topic)?
 					</li>
 					<li style="margin: 0 1em 1em 1em;">
-						widen an existing interest (e.g. an unfamiliar direction within a familiar genre)?
+						Widen an existing interest (e.g. an unfamiliar direction within a familiar genre)
 					</li>
 					<li style="margin: 0 1em 0.5em 1em;">
-						deepen an existing interest (e.g. a specialization of a familiar genre)?
+						Deepen an existing interest (e.g. a specialization of a familiar genre)
 					</li>
 				</ol>
 			</p>`,
     explanation: `<p style="font-weight: 500">
-			Use your answers above to explain the concrete steps you would take to expand your movie preferences.
+			Use your answers above to outline the concrete steps you would take to expand your movie preferences.
 		</p>`,
 };
 
@@ -66,8 +65,12 @@ const ParticipantResponsePanel = ({
         exploration: '',
         explanation: '',
     });
-
     const { setIsStepComplete } = useStepCompletion();
+
+    const startTime = useRef<number>(0);
+    useEffect(() => {
+        startTime.current = performance.now();
+    }, []);
 
     const queryClient = useQueryClient();
     const essayMutation = useMutation({
@@ -145,7 +148,8 @@ const ParticipantResponsePanel = ({
             localResponseDraft.exploration.trim() !== '' &&
             localResponseDraft.familiarity.trim() !== '' &&
             localResponseDraft.explanation.trim() !== '';
-        setIsStepComplete(allFieldsFilled);
+        const durationMs = Math.round(performance.now() - startTime.current);
+        if (durationMs > 30000) setIsStepComplete(allFieldsFilled);
     }, [localResponseDraft, setIsStepComplete]);
 
     const handleTextChange = (field: keyof EssayResponseObject, value: string) => {
@@ -169,9 +173,8 @@ const ParticipantResponsePanel = ({
         <div className="bg-slate-100 p-3 m-1 rounded-md text-left" id="participant-response-panel">
             <div className="my-3" id="response-instructions">
                 <p className="text-sm">
-                    Please use the movies recommendations on right to collect some notes for the essay that you will
-                    write in the next step of the study. To help you write the essay, here are some guiding prompts, and
-                    questions.
+                    Please use the preference visualization on the right to collect notes for your class essay. Use the
+                    boxes below to write your notes.
                 </p>
             </div>
             {essayMutation.isPending && <p>Saving...</p>}
@@ -204,12 +207,9 @@ const ParticipantResponsePanel = ({
                 </button>
             </div>
 
-            {/* Modal for Expanded View */}
             <Dialog open={expandedField !== null} onClose={() => setExpandedField(null)} className="relative z-50">
-                {/* The backdrop, rendered as a fixed sibling to the panel container */}
                 <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
-                {/* Full-screen container to center the panel */}
                 <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
                     <DialogPanel
                         className={clsx(

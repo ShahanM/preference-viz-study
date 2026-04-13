@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { BrowserRouter as Router } from 'react-router-dom';
-import { RouteWrapper, WarningDialog } from '@rssa-project/study-template';
+import { RouteWrapper, WarningDialog, SessionExpiredModal } from '@rssa-project/study-template';
 import { componentMap } from './pages/componentMap';
 import WelcomePage from './pages/WelcomePage';
 import { STRINGS } from './utils/constants';
@@ -38,6 +38,7 @@ function App() {
                     disableHide={true}
                 />
             )}
+            <SessionExpiredModal />
             <Router basename="/preference-visualization/">
                 <RouteWrapper componentMap={componentMap} WelcomePage={WelcomePage} />
             </Router>

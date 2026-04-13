@@ -19,6 +19,7 @@ import {
 } from '../../types/preferenceVisualization.types';
 import ResponsiveContainer from './ResponsiveContainer';
 import RightInfoPanel from './RightInfoPanel';
+import clsx from 'clsx';
 
 function useRecommendationsFetch(studyStepId: string, recommendationType?: RecommendationType) {
     const { studyApi } = useStudy();
@@ -195,7 +196,7 @@ const ConditionView: React.FC<ConditionViewProps> = ({
     }, [isLoading, recommendations, onDataLoaded, setSelectedMovie]);
 
     if (isLoading || !recommendations) {
-        return <LoadingScreen loading={true} message="Loading your preferences." />;
+        return <LoadingScreen loading={true} message="Loading your preferences. This can take up to 2 minutes." />;
     }
 
     return (
@@ -204,7 +205,12 @@ const ConditionView: React.FC<ConditionViewProps> = ({
                 type="button"
                 id="viz-enlarge-btn"
                 onClick={() => setIsFullScreen(true)}
-                className="absolute top-2 right-2 p-1.5 text-gray-400 bg-white/80 hover:bg-white hover:text-gray-900 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                className={clsx(
+                    'absolute top-2 right-2 p-1.5',
+                    'text-gray-900 bg-white/80 hover:bg-white hover:text-gray-900',
+                    'rounded-md shadow-sm',
+                    'opacity-0 group-hover:opacity-100 transition-all z-10 in-[.tour-active]:opacity-100'
+                )}
                 title="Enlarge visualization"
             >
                 <ArrowsPointingOutIcon className="h-5 w-5" />

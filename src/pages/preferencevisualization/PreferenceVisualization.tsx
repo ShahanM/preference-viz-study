@@ -10,10 +10,11 @@ import ParticipantResponsePanel from './ParticipantResponsePanel';
 import RightInfoPanel from './RightInfoPanel';
 import { conditionMap } from './conditionMap';
 
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import type { StudyLayoutContextType } from '@rssa-project/study-template';
 import { useConditionMapping } from '../../hooks/useConditionMapping';
 import { useTour } from '../../hooks/useTour';
-import type { StudyLayoutContextType } from '@rssa-project/study-template';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
 
 const PreferenceVisualizationContent: React.FC = () => {
     const { studyApi } = useStudy();
@@ -107,7 +108,6 @@ const PreferenceVisualizationContent: React.FC = () => {
         );
     }
 
-    // Adapter for ParticipantResponsePanel which expects { id, name }
     const conditionForPanel = {
         id: conditionId || '',
         name: conditionName || '',
@@ -126,14 +126,17 @@ const PreferenceVisualizationContent: React.FC = () => {
     };
 
     return (
-        <div className="relative">
+        <div>
             {/* Tour Button */}
             <button
                 onClick={() => startMainTour(0)}
-                className="fixed bottom-4 right-4 z-50 bg-amber-500 hover:bg-amber-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-110"
+                className={clsx(
+                    'fixed right-4 top-4 p-1 z-50 bg-amber-500 hover:bg-amber-600 text-white',
+                    'rounded-full p-1 shadow-lg transition-transform hover:scale-110'
+                )}
                 title="Start Guided Tour"
             >
-                <QuestionMarkCircleIcon className="h-6 w-6" />
+                <QuestionMarkCircleIcon className="h-5 w-5" />
             </button>
             <div className="w-full flex flex-between gap-3">
                 <div className="w-1/5">

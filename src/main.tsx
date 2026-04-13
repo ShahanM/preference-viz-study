@@ -1,5 +1,5 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React from 'react';
@@ -33,13 +33,32 @@ if (import.meta.hot) {
 
 const api_url_base = import.meta.env.DEV ? RSSA_API_DEV : RSSA_API;
 
+const handleGlobalError = (error) => {
+    const statusCode = error?.status || error?.response?.status;
+    if (statusCode === 401) {
+        // Broadcast a custom event to the entire browser window
+        window.dispatchEvent(new Event('rssa-unauthorized'));
+    }
+};
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             staleTime: 1000 * 60 * 5, // 5 minutes
             gcTime: 1000 * 60 * 60 * 24, // 24 hours
+            retry: (failureCount, error) => {
+                const statusCode = error?.status || error?.response?.status;
+                if (statusCode === 401) return false; // Fail instantly!
+                return failureCount < 3;
+            },
         },
     },
+    queryCache: new QueryCache({
+        onError: handleGlobalError,
+    }),
+    mutationCache: new MutationCache({
+        onError: handleGlobalError,
+    }),
 });
 
 const localStoragePersister = createAsyncStoragePersister({

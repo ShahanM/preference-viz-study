@@ -1,123 +1,131 @@
+import { useFetchParticipant } from '@rssa-project/api';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useCallback, useRef } from 'react';
+import { conditionMap } from '../pages/preferencevisualization/conditionMap';
 
 export const useTour = () => {
     const driverObj = useRef<ReturnType<typeof driver>>(null);
+    const { data: participant } = useFetchParticipant();
+    const externalCode = participant?.study_condition?.view_link_key;
 
-    const startMainTour = useCallback((initialStep: number = 0) => {
-        driverObj.current = driver({
-            showProgress: true,
-            animate: true,
-            onHighlightStarted: (_element, step, options) => {
-                if (step) {
-                    sessionStorage.setItem('current_tour_index', String(options.state.activeIndex));
-                }
-            },
-            onDestroyed: () => {
-                // If we reached the end naturally, clear the index
-                if (driverObj.current && !driverObj.current.hasNextStep()) {
-                    sessionStorage.removeItem('current_tour_index');
-                }
-                // If destroyed prematurely (e.g. fullscreen toggle), the index remains in storage
-            },
-            steps: [
-                {
-                    element: '#condition-view-container',
-                    popover: {
-                        title: 'Explore Your Preferences',
-                        description:
-                            'This visualization helps you explore your preferences. Hover over any movie poster to see details. Click a poster to "lock" it (sticky mode) so you can read the details without holding your mouse still. Click again or click the background to unlock.',
-                        side: 'left',
-                        align: 'start',
-                    },
+    const startMainTour = useCallback(
+        (initialStep: number = 0) => {
+            const conditionObj = conditionMap[externalCode];
+            document.body.classList.add('tour-active');
+            driverObj.current = driver({
+                showProgress: true,
+                animate: true,
+                onHighlightStarted: (_element, step, options) => {
+                    if (step) {
+                        sessionStorage.setItem('current_tour_index', String(options.state.activeIndex));
+                    }
                 },
-                {
-                    element: '#info-panel-sidebar, #info-panel-overlay',
-                    popover: {
-                        title: 'Info Panel',
-                        description:
-                            'This panel displays detailed information about the selected or hovered movie, including cast, director, and plot.',
-                        side: 'left',
-                    },
+                onDestroyed: () => {
+                    if (driverObj.current && !driverObj.current.hasNextStep()) {
+                        sessionStorage.removeItem('current_tour_index');
+                    }
+                    document.body.classList.remove('tour-active');
                 },
-                {
-                    element: '#viz-enlarge-btn',
-                    popover: {
-                        title: 'Maximize View',
-                        description: 'Click this button to expand the visualization to full screen for a better view.',
-                        side: 'left',
+                steps: [
+                    {
+                        element: '#condition-view-container',
+                        popover: {
+                            title: conditionObj.tourContent.title,
+                            description: conditionObj.tourContent.description,
+                            side: 'left',
+                            align: 'start',
+                        },
                     },
-                },
-                {
-                    element: '#participant-response-panel',
-                    popover: {
-                        title: 'Your Task',
-                        description:
-                            'This is where you will provide your feedback. Please read the instructions carefully.',
-                        side: 'right',
+                    {
+                        element: '#info-panel-sidebar, #info-panel-overlay',
+                        popover: {
+                            title: 'Info Panel',
+                            description:
+                                'This panel displays detailed information about the selected or hovered movie, including cast, director, and plot.',
+                            side: 'left',
+                        },
                     },
-                },
-                {
-                    element: '#response-group-exploration',
-                    popover: {
-                        title: 'Exploration',
-                        description: 'Use this section to note movies that might help you explore new interests.',
-                        side: 'right',
+                    {
+                        element: '#viz-enlarge-btn',
+                        popover: {
+                            title: 'Maximize View',
+                            description:
+                                'Click this button to expand the visualization to full screen for a better view.',
+                            side: 'left',
+                        },
                     },
-                },
-                {
-                    element: '#response-group-familiarity',
-                    popover: {
-                        title: 'Familiarity',
-                        description: 'Identify movies you are unfamiliar with here.',
-                        side: 'right',
+                    {
+                        element: '#participant-response-panel',
+                        popover: {
+                            title: 'Your Task',
+                            description: 'This is where you write your reflection notes.',
+                            side: 'right',
+                        },
                     },
-                },
-                {
-                    element: '#enlarge-btn-familiarity',
-                    popover: {
-                        title: 'Expand Text Area',
-                        description: 'If you need more space to write, click this button to open a larger editor.',
-                        side: 'bottom',
+                    {
+                        element: '#response-group-exploration',
+                        popover: {
+                            title: 'Exploration',
+                            description:
+                                'Use this section to write about movies that may help you explore a new interest, widen an existing interest, or deepen an existing interest.',
+                            side: 'right',
+                        },
                     },
-                },
-                {
-                    element: '#response-group-explanation',
-                    popover: {
-                        title: 'Explanation',
-                        description:
-                            'Explain the concrete steps you would take to expand your preferences based on your findings.',
-                        side: 'right',
+                    {
+                        element: '#response-group-familiarity',
+                        popover: {
+                            title: 'Familiarity',
+                            description: 'Use this section to write about movies you are unfamiliar with.',
+                            side: 'right',
+                        },
                     },
-                },
-                {
-                    element: '#save-response-btn',
-                    popover: {
-                        title: 'Save Progress',
-                        description:
-                            "Don't forget to save your drafts! The button will be enabled when you have unsaved changes.",
-                        side: 'left',
+                    {
+                        element: '#enlarge-btn-familiarity',
+                        popover: {
+                            title: 'Expand Text Area',
+                            description: 'If you need more space to write, click this button to open a larger editor.',
+                            side: 'bottom',
+                        },
                     },
-                },
-                {
-                    element: 'nav button',
-                    popover: {
-                        title: 'Proceed',
-                        description:
-                            'Once you are satisfied with your responses, click Next to proceed to the next step of the study.',
-                        side: 'top',
+                    {
+                        element: '#response-group-explanation',
+                        popover: {
+                            title: 'Explanation',
+                            description:
+                                'Explain the concrete steps you would take to expand your preferences based on your findings.',
+                            side: 'right',
+                        },
                     },
+                    {
+                        element: '#save-response-btn',
+                        popover: {
+                            title: 'Save Progress',
+                            description:
+                                "Don't forget to save your drafts! The button will be enabled when you have unsaved changes.",
+                            side: 'left',
+                        },
+                    },
+                    {
+                        element: 'nav button',
+                        popover: {
+                            title: 'Proceed',
+                            description:
+                                'Once you are satisfied with your responses, click Next to proceed to the next step of the study.',
+                            side: 'top',
+                        },
+                    },
+                ],
+                onDestroyStarted: () => {
+                    if (!driverObj.current?.hasNextStep() || confirm('Are you sure you want to exit the tour?')) {
+                        driverObj.current?.destroy();
+                    }
                 },
-            ],
-            onDestroyStarted: () => {
-                if (!driverObj.current?.hasNextStep() || confirm('Are you sure you want to exit the tour?')) {
-                    driverObj.current?.destroy();
-                }
-            },
-        });
-        driverObj.current.drive(initialStep);
-    }, []);
+            });
+            driverObj.current.drive(initialStep);
+        },
+        [externalCode]
+    );
 
     const startFullscreenTour = useCallback(() => {
         const fsDriver = driver({

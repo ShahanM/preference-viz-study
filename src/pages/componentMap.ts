@@ -1,8 +1,9 @@
-import { DemographicsPage, MovieRatingPage, SurveyPage, FeedbackPage, FinalPage } from '@rssa-project/study-template';
+import { MovieRatingPage, SurveyPage, FeedbackPage, FinalPage } from '@rssa-project/study-template';
 import InformedConsent from './ConsentPage';
 import PreferenceVisualization from './preferencevisualization/PreferenceVisualization';
 import ScenarioPage from './ScenarioPage';
 import StudyOverviewPage from './StudyOverviewPage';
+import DemographicsPage from './DemographicsPage';
 
 export const componentMap: { [key: string]: React.FC } = {
     ConsentStep: InformedConsent,
